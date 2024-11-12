@@ -16,6 +16,7 @@ import org.springframework.web.client.RestClientException;
 import edu.unh.cs.cs619.bulletzone.util.BooleanWrapper;
 import edu.unh.cs.cs619.bulletzone.util.GameEventCollectionWrapper;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
+import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
 import edu.unh.cs.cs619.bulletzone.util.ResultWrapper;
 
@@ -81,5 +82,5 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     BooleanWrapper ejectPowerUp(@Path long playableId);
 
     @Get("/{playableId}/{playableType}/life")
-    LongWrapper getLife(@Path long playableId, @Path int playableType);
+    IntWrapper getLife(@Path int playableId, @Path int playableType);
 }

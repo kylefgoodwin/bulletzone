@@ -21,6 +21,7 @@ import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
+import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TurnEvent;
@@ -69,8 +70,9 @@ public class FireCommand {
             if (nextField.isPresent()) {
                 nextField.getEntity().hit(bullet.getDamage());
 
-                if (nextField.getEntity() instanceof Tank) {
+                if (nextField.getEntity() instanceof Tank) { // Need to change this to playable?
                     Tank t = (Tank) nextField.getEntity();
+                    EventBus.getDefault().post(new HitEvent((int) t.getId(), 1));
                     System.out.println("Tank is hit, tank life: " + t.getLife());
                     if (t.getLife() <= 0) {
                         t.getParent().clearField();

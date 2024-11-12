@@ -18,6 +18,7 @@ import org.springframework.web.client.RestClientException;
 
 import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
+import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import com.google.common.base.Preconditions;
 
@@ -109,10 +110,10 @@ class GamesController {
 
     @RequestMapping(method = RequestMethod.GET, value = "{playableId}/{playableType}/life", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    ResponseEntity<LongWrapper> getLife(@PathVariable long playableId, @PathVariable int playableType)
+    ResponseEntity<IntWrapper> getLife(@PathVariable int playableId, @PathVariable int playableType)
             throws TankDoesNotExistException {
-        return new ResponseEntity<LongWrapper>(
-                new LongWrapper(gameRepository.getLife(playableId, playableType)),
+        return new ResponseEntity<IntWrapper>(
+                new IntWrapper(gameRepository.getLife(playableId, playableType)),
                 HttpStatus.OK
         );
     }

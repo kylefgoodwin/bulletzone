@@ -99,8 +99,7 @@ public class GridPollerTask {
                         EventBus.getDefault().post(new UpdateBoardEvent());
                     }
 
-//                    Log.d("LifeCheck", "Builder Life: " + PlayerData.getPlayerData().getBuilderLife() + "\n");
-//                    Log.d("LifeCheck", "Goblin Life: " + PlayerData.getPlayerData().getTankLife() + "\n");
+
 
                 } catch (Exception e) {
                     Log.e(TAG, "Error in polling", e);

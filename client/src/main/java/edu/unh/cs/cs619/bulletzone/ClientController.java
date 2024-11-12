@@ -37,12 +37,15 @@ public class ClientController {
     }
 
     @Background
-    public void getLifeAsync(long playableId) { //TODO: Need to call this after the server says there's been a hit
-        Long newLifeBuilder = restClient.getLife(playableId, 1).getResult();
-        Long newLifeTank = restClient.getLife(playableId, 2).getResult();
+    public void getLifeAsync(int playableId) {
+        int newLifeBuilder = restClient.getLife(playableId, 1).getResult();
+        int newLifeTank = restClient.getLife(playableId, 2).getResult();
 
         PlayerData.getPlayerData().setTankLife(newLifeTank);
         PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
+
+//        Log.d("LifeCheck", "Builder Life: " + PlayerData.getPlayerData().getBuilderLife() + "\n");
+//        Log.d("LifeCheck", "Goblin Life: " + PlayerData.getPlayerData().getTankLife() + "\n");
     }
 
     double getBalance(long userId) {

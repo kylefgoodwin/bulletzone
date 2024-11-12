@@ -7,9 +7,9 @@ public class PlayerData {
     private int moveInterval = 500;  // Base move interval
     private int fireInterval = 1500; // Base fire interval
     private int activePowerUps = 0; // Track number of active power-ups
-    private Long builderLife;
-    private Long tankLife;
-    private Long soldierLife;
+    private int builderLife = 100;
+    private int tankLife = 100;
+    private int soldierLife = 100;
 
     private PlayerData() {} // Private constructor for singleton
 
@@ -20,27 +20,27 @@ public class PlayerData {
         return playerData;
     }
 
-    public Long getTankLife() {
+    public int getTankLife() {
         return tankLife;
     }
 
-    public void setTankLife(Long tankLife) {
+    public void setTankLife(int tankLife) {
         this.tankLife = tankLife;
     }
 
-    public Long getSoldierLife() {
+    public int getSoldierLife() {
         return soldierLife;
     }
 
-    public void setSoldierLife(Long soldierLife) {
+    public void setSoldierLife(int soldierLife) {
         this.soldierLife = soldierLife;
     }
 
-    public Long getBuilderLife() {
+    public int getBuilderLife() {
         return builderLife;
     }
 
-    public void setBuilderLife(Long builderLife) {
+    public void setBuilderLife(int builderLife) {
         this.builderLife = builderLife;
     }
 

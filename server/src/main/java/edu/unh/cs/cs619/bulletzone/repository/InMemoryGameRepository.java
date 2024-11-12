@@ -383,7 +383,7 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     @Override
-    public Long getLife(long playableId, int playableType) throws TankDoesNotExistException {
+    public int getLife(long playableId, int playableType) throws TankDoesNotExistException {
         Playable playable;
         if (playableType == 1){
             playable = game.getTanks().get(playableId);
@@ -399,6 +399,6 @@ public class InMemoryGameRepository implements GameRepository {
             throw new TankDoesNotExistException(playableId);
         }
 
-        return (long) playable.getLife();
+        return playable.getLife();
     }
 }
