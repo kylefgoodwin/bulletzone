@@ -1,5 +1,6 @@
 package edu.unh.cs.cs619.bulletzone.rest;
 
+import android.content.ClipData;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -14,13 +15,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import edu.unh.cs.cs619.bulletzone.ClientController;
-import edu.unh.cs.cs619.bulletzone.PlayerData;
 import edu.unh.cs.cs619.bulletzone.events.GameEvent;
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.events.UpdateBoardEvent;
 import edu.unh.cs.cs619.bulletzone.util.GameEventCollectionWrapper;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
+import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
 @EBean
 public class GridPollerTask {
@@ -32,6 +33,8 @@ public class GridPollerTask {
     @Bean
     ClientController clientController;
 
+    ReplayData replayData = ReplayData.getReplayData();
+
     private long previousTimeStamp = -1;
     private boolean updateUsingEvents = false;
     private GameEventProcessor currentProcessor = null;
@@ -41,6 +44,7 @@ public class GridPollerTask {
 
     @Background(id = "grid_poller_task")
     public void doPoll(GameEventProcessor eventProcessor) {
+        replayData.initialGridToSet = restClient.playerGrid().getGrid();
         try {
             Log.d(TAG, "Starting GridPollerTask");
             currentProcessor = eventProcessor;
@@ -48,6 +52,8 @@ public class GridPollerTask {
             // Get initial grid state
             GridWrapper grid = restClient.playerGrid();
             GridWrapper tGrid = restClient.terrainGrid();
+            replayData.setInitialGrids(grid, tGrid);
+            Log.d(TAG, replayData.toString());
             onGridUpdate(grid, tGrid);
             previousTimeStamp = grid.getTimeStamp();
 
@@ -87,7 +93,7 @@ public class GridPollerTask {
                     boolean haveEvents = false;
 
                     for (GameEvent event : events.getEvents()) {
-//                        Log.d(TAG, "Processing event: " + event);
+                        Log.d(TAG, "Processing event: " + event);
                         if (currentProcessor != null && currentProcessor.isRegistered()) {
                             EventBus.getDefault().post(event);
                             previousTimeStamp = event.getTimeStamp();
@@ -98,8 +104,6 @@ public class GridPollerTask {
                     if (haveEvents) {
                         EventBus.getDefault().post(new UpdateBoardEvent());
                     }
-
-
 
                 } catch (Exception e) {
                     Log.e(TAG, "Error in polling", e);
@@ -114,6 +118,7 @@ public class GridPollerTask {
 
     public void stop() {
         Log.d(TAG, "Stopping GridPollerTask");
+        Log.d(TAG, replayData.toString());
         isRunning = false;
         currentProcessor = null;
     }

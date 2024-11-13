@@ -1,5 +1,6 @@
 package edu.unh.cs.cs619.bulletzone;
 
+import android.util.Log;
 import android.widget.GridView;
 
 import org.androidannotations.annotations.Bean;
@@ -18,9 +19,10 @@ public class SimBoardView {
 
     @Bean
     protected GridAdapter adapter;
-
     @Bean
     protected GridAdapter tAdapter;
+
+    private PlayerData playerData = PlayerData.getPlayerData();
 
     public Object gridEventHandler = new Object() {
         @Subscribe
@@ -38,6 +40,19 @@ public class SimBoardView {
         adapter.setSimBoard(simBoard);
         tAdapter.setSimBoard(simBoard);
         adapter.setTankId(tankID);
+
+        adapter.setTerrainView(false);
+        gView.setAdapter(adapter);
+
+        tAdapter.setTerrainView(true);
+        tGridView.setAdapter(tAdapter);
+        EventBus.getDefault().register(gridEventHandler);
+    }
+
+    public void replayAttach(GridView gView, GridView tGridView) {
+        adapter.setSimBoard(simBoard);
+        tAdapter.setSimBoard(simBoard);
+        adapter.setTankId(playerData.getTankId());
 
         adapter.setTerrainView(false);
         gView.setAdapter(adapter);

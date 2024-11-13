@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.EBean;
@@ -16,14 +15,11 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import edu.unh.cs.cs619.bulletzone.PlayerData;
 import edu.unh.cs.cs619.bulletzone.R;
 import edu.unh.cs.cs619.bulletzone.events.UpdateBoardEvent;
 import edu.unh.cs.cs619.bulletzone.model.BoardCell;
 import edu.unh.cs.cs619.bulletzone.model.BoardCellBlock;
 import edu.unh.cs.cs619.bulletzone.model.SimulationBoard;
-import edu.unh.cs.cs619.bulletzone.model.TankItem;
-import edu.unh.cs.cs619.bulletzone.model.TurnableGoblin;
 
 @EBean
 public class GridAdapter extends BaseAdapter {
@@ -97,6 +93,7 @@ public class GridAdapter extends BaseAdapter {
     public void handleUpdate(UpdateBoardEvent event) {
         if (simBoard != null) {
             simBoard.setUsingBoard(mEntities, terrainEntities);
+            Log.d(TAG, "Setting simboard using Board");
         } else {
             Log.e(TAG, "SimulationBoard is null in handleUpdate, creating new instance");
             simBoard = new SimulationBoard(16, 16);
@@ -175,6 +172,7 @@ public class GridAdapter extends BaseAdapter {
 
 
             if (!isTerrainView) {
+//                Log.d(TAG, "Setting Tank Cell");
                 // Handle tanks
                  if (playerCell.getCellType().equals("Tank")) {
                     int tankIdTest = (playerCell.getRawValue() / 10000) - 1000;
@@ -186,7 +184,7 @@ public class GridAdapter extends BaseAdapter {
                 } else if (playerCell.getCellType().equals("Builder")) {
                     int builderIdTest = (playerCell.getRawValue() / 10000) - 1000;
                     if (builderIdTest == this.tankId) {
-                        imageView.setImageResource(R.drawable.trans_builder);
+                        imageView.setImageResource(R.drawable.builder);
                     } else {
                         imageView.setImageResource(playerCell.getResourceID());
                     }
@@ -200,6 +198,7 @@ public class GridAdapter extends BaseAdapter {
 
                 imageView.setRotation(playerCell.getRotation());
             } else {
+//                Log.d(TAG, "Setting Terrain Cell");
 //                Log.d(TAG, "Terrain Cell: " + terrainCell.getCellType());
                 imageView.setImageResource(terrainCell.getResourceID());
 //                imageView.setVisibility(View.VISIBLE);

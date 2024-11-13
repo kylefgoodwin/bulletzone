@@ -52,7 +52,7 @@ public abstract class Playable extends FieldEntity {
     public void hit(int damage) {
         life -= damage;
         if (life <= 0) {
-            //TODO: handle game over scenario
+            //handle game over scenario
         }
     }
 

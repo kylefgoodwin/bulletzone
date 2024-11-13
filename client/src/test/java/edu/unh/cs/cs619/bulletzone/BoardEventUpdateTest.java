@@ -66,8 +66,8 @@ public class BoardEventUpdateTest {
     @Before
     public void setup() {
         initMocks(this);
-        mockedLog = mockStatic(Log.class);
-        mockedLog.when(() -> Log.d(anyString(), anyString())).thenReturn(0);
+//        mockedLog = mockStatic(Log.class);
+//        mockedLog.when(() -> Log.d(anyString(), anyString())).thenReturn(0);
 
         when(mockGV.getContext()).thenReturn(mockContext);
 
@@ -92,7 +92,7 @@ public class BoardEventUpdateTest {
 
         testEventProcessor = spy(new GameEventProcessor());
         testEventProcessor.setEventBus(mockEB);
-        testEventProcessor.setBoard(initialGrid);
+//        testEventProcessor.setBoard(initialGrid);
 
         // Mock the event handling
         doNothing().when(testEventProcessor).onNewEvent(mockSpawnEvent);
@@ -101,9 +101,9 @@ public class BoardEventUpdateTest {
     }
 
     @After
-    public void tearDown() {
-        mockedLog.close();
-    }
+//    public void tearDown() {
+//        mockedLog.close();
+//    }
 //    @Before
 //    public void setup() {
 //        initMocks(this);

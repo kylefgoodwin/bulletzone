@@ -10,17 +10,12 @@ public class BoardCell {
     protected int resourceID; /// The resource ID for the image to display
     protected int rawValue; /// The value as represented on the server
     protected int row, col; /// The location of this cell on the grid
-    protected int life;
 
     public BoardCell(int val, int r, int c) {
         rawValue = val;
         row = r;
         col = c;
         resourceID = R.drawable.blank;
-    }
-
-    public int getLife() {
-        return life;
     }
 
     public Integer getResourceID() {
