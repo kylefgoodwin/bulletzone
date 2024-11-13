@@ -1,6 +1,7 @@
 package edu.unh.cs.cs619.bulletzone;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,7 +13,12 @@ import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.NonConfigurationInstance;
 
+import java.util.ArrayList;
+
+import edu.unh.cs.cs619.bulletzone.events.Database.EventDatabaseHandler;
 import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
+import edu.unh.cs.cs619.bulletzone.util.FileHelper;
+import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
 /**
  * Made by Alec Rydeen
@@ -32,11 +38,16 @@ public class MenuActivity extends Activity {
     @Bean
     MenuController menuController;
 
+    private FileHelper fileHelper;
+
+    private ReplayData replayData = ReplayData.getReplayData();
+
     PlayerData playerData = PlayerData.getPlayerData();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        fileHelper = new FileHelper(this);
         Log.e(TAG, "onCreate");
     }
 
@@ -46,8 +57,8 @@ public class MenuActivity extends Activity {
     @AfterViews
     protected void afterViewInjection() {
         Log.d(TAG, "afterViewInjection");
-//        userId = getIntent().getLongExtra("USER_ID", -1);
         userId = playerData.getUserId();
+//        replayData.setEventDatabaseHandler(databaseHandler);
     }
 
     /**

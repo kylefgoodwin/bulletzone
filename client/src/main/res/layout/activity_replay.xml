@@ -5,32 +5,48 @@
     android:layout_width="match_parent"
              android:layout_height="match_parent">
 
-    <ListView
-        android:id="@+id/listView"
-        android:layout_width="417dp"
-        android:layout_height="442dp"
-        android:layout_marginStart="176dp"
-        android:layout_marginTop="44dp"
-        android:layout_marginEnd="175dp"
-        android:layout_marginBottom="223dp"
+    <Button
+        android:id="@+id/replay4Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="331dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="468dp"
+        android:layout_marginBottom="82dp"
+        android:text="Replay 4"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
+        app:layout_constraintHorizontal_bias="0.646"
+        app:layout_constraintStart_toEndOf="@+id/clearReplaysButton"
+        app:layout_constraintTop_toBottomOf="@+id/replay3Button" />
+
+    <Button
+        android:id="@+id/replay3Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="331dp"
+        android:layout_marginTop="23dp"
+        android:layout_marginEnd="468dp"
+        android:layout_marginBottom="20dp"
+        android:text="Replay 3"
+        app:layout_constraintBottom_toTopOf="@+id/replay4Button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.646"
+        app:layout_constraintStart_toEndOf="@+id/clearReplaysButton"
+        app:layout_constraintTop_toBottomOf="@+id/replay2Button" />
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="351dp"
-        android:layout_marginTop="160dp"
-        android:layout_marginEnd="359dp"
-        android:layout_marginBottom="44dp"
+        android:layout_marginStart="233dp"
+        android:layout_marginTop="130dp"
+        android:layout_marginEnd="265dp"
+        android:layout_marginBottom="35dp"
         android:text="Select a Replay"
         android:textSize="40sp"
-        app:layout_constraintBottom_toTopOf="@+id/listView"
+        app:layout_constraintBottom_toTopOf="@+id/replay0Button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.481"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -45,20 +61,64 @@
         android:text="Back to Menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.011"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.964" />
+
+    <Button
+        android:id="@+id/clearReplaysButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="493dp"
+        android:layout_marginBottom="347dp"
+        android:text="Clear Replay Data"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/replayTestButton"
+        android:id="@+id/replay0Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="49dp"
-        android:layout_marginTop="248dp"
-        android:layout_marginEnd="39dp"
-        android:layout_marginBottom="508dp"
-        android:text="Test"
-        app:layout_constraintBottom_toTopOf="@+id/backToMenuButton"
-        app:layout_constraintEnd_toStartOf="@+id/listView"
+        android:layout_marginStart="292dp"
+        android:layout_marginTop="35dp"
+        android:layout_marginEnd="321dp"
+        android:layout_marginBottom="12dp"
+        android:text="Replay Last Game"
+        app:layout_constraintBottom_toTopOf="@+id/replay1Button"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <Button
+        android:id="@+id/replay1Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="331dp"
+        android:layout_marginTop="25dp"
+        android:layout_marginEnd="468dp"
+        android:layout_marginBottom="19dp"
+        android:text="Replay 1"
+        app:layout_constraintBottom_toTopOf="@+id/replay2Button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.646"
+        app:layout_constraintStart_toEndOf="@+id/clearReplaysButton"
+        app:layout_constraintTop_toBottomOf="@+id/replay0Button" />
+
+    <Button
+        android:id="@+id/replay2Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="331dp"
+        android:layout_marginTop="23dp"
+        android:layout_marginEnd="468dp"
+        android:layout_marginBottom="23dp"
+        android:text="Replay 2"
+        app:layout_constraintBottom_toTopOf="@+id/replay3Button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.646"
+        app:layout_constraintStart_toEndOf="@+id/clearReplaysButton"
+        app:layout_constraintTop_toBottomOf="@+id/replay1Button" />
 </androidx.constraintlayout.widget.ConstraintLayout>

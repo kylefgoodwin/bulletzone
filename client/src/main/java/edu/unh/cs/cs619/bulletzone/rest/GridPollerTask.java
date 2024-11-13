@@ -53,7 +53,7 @@ public class GridPollerTask {
             GridWrapper grid = restClient.playerGrid();
             GridWrapper tGrid = restClient.terrainGrid();
             replayData.setInitialGrids(grid, tGrid);
-            Log.d(TAG, replayData.toString());
+//            Log.d(TAG, replayData.toString());
             onGridUpdate(grid, tGrid);
             previousTimeStamp = grid.getTimeStamp();
 
@@ -118,7 +118,7 @@ public class GridPollerTask {
 
     public void stop() {
         Log.d(TAG, "Stopping GridPollerTask");
-        Log.d(TAG, replayData.toString());
+//        Log.d(TAG, replayData.toString());
         isRunning = false;
         currentProcessor = null;
     }

@@ -27,12 +27,15 @@ import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
 import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
 import edu.unh.cs.cs619.bulletzone.util.ClientActivityShakeDriver;
+import edu.unh.cs.cs619.bulletzone.util.FileHelper;
 import edu.unh.cs.cs619.bulletzone.util.ReplayData;
+import edu.unh.cs.cs619.bulletzone.util.ReplayDataFlat;
 
 import androidx.annotation.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @EActivity(R.layout.activity_client)
 public class ClientActivity extends Activity {
@@ -103,6 +106,8 @@ public class ClientActivity extends Activity {
 
     ReplayData replayData = ReplayData.getReplayData();
 
+    FileHelper fileHelper;
+
     private long playableId = -1;
     private int playableType = 1;
     private long userId = -1;
@@ -132,6 +137,7 @@ public class ClientActivity extends Activity {
         super.onCreate(savedInstanceState);
         EventBus.getDefault().register(this);
 
+        fileHelper = new FileHelper(getApplicationContext());
         replayData.setInitialTimeStamp(System.currentTimeMillis());
 
         shakeDriver = new ClientActivityShakeDriver(this, new ClientActivityShakeDriver.OnShakeListener() {
@@ -150,6 +156,8 @@ public class ClientActivity extends Activity {
         super.onDestroy();
         Log.d(TAG, "onDestroy called");
 
+        clientController.updateReplays(getApplicationContext());
+
         gridPollTask.stop();
         BackgroundExecutor.cancelAll("grid_poller_task", true);
 
@@ -166,6 +174,7 @@ public class ClientActivity extends Activity {
         Log.d(TAG, "afterViewInjection called");
         userId = playerData.getUserId();
         playableId = playerData.getTankId();
+        replayData.setPlayerTankID(playableId);
         if (userId != -1) {
             userIdTextView.setText("User ID: " + userId);
             fetchAndUpdateBalance();

@@ -2,13 +2,17 @@ package edu.unh.cs.cs619.bulletzone.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class MoveEvent extends GameEvent {
+import java.io.Serializable;
+
+public class MoveEvent extends GameEvent implements Serializable {
     @JsonProperty
     private int rawServerValue;
     @JsonProperty
     private int oldPosition;
     @JsonProperty
     private int newPosition;
+
+    private static final long serialVersionUID = 1L;
 
     public MoveEvent() {}
 

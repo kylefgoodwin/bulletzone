@@ -1,17 +1,23 @@
 package edu.unh.cs.cs619.bulletzone;
 
+import android.content.Context;
 import android.util.Log;
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.rest.spring.annotations.RestService;
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
 import edu.unh.cs.cs619.bulletzone.rest.BulletZoneRestClient;
 import edu.unh.cs.cs619.bulletzone.util.BooleanWrapper;
+import edu.unh.cs.cs619.bulletzone.util.FileHelper;
+import edu.unh.cs.cs619.bulletzone.util.ReplayData;
+import edu.unh.cs.cs619.bulletzone.util.ReplayDataFlat;
 
 /**
  * Made by Alec Rydeen
@@ -23,6 +29,8 @@ public class ClientController {
 
     @RestService
     BulletZoneRestClient restClient;
+
+    private ReplayData replayData = ReplayData.getReplayData();
 
     public ClientController() {}
 
@@ -57,6 +65,42 @@ public class ClientController {
                 }
             } catch (Exception e) {
                 Log.e("ClientController", "Error handling item pickup", e);
+            }
+        }
+    }
+
+    public void updateReplays(Context context) {
+        FileHelper fileHelper = new FileHelper(context);
+
+        List<ReplayDataFlat> replayDataList = new ArrayList<>();
+
+        if (!fileHelper.replayFileExists("Replays")) {
+            fileHelper.saveReplayList(
+                    "Replays", List.of(replayData.turnToFlat()));
+        } else {
+            replayDataList = fileHelper.loadReplayList("Replays");
+            if (replayDataList.size() == 5 || replayDataList.size() == 4) {
+                fileHelper.saveReplayList("Replays", List.of(
+                        replayData.turnToFlat(),
+                        replayDataList.get(0),
+                        replayDataList.get(1),
+                        replayDataList.get(2),
+                        replayDataList.get(3)));
+            } else if (replayDataList.size() == 3) {
+                fileHelper.saveReplayList("Replays", List.of(
+                        replayData.turnToFlat(),
+                        replayDataList.get(0),
+                        replayDataList.get(1),
+                        replayDataList.get(2)));
+            } else if (replayDataList.size() == 2) {
+                fileHelper.saveReplayList("Replays", List.of(
+                        replayData.turnToFlat(),
+                        replayDataList.get(0),
+                        replayDataList.get(1)));
+            } else if (replayDataList.size() == 1) {
+                fileHelper.saveReplayList("Replays", List.of(
+                        replayData.turnToFlat(),
+                        replayDataList.get(0)));
             }
         }
     }

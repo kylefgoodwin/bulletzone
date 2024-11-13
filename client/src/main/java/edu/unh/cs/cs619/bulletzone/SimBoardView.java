@@ -12,6 +12,7 @@ import edu.unh.cs.cs619.bulletzone.model.SimulationBoard;
 import edu.unh.cs.cs619.bulletzone.rest.GridUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.ui.GridAdapter;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
+import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
 @EBean
 public class SimBoardView {
@@ -23,6 +24,7 @@ public class SimBoardView {
     protected GridAdapter tAdapter;
 
     private PlayerData playerData = PlayerData.getPlayerData();
+    private ReplayData replayData = ReplayData.getReplayData();
 
     public Object gridEventHandler = new Object() {
         @Subscribe
@@ -52,7 +54,7 @@ public class SimBoardView {
     public void replayAttach(GridView gView, GridView tGridView) {
         adapter.setSimBoard(simBoard);
         tAdapter.setSimBoard(simBoard);
-        adapter.setTankId(playerData.getTankId());
+        adapter.setTankId(replayData.getPlayerTankID());
 
         adapter.setTerrainView(false);
         gView.setAdapter(adapter);
