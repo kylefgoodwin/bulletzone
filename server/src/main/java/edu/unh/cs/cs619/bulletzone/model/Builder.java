@@ -6,6 +6,10 @@ package edu.unh.cs.cs619.bulletzone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.greenrobot.eventbus.EventBus;
+
+import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
+
 public class Builder extends Playable {
 
     private static final String TAG = "Builder";
@@ -33,6 +37,16 @@ public class Builder extends Playable {
     @Override
     public FieldEntity copy(){
         return new Builder(id, direction, ip);
+    }
+
+    @Override
+    public void hit(int damage) {
+        life -= damage;
+        if (life <= 0) {
+            //handle game over scenario
+        }
+        System.out.println("Builder id: " + id + " Builder Life: " + life);
+        EventBus.getDefault().post(new HitEvent((int) id, 1));
     }
 
     @JsonIgnore

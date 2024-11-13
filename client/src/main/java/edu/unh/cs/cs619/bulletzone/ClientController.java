@@ -44,6 +44,20 @@ public class ClientController {
         restClient.setRestErrorHandler(bzRestErrorhandler);
     }
 
+    @Background
+    public void getLifeAsync(int playableId) {
+        int newLifeBuilder = restClient.getLife(playableId, 2).getResult();
+        int newLifeTank = restClient.getLife(playableId, 1).getResult();
+
+//        Log.d("getLifeAsync", "Tank Life from Server: " + newLifeTank);
+
+        PlayerData.getPlayerData().setTankLife(newLifeTank);
+        PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
+
+//        Log.d("LifeCheck", "Builder Life: " + PlayerData.getPlayerData().getBuilderLife() + "\n");
+//        Log.d("LifeCheck", "Goblin Life: " + PlayerData.getPlayerData().getTankLife() + "\n");
+    }
+
     double getBalance(long userId) {
         return restClient.getBalance(userId);
     }
@@ -103,5 +117,10 @@ public class ClientController {
                         replayDataList.get(0)));
             }
         }
+    }
+
+    @Background
+    public void ejectPowerUpAsync(long tankId) {
+        restClient.ejectPowerUp(tankId);
     }
 }

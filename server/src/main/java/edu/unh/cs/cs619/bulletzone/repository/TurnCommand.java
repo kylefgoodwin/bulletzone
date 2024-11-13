@@ -52,14 +52,14 @@ public class TurnCommand implements Command {
             playable = game.getBuilders().get(playableId);
         } else {
             //code to get soldier (do we want a soldier list too?
-            playable = null;
+            playable = game.getSoldiers().get(playableId);
         }
         if (playable == null) {
             //Log.i(TAG, "Cannot find user with id: " + tankId);
             //return false;
             throw new TankDoesNotExistException(playableId);
         }
-        if (millis < playable.getLastFireTime()) {
+        if (millis < playable.getLastMoveTime()) {
             return false;
         }
         FieldHolder currentField = playable.getParent();

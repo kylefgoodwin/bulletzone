@@ -12,4 +12,17 @@
     <string name="leave">LEAVE</string>
     <string name="title_activity_my">MyActivity</string>
 
+    <!-- New strings for Unit and Material Controls -->
+    <string name="unit_controls_label">Units</string>
+    <string name="material_controls_label">Materials</string>
+    <string name="tank">Tank</string>
+    <string name="builder">Builder</string>
+    <string name="indestructible_wall">Indestructible Wall</string>
+    <string name="destructible_wall">Destructible Wall</string>
+    <string name="facility">facility</string>
+    <string name="units">Units</string>
+    <string name="materials">Materials</string>
+    <string name="build_or_dismantle">Build or Dismantle</string>
+    <string name="factory">Factory</string>
+
 </resources>

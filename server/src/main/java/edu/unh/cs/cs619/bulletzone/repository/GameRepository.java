@@ -25,8 +25,17 @@ public interface GameRepository {
     boolean fire(long playableId, int playableType, int strength)
             throws TankDoesNotExistException, LimitExceededException;
 
+    boolean build(long playableId, int playableType, String entity)
+            throws TankDoesNotExistException, LimitExceededException;
+
+    boolean deploy(long playableId, int playableType, Direction direction)
+            throws TankDoesNotExistException, IllegalTransitionException, LimitExceededException;
+
     boolean ejectPowerUp(long playableId)
             throws TankDoesNotExistException;
+
+    int getLife(long playableId, int playableType)
+        throws TankDoesNotExistException;
 
     public void leave(long playableId)
             throws TankDoesNotExistException;

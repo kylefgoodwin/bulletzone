@@ -24,6 +24,8 @@ public final class Game {
     private final ConcurrentMap<String, Long> playersIP = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, Builder> builders = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Long> playersIPBuilders = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, Soldier> soldiers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Long> playersIPSoldiers = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, Double> playerCredits = new ConcurrentHashMap<>();
 
     public Game() {
@@ -59,6 +61,13 @@ public final class Game {
         EventBus.getDefault().post(new SpawnEvent(tank.getIntValue(), tank.getPosition()));
     }
 
+    public void addSoldier(String ip, Soldier soldier) {
+        synchronized (soldiers) {
+            soldiers.put(soldier.getId(), soldier);
+            playersIPSoldiers.put(ip, soldier.getId());
+        }
+    }
+
     public void addCredits(long tankId, double amount) {
         playerCredits.compute(tankId, (key, oldValue) ->
                 (oldValue == null ? 0 : oldValue) + amount);
@@ -74,6 +83,30 @@ public final class Game {
 
     public ConcurrentMap<Long, Tank> getTanks() {
         return tanks;
+    }
+
+    public Soldier getSoldier(long soldierId) {
+        return soldiers.get(soldierId);
+    }
+
+    public Soldier getSoldier(String ip) {
+        if (playersIPSoldiers.containsKey(ip)) {
+            return soldiers.get(playersIPSoldiers.get(ip));
+        }
+        return null;
+    }
+
+    public ConcurrentMap<Long, Soldier> getSoldiers() {
+        return soldiers;
+    }
+
+    public void removeSoldier(long soldierId) {
+        synchronized (soldiers) {
+            Soldier soldier = soldiers.remove(soldierId);
+            if (soldier != null) {
+                playersIPSoldiers.remove(soldier.getIp());
+            }
+        }
     }
 
     public List<Optional<FieldEntity>> getGrid() {

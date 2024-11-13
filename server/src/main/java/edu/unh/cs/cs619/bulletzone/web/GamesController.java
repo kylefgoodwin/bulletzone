@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 
 import edu.unh.cs.cs619.bulletzone.model.Builder;
+import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
+import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
+import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import com.google.common.base.Preconditions;
 
@@ -87,6 +90,26 @@ class GamesController {
         );
     }
 
+    @RequestMapping(method = RequestMethod.PUT, value = "{builderId}/build/{entity}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    ResponseEntity<BooleanWrapper> build(@PathVariable long playableId, @PathVariable int playableType, @PathVariable String entity)
+            throws TankDoesNotExistException, LimitExceededException {
+        return new ResponseEntity<BooleanWrapper>(
+                new BooleanWrapper(gameRepository.build(playableId, playableType, entity)),
+                HttpStatus.OK
+        );
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/deploy/{direction}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    ResponseEntity<BooleanWrapper> deploy(@PathVariable long playableId, @PathVariable int playableType, @PathVariable byte direction)
+            throws TankDoesNotExistException, LimitExceededException, IllegalTransitionException {
+        return new ResponseEntity<BooleanWrapper>(
+                new BooleanWrapper(gameRepository.deploy(playableId, playableType, Direction.fromByte(direction))),
+                HttpStatus.OK
+        );
+    }
+
     @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/fire", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     ResponseEntity<BooleanWrapper> fire(@PathVariable long playableId, @PathVariable int playableType)
@@ -103,6 +126,16 @@ class GamesController {
             throws TankDoesNotExistException, LimitExceededException {
         return new ResponseEntity<BooleanWrapper>(
                 new BooleanWrapper(gameRepository.fire(playableId, playableType, bulletType)),
+                HttpStatus.OK
+        );
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "{playableId}/{playableType}/life", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    ResponseEntity<IntWrapper> getLife(@PathVariable int playableId, @PathVariable int playableType)
+            throws TankDoesNotExistException {
+        return new ResponseEntity<IntWrapper>(
+                new IntWrapper(gameRepository.getLife(playableId, playableType)),
                 HttpStatus.OK
         );
     }

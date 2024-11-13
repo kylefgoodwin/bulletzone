@@ -16,6 +16,7 @@ import org.springframework.web.client.RestClientException;
 import edu.unh.cs.cs619.bulletzone.util.BooleanWrapper;
 import edu.unh.cs.cs619.bulletzone.util.GameEventCollectionWrapper;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
+import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
 import edu.unh.cs.cs619.bulletzone.util.ResultWrapper;
 
@@ -25,9 +26,9 @@ import edu.unh.cs.cs619.bulletzone.util.ResultWrapper;
  * Created by simon on 10/1/14.
  */
 
-@Rest(rootUrl = "http://10.0.2.2:8080/games",
+@Rest(rootUrl = "http://10.0.2.2:61922/games",
 //@Rest(rootUrl = "http://stman1.cs.unh.edu:6192/games",
-//@Rest(rootUrl = "http://stman1.cs.unh.edu:61902/games",
+//@Rest(rootUrl = "http://stman1.cs.unh.edu:61912/games",
         converters = {StringHttpMessageConverter.class, MappingJackson2HttpMessageConverter.class}
         // TODO: disable intercepting and logging
         // , interceptors = { HttpLoggerInterceptor.class }
@@ -79,4 +80,7 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
 
     @Put("/{playableId}/eject")
     BooleanWrapper ejectPowerUp(@Path long playableId);
+
+    @Get("/{playableId}/{playableType}/life")
+    IntWrapper getLife(@Path int playableId, @Path int playableType);
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/LinearLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -161,21 +162,84 @@
                 android:text="Leave" />
         </LinearLayout>
 
-        <!-- Fire Button -->
-        <Button
-            android:id="@+id/buttonFire"
+        <!-- Health Bars -->
+        <com.skydoves.progressview.ProgressView
+            android:id="@+id/tankHealthBar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="FIRE" />
+            android:layout_height="30dp"
+            app:progressView_colorBackground="@color/silver"
+            app:progressView_colorProgress="@color/red"
+            app:progressView_labelColorInner="@color/green"
+            app:progressView_labelColorOuter="@color/red"
+            app:progressView_labelSize="13sp"
+            app:progressView_labelSpace="10dp"
+            app:progressView_labelText="Tank Health"
+            app:progressView_labelTypeface="bold"
+            app:progressView_max="100"
+            app:progressView_padding="1dp"
+            app:progressView_progress="100"
+            app:progressView_progressFromPrevious="true"
+            app:progressView_radius="12dp" />
+
+        <com.skydoves.progressview.ProgressView
+            android:id="@+id/builderHealthBar"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            app:progressView_colorBackground="@color/yellow"
+            app:progressView_colorProgress="@color/red"
+            app:progressView_labelColorInner="@color/green"
+            app:progressView_labelColorOuter="@color/red"
+            app:progressView_labelSize="13sp"
+            app:progressView_labelSpace="10dp"
+            app:progressView_labelText="Builder Health"
+            app:progressView_labelTypeface="bold"
+            app:progressView_max="80"
+            app:progressView_padding="1dp"
+            app:progressView_progress="100"
+            app:progressView_progressFromPrevious="true"
+            app:progressView_radius="12dp" />
 
         <!-- Movement Controls -->
+
+        <!-- Eject Power-up Button -->
+
+        <!-- Status Messages -->
+
+        <TextView
+            android:id="@+id/statusTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="#FF0000"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:id="@+id/eventBusStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#FF0000"
+            android:layout_gravity="center"/>
+
+        <Spinner
+            android:id="@+id/selectPlayable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/buttonEject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:text="Eject Power-up" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:layout_marginTop="16dp"
             android:gravity="center_horizontal"
-            android:layout_marginTop="16dp">
+            android:orientation="vertical">
 
             <Button
                 android:id="@+id/buttonUp"
@@ -198,9 +262,9 @@
                     android:id="@+id/buttonDown"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/down"
                     android:layout_marginLeft="8dp"
-                    android:layout_marginRight="8dp" />
+                    android:layout_marginRight="8dp"
+                    android:text="@string/down" />
 
                 <Button
                     android:id="@+id/buttonRight"
@@ -208,38 +272,128 @@
                     android:layout_height="wrap_content"
                     android:text="@string/right" />
             </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="16dp">
+
+            <!-- Toggle Button for Units -->
+            <Button
+                android:id="@+id/buttonUnits"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/units" />
+
+            <!-- Unit Group: Initially Hidden -->
+            <LinearLayout
+                android:id="@+id/unitGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/unit_controls_label"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp"/>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/buttonTank"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tank"
+                        android:layout_marginRight="8dp" />
+
+                    <Button
+                        android:id="@+id/buttonBuilder"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/builder" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Toggle Button for Materials -->
+            <Button
+                android:id="@+id/buttonMaterials"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/materials"
+                android:layout_marginTop="16dp" />
+
+            <!-- Material Group: Initially Hidden -->
+            <LinearLayout
+                android:id="@+id/materialGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/material_controls_label"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp"/>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/buttonIndWall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/indestructible_wall"
+                        android:layout_marginRight="8dp" />
+
+                    <Button
+                        android:id="@+id/buttonDesWall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/destructible_wall"
+                        android:layout_marginRight="8dp" />
+
+                    <Button
+                        android:id="@+id/buttonFacility"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/factory" />
+                </LinearLayout>
+
+                <!-- Build or Dismantle Button -->
+                <Button
+                    android:id="@+id/buttonBuildOrDismantle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/build_or_dismantle"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Eject Power-up Button -->
         <Button
-            android:id="@+id/buttonEject"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Eject Power-up"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp"/>
-
-        <!-- Status Messages -->
-        <TextView
-            android:id="@+id/statusTextView"
-            android:layout_width="wrap_content"
+            android:id="@+id/buttonFire"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:textColor="#FF0000"
-            android:layout_gravity="center"/>
-
-        <TextView
-            android:id="@+id/eventBusStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="#FF0000"
-            android:layout_gravity="center"/>
-
-        <Spinner
-            android:id="@+id/selectPlayable"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:text="FIRE" />
 
     </LinearLayout>
 </LinearLayout>
