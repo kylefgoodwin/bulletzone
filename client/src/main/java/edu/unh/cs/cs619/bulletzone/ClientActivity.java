@@ -53,6 +53,9 @@ public class ClientActivity extends Activity {
     protected ProgressView tankHealthBar;
 
     @ViewById
+    protected ProgressView builderHealthBar;
+
+    @ViewById
     protected GridView gridView;
 
     @ViewById
@@ -103,9 +106,6 @@ public class ClientActivity extends Activity {
 
     @Bean
     SimBoardView simBoardView;
-
-    @Bean
-    PowerUpController powerUpController;
 
     ClientActivityShakeDriver shakeDriver;
 
@@ -327,7 +327,7 @@ public class ClientActivity extends Activity {
 
     @Click(R.id.buttonEject)
     protected void onButtonEject() {
-        powerUpController.ejectPowerUpAsync(playableId);
+        clientController.ejectPowerUpAsync(playableId);
     }
 
     @UiThread
@@ -428,6 +428,7 @@ public class ClientActivity extends Activity {
             sleep(100);
 //            Log.d("onHitEvent", "tank life: " + playerData.getTankLife());
             tankHealthBar.setProgress(playerData.getTankLife());
+            builderHealthBar.setProgress(playerData.getBuilderLife());
         }
     }
 

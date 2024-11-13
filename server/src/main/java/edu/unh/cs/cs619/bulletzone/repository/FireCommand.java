@@ -72,7 +72,6 @@ public class FireCommand {
 
                 if (nextField.getEntity() instanceof Tank) { // Need to change this to playable?
                     Tank t = (Tank) nextField.getEntity();
-                    EventBus.getDefault().post(new HitEvent((int) t.getId(), 1));
                     System.out.println("Tank is hit, tank life: " + t.getLife());
                     if (t.getLife() <= 0) {
                         t.getParent().clearField();

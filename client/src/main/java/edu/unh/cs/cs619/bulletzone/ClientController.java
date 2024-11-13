@@ -38,8 +38,10 @@ public class ClientController {
 
     @Background
     public void getLifeAsync(int playableId) {
-        int newLifeBuilder = restClient.getLife(playableId, 1).getResult();
-        int newLifeTank = restClient.getLife(playableId, 2).getResult();
+        int newLifeBuilder = restClient.getLife(playableId, 2).getResult();
+        int newLifeTank = restClient.getLife(playableId, 1).getResult();
+
+//        Log.d("getLifeAsync", "Tank Life from Server: " + newLifeTank);
 
         PlayerData.getPlayerData().setTankLife(newLifeTank);
         PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
@@ -71,5 +73,10 @@ public class ClientController {
                 Log.e("ClientController", "Error handling item pickup", e);
             }
         }
+    }
+
+    @Background
+    public void ejectPowerUpAsync(long tankId) {
+        restClient.ejectPowerUp(tankId);
     }
 }

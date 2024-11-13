@@ -385,6 +385,8 @@ public class InMemoryGameRepository implements GameRepository {
         Playable playable;
         if (playableType == 1){
             playable = game.getTanks().get(playableId);
+//            System.out.println(playableId);
+//            System.out.println(playable.getLife());
         } else if (playableType == 2){
             playable = game.getBuilders().get(playableId);
         } else {

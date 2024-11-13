@@ -162,20 +162,38 @@
                 android:text="Leave" />
         </LinearLayout>
 
-        <!-- Fire Button -->
+        <!-- Health Bars -->
         <com.skydoves.progressview.ProgressView
             android:id="@+id/tankHealthBar"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             app:progressView_colorBackground="@color/silver"
             app:progressView_colorProgress="@color/red"
-            app:progressView_labelColorInner="@color/black"
-            app:progressView_labelColorOuter="@color/green"
+            app:progressView_labelColorInner="@color/green"
+            app:progressView_labelColorOuter="@color/red"
             app:progressView_labelSize="13sp"
             app:progressView_labelSpace="10dp"
             app:progressView_labelText="Tank Health"
             app:progressView_labelTypeface="bold"
             app:progressView_max="100"
+            app:progressView_padding="1dp"
+            app:progressView_progress="100"
+            app:progressView_progressFromPrevious="true"
+            app:progressView_radius="12dp" />
+
+        <com.skydoves.progressview.ProgressView
+            android:id="@+id/builderHealthBar"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            app:progressView_colorBackground="@color/yellow"
+            app:progressView_colorProgress="@color/red"
+            app:progressView_labelColorInner="@color/green"
+            app:progressView_labelColorOuter="@color/red"
+            app:progressView_labelSize="13sp"
+            app:progressView_labelSpace="10dp"
+            app:progressView_labelText="Builder Health"
+            app:progressView_labelTypeface="bold"
+            app:progressView_max="80"
             app:progressView_padding="1dp"
             app:progressView_progress="100"
             app:progressView_progressFromPrevious="true"
@@ -263,15 +281,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="FIRE" />
-
-        <!--        <ProgressBar-->
-<!--            android:id="@+id/tankHealthBar"-->
-<!--            style="?android:attr/progressBarStyleHorizontal"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="28dp"-->
-<!--            android:max="100"-->
-<!--            android:progress="100"-->
-<!--            android:padding="5dp"/>-->
 
     </LinearLayout>
 </LinearLayout>
