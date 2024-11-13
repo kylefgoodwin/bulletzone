@@ -20,6 +20,7 @@ import edu.unh.cs.cs619.bulletzone.model.Improvement;
 import edu.unh.cs.cs619.bulletzone.model.Item;
 import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
+import edu.unh.cs.cs619.bulletzone.model.Soldier;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
@@ -71,7 +72,7 @@ public class MoveCommand implements Command {
             playable = game.getBuilders().get(playableId);
         } else {
             //code to get soldier (do we want a soldier list too?
-            playable = null;
+            playable = game.getSoldiers().get(playableId);
         }
         if (millis < playable.getLastMoveTime()) {
             return false;
@@ -145,6 +146,22 @@ public class MoveCommand implements Command {
         // Handle tank collisions
         else if (nextField.getEntity().isPlayable()) {
             playable.setDirection(direction);
+            return false;
+        }
+        // Soldier re-entry
+        else if (nextField.getEntity() instanceof Tank && playableType == 3) {
+            playable.setDirection(direction);
+            // Create and eject the soldier
+            Tank tank = new Tank(playableId, direction, playable.getIp());
+            game.addTank(playable.getIp(), tank);
+            game.removeSoldier(playableId);
+
+            // Place the soldier on the grid
+            int oldPos = playable.getPosition();
+            currentField.clearField();
+            nextField.setFieldEntity(tank);
+            tank.setParent(nextField);
+            int newPos = tank.getPosition();
             return false;
         }
 
