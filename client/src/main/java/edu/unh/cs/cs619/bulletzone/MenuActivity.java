@@ -10,9 +10,6 @@ import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
-import org.androidannotations.annotations.NonConfigurationInstance;
-
-import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
 
 /**
  * Made by Alec Rydeen

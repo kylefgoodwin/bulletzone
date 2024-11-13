@@ -1,14 +1,13 @@
 package edu.unh.cs.cs619.bulletzone.datalayer;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 import org.junit.Test;
 
 import java.util.Map;
 
 import edu.unh.cs.cs619.bulletzone.datalayer.permission.Permission;
-
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
 
 public class PermissionTest {
 

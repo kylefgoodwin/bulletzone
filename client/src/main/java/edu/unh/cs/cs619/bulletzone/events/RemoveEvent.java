@@ -8,9 +8,11 @@ public class RemoveEvent extends GameEvent {
     @JsonProperty
     private int position;
 
-    public RemoveEvent() {}
+    public RemoveEvent() {
+    }
 
-    void applyTo(int [][]board) {
+    @Override
+    public void applyTo(int[][] board) {
         board[position / 16][position % 16] = 0;
     }
 
@@ -20,5 +22,4 @@ public class RemoveEvent extends GameEvent {
                 " at " + position +
                 super.toString();
     }
-
 }

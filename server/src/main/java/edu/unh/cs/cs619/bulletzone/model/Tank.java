@@ -2,10 +2,6 @@ package edu.unh.cs.cs619.bulletzone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import org.greenrobot.eventbus.EventBus;
-
-import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
-
 public class Tank extends Playable {
     private static final String TAG = "Tank";
 

@@ -8,8 +8,6 @@ package edu.unh.cs.cs619.bulletzone.model;
 
 import org.greenrobot.eventbus.EventBus;
 
-import javax.management.ListenerNotFoundException;
-
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 public abstract class Playable extends FieldEntity {

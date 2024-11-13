@@ -1,18 +1,11 @@
 package edu.unh.cs.cs619.bulletzone.util;
 
-import static android.content.Context.SENSOR_SERVICE;
-import static androidx.core.content.ContextCompat.getSystemService;
-
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
-
-import org.androidannotations.annotations.EBean;
-
-import edu.unh.cs.cs619.bulletzone.ClientActivity;
 
 /**
  * Implements a shake listener and determines what to do after a certain acceleration on a device.

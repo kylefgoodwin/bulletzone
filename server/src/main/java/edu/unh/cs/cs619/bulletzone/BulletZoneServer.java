@@ -17,7 +17,7 @@
 package edu.unh.cs.cs619.bulletzone;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.*;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class BulletZoneServer {

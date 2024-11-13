@@ -7,11 +7,7 @@ import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.UiThread;
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import edu.unh.cs.cs619.bulletzone.events.GameEvent;
-import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.events.ReplayEventProcessor;
 import edu.unh.cs.cs619.bulletzone.events.UpdateBoardEvent;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;

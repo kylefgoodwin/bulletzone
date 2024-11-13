@@ -2,15 +2,10 @@ package edu.unh.cs.cs619.bulletzone.repository;
 
 import org.springframework.stereotype.Component;
 
-import java.awt.Point;
-import java.util.HashMap;
-
 import edu.unh.cs.cs619.bulletzone.datalayer.terrain.TerrainType;
 import edu.unh.cs.cs619.bulletzone.model.Game;
-//import edu.unh.cs.cs619.bulletzone.model.GameBoard;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
-import jdk.jfr.Category;
 
 @Component()
 public class GameBoardBuilder {

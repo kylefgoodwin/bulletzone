@@ -18,7 +18,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 import edu.unh.cs.cs619.bulletzone.datalayer.BulletZoneData;
-import edu.unh.cs.cs619.bulletzone.datalayer.core.Entity;
 import edu.unh.cs.cs619.bulletzone.datalayer.core.EntityRepository;
 import edu.unh.cs.cs619.bulletzone.datalayer.core.EntityType;
 import edu.unh.cs.cs619.bulletzone.datalayer.core.Status;

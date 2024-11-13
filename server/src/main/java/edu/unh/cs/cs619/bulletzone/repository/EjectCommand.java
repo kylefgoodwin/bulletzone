@@ -1,14 +1,11 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
-import org.greenrobot.eventbus.EventBus;
-
 import edu.unh.cs.cs619.bulletzone.model.Direction;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.Soldier;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
-import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 
 public class EjectCommand implements Command {
     Game game;

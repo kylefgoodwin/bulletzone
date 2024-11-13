@@ -16,6 +16,11 @@ public class SpawnEvent extends GameEvent {
     }
 
     @Override
+    public void applyTo(int[][] board) {
+        board[position / 16][position % 16] = rawServerValue;
+    }
+
+    @Override
     public String toString() {
         return "Spawn " + rawServerValue +
                 " at " + position +
