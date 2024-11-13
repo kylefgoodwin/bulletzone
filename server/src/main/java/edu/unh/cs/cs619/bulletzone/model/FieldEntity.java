@@ -26,6 +26,26 @@ public abstract class FieldEntity {
     public void hit(int damage) {
     }
 
+    public boolean isWall(){
+        return getIntValue() >= 1000 && getIntValue() <= 2000;
+    }
+
+    public boolean isTankItem(){
+        return getIntValue() >= 2000000 && getIntValue() < 3000000;
+    }
+
+    public boolean isTerrain(){
+        return getIntValue() >= 4000 && getIntValue() <= 4003;
+    }
+
+    public boolean isItem(){
+        return getIntValue() >= 3001 && getIntValue() <= 3003;
+    }
+
+    public boolean isPlayable(){
+        return getIntValue() >= 10000000;
+    }
+
     /*public static final void registerEventBusListener(Object listener) {
         checkNotNull(listener);
         eventBus.register(listener);
