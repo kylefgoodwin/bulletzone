@@ -34,6 +34,9 @@ public interface GameRepository {
     boolean ejectPowerUp(long playableId)
             throws TankDoesNotExistException;
 
+    int getLife(long playableId, int playableType)
+        throws TankDoesNotExistException;
+
     public void leave(long playableId)
             throws TankDoesNotExistException;
 }

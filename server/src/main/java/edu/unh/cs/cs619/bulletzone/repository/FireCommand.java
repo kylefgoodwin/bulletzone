@@ -22,6 +22,7 @@ import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
+import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TurnEvent;

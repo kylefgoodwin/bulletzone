@@ -20,6 +20,7 @@ import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
+import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import com.google.common.base.Preconditions;
 
@@ -125,6 +126,16 @@ class GamesController {
             throws TankDoesNotExistException, LimitExceededException {
         return new ResponseEntity<BooleanWrapper>(
                 new BooleanWrapper(gameRepository.fire(playableId, playableType, bulletType)),
+                HttpStatus.OK
+        );
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "{playableId}/{playableType}/life", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    ResponseEntity<IntWrapper> getLife(@PathVariable int playableId, @PathVariable int playableType)
+            throws TankDoesNotExistException {
+        return new ResponseEntity<IntWrapper>(
+                new IntWrapper(gameRepository.getLife(playableId, playableType)),
                 HttpStatus.OK
         );
     }
