@@ -18,6 +18,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import edu.unh.cs.cs619.bulletzone.R;
 import edu.unh.cs.cs619.bulletzone.events.UpdateBoardEvent;
 import edu.unh.cs.cs619.bulletzone.model.BoardCell;
+import edu.unh.cs.cs619.bulletzone.model.BoardCellBlock;
 import edu.unh.cs.cs619.bulletzone.model.SimulationBoard;
 
 @EBean
@@ -30,9 +31,11 @@ public class GridAdapter extends BaseAdapter {
     protected LayoutInflater inflater;
 
     private int[][] mEntities = new int[16][16];
+    private int[][] terrainEntities = new int[16][16];
     private SimulationBoard simBoard;
     public boolean isUpdated = false;
     private long tankId = -1;
+    private boolean isTerrainView = false;
     private long builderId = -1;
 
     @AfterInject
@@ -43,12 +46,16 @@ public class GridAdapter extends BaseAdapter {
         //Log.d(TAG, "GridAdapter initialized with new SimulationBoard");
     }
 
+    public void setTerrainView(boolean isTerrainView) {
+        this.isTerrainView = isTerrainView;
+    }
+
     /**
      * Updates the entities array of new input after events have changed it from the server
      *
      * @param entities Game board array
      */
-    public void updateList(int[][] entities) {
+    public void updateList(int[][] entities, int[][] tEntities) {
         synchronized (monitor) {
             // Add debug logging
             boolean foundPowerUp = false;
@@ -65,13 +72,13 @@ public class GridAdapter extends BaseAdapter {
             }
 
             this.mEntities = entities;
+            this.terrainEntities = tEntities;
             if (simBoard != null) {
-                simBoard.setUsingBoard(mEntities);
-                simBoard.setUsingBoard(mEntities);
+                simBoard.setUsingBoard(mEntities, tEntities);
             } else {
                 Log.e(TAG, "SimulationBoard is null in updateList, creating new instance");
                 simBoard = new SimulationBoard(16, 16);
-                simBoard.setUsingBoard(mEntities);
+                simBoard.setUsingBoard(mEntities, tEntities);
             }
             this.notifyDataSetChanged();
             this.isUpdated = true;
@@ -86,13 +93,15 @@ public class GridAdapter extends BaseAdapter {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void handleUpdate(UpdateBoardEvent event) {
         if (simBoard != null) {
-            simBoard.setUsingBoard(mEntities);
+            simBoard.setUsingBoard(mEntities, terrainEntities);
+            Log.d(TAG, "Setting simboard using Board");
         } else {
             Log.e(TAG, "SimulationBoard is null in handleUpdate, creating new instance");
             simBoard = new SimulationBoard(16, 16);
-            simBoard.setUsingBoard(mEntities);
+            simBoard.setUsingBoard(mEntities, terrainEntities);
         }
         this.notifyDataSetChanged();
+        simBoard.setUsingBoard(mEntities, terrainEntities); // Updates simulation board when events are posted
         this.isUpdated = true;
     }
 
@@ -100,7 +109,7 @@ public class GridAdapter extends BaseAdapter {
         if (board != null) {
             this.simBoard = board;
             if (mEntities != null) {
-                simBoard.setUsingBoard(mEntities);
+                simBoard.setUsingBoard(mEntities, terrainEntities);
             }
             //Log.d(TAG, "New SimulationBoard set successfully");
         } else {
@@ -158,57 +167,50 @@ public class GridAdapter extends BaseAdapter {
 
         if (this.isUpdated && simBoard != null) {
             int value = mEntities[position / 16][position % 16];
-            BoardCell currCell = simBoard.getCell(position);
+            BoardCellBlock currCell = simBoard.getCell(position);
+            BoardCell playerCell = currCell.getPlayerData();
+            BoardCell itemCell = currCell.getItemData();
+            BoardCell terrainCell = currCell.getTerrainData();
 
-            // Handle power-ups
-            if (value >= 3000 && value <= 3003) {
-                //Log.d(TAG, "Rendering power-up at position " + position + ", type: " + (value - 3000));
-                switch (value - 3000) {
-                    case 1:
-                        imageView.setImageResource(R.drawable.thingamajig_icon);
-                        break;
-                    case 2:
-                        imageView.setImageResource(R.drawable.anti_grav_icon);
-                        break;
-                    case 3:
-                        imageView.setImageResource(R.drawable.fusion_reactor_icon);
-                        break;
-                    default:
-                        imageView.setImageResource(R.drawable.blank);
-                }
-            }
-            // Handle tanks
-            else if (currCell.getCellType().equals("Tank")) {
-                int tankIdTest = (currCell.getRawValue() / 10000) - 1000;
-                if (tankIdTest == this.tankId) {
-                    imageView.setImageResource(R.drawable.small_goblin_red);
+//            Log.d(TAG, "isTerrainGrid: " + isTerrainView);
+//            Log.d(TAG, "Terrain Cell: " + terrainCell.getCellType());
+
+
+            if (!isTerrainView) {
+//                Log.d(TAG, "Setting Tank Cell");
+                // Handle tanks
+                 if (playerCell.getCellType().equals("Tank")) {
+                    int tankIdTest = (playerCell.getRawValue() / 10000) - 1000;
+                    if (tankIdTest == this.tankId) {
+                        imageView.setImageResource(R.drawable.trans_goblin);
+                    } else { // Else set it to what it should be
+                        imageView.setImageResource(playerCell.getResourceID());
+                    }
+                } else if (playerCell.getCellType().equals("Builder")) {
+                    int builderIdTest = (playerCell.getRawValue() / 10000) - 1000;
+                    if (builderIdTest == this.tankId) {
+                        imageView.setImageResource(R.drawable.builder);
+                    } else {
+                        imageView.setImageResource(playerCell.getResourceID());
+                    }
                 } else {
-                    imageView.setImageResource(currCell.getResourceID());
+                    if (playerCell.getCellType().equals("Empty")) {
+                        imageView.setImageResource(android.R.color.transparent);
+                    } else {
+                        imageView.setImageResource(playerCell.getResourceID());
+                    }
                 }
-            } else if (currCell.getCellType().equals("Builder")) {
-                int builderIdTest = (currCell.getRawValue() / 10000) - 1000;
-                if (builderIdTest == this.tankId) {
-                    imageView.setImageResource(R.drawable.builder);
-                } else {
-                    imageView.setImageResource(currCell.getResourceID());
-                }
-            }
-            else if (currCell.getCellType().equals("Builder")) {
-                int builderIdTest = (currCell.getRawValue() / 10000) - 2000;
-                if (builderIdTest == this.builderId) {
-                    imageView.setImageResource(R.drawable.small_goblin_red);
-                } else {
-                    imageView.setImageResource(currCell.getResourceID());
-                }
-            }
-            // Handle all other cells
-            else {
-                imageView.setImageResource(currCell.getResourceID());
+
+                imageView.setRotation(playerCell.getRotation());
+            } else {
+//                Log.d(TAG, "Setting Terrain Cell");
+//                Log.d(TAG, "Terrain Cell: " + terrainCell.getCellType());
+                imageView.setImageResource(terrainCell.getResourceID());
+//                imageView.setVisibility(View.VISIBLE);
             }
 
-            imageView.setRotation(currCell.getRotation());
         } else {
-            imageView.setImageResource(R.drawable.blank);
+            imageView.setImageResource(R.drawable.clear);
             if (simBoard == null) {
                 Log.e(TAG, "SimulationBoard is null in getView");
             }

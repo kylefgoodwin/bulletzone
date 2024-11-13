@@ -96,14 +96,30 @@
         </LinearLayout>
 
         <!-- GridView for the game board -->
-        <GridView
-            android:id="@+id/gridView"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:background="#FFFFFF"
-            android:numColumns="16"
-            tools:listitem="@layout/field_item" />
+            android:layout_height="match_parent">
+
+            <GridView
+                android:id="@+id/tGridView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#FFFFFF"
+                android:numColumns="16"
+                tools:listitem="@layout/field_item">
+            </GridView>
+
+            <GridView
+                android:id="@+id/gridView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:numColumns="16"
+                tools:listitem="@layout/field_item">
+            </GridView>
+
+        </FrameLayout>
+
 
     </LinearLayout>
 

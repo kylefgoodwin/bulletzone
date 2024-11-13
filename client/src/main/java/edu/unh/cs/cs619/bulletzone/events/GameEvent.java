@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.Comparator;
 
+import edu.unh.cs.cs619.bulletzone.util.ReplayData;
+
 //This class is adapted from group Alpha's project from 2020, courtesy Gersi Doko
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
@@ -15,7 +17,9 @@ import java.util.Comparator;
 })
 public abstract class GameEvent {
     private long timeStamp;
+    private long deltaTimeStamp;
     private final static Object lock = new Object();
+    ReplayData replayData = ReplayData.getReplayData();
 
     /**
      * Constructor of events of a specified type.
@@ -23,6 +27,7 @@ public abstract class GameEvent {
     protected GameEvent() {
         synchronized (lock) {
             timeStamp = System.currentTimeMillis();
+            deltaTimeStamp = timeStamp - replayData.getInitialTimestamp();
         }
     }
 
@@ -32,6 +37,10 @@ public abstract class GameEvent {
 
     public void setTimeStamp(long newTime) {
         this.timeStamp = newTime;
+    }
+
+    public long getDeltaTimeStamp() {
+        return deltaTimeStamp;
     }
 
     /**

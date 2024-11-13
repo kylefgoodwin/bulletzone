@@ -37,6 +37,11 @@
             android:exported="true">
         </activity>
 
+        <activity
+            android:name=".ReplayInstanceActivity_"
+            android:exported="true">
+        </activity>
+
     </application>
 
 </manifest>

@@ -1,6 +1,7 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
 import org.greenrobot.eventbus.EventBus;
+import org.javatuples.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -8,7 +9,7 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
-import org.javatuples.Pair;
+//import org.java.tuples.Pair; // ???
 
 import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.Bullet;
@@ -20,10 +21,7 @@ import edu.unh.cs.cs619.bulletzone.model.Item;
 import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
-import edu.unh.cs.cs619.bulletzone.repository.GameBoardBuilder;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
-import edu.unh.cs.cs619.bulletzone.model.Wall;
-import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -335,9 +333,15 @@ public class InMemoryGameRepository implements GameRepository {
     private void createFieldHolderGrid(Game game) {
         synchronized (this.monitor) {
             game.getHolderGrid().clear();
+            game.getItemHolderGrid().clear();
+            game.getTerrainHolderGrid().clear();
             for (int i = 0; i < FIELD_DIM * FIELD_DIM; i++) {
                 game.getHolderGrid().add(new FieldHolder(i));
+                game.getItemHolderGrid().add(new FieldHolder(i));
+                game.getTerrainHolderGrid().add(new FieldHolder(i));
             }
+
+
 
             FieldHolder targetHolder;
             FieldHolder rightHolder;

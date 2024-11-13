@@ -22,7 +22,7 @@ public class TurnableGoblin extends TankItem {
         int typeVal = (val / tankType) * tankType;
         int scaleFactor = 1000;
 
-        resourceID = R.drawable.small_goblin;
+        resourceID = R.drawable.trans_greengoblin;
         orientation = (val % 10) - 4;
         cellType = "Tank";
         tankID = (val - typeVal) / scaleFactor;

@@ -25,9 +25,9 @@ import edu.unh.cs.cs619.bulletzone.util.ResultWrapper;
  * Created by simon on 10/1/14.
  */
 
-@Rest(rootUrl = "http://10.2.1.33:8080/games",
+@Rest(rootUrl = "http://10.0.2.2:8080/games",
 //@Rest(rootUrl = "http://stman1.cs.unh.edu:6192/games",
-//@Rest(rootUrl = "http://stman1.cs.unh.edu:61912/games",
+//@Rest(rootUrl = "http://stman1.cs.unh.edu:61902/games",
         converters = {StringHttpMessageConverter.class, MappingJackson2HttpMessageConverter.class}
         // TODO: disable intercepting and logging
         // , interceptors = { HttpLoggerInterceptor.class }
@@ -38,8 +38,14 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     @Post("")
     LongWrapper join() throws RestClientException;
 
-    @Get("")
-    GridWrapper grid();
+    @Get("/playergrid")
+    GridWrapper playerGrid();
+
+    @Get("/itemgrid")
+    GridWrapper itemGrid();
+
+    @Get("/terraingrid")
+    GridWrapper terrainGrid();
 
     @Get("/events/{sinceTime}")
     GameEventCollectionWrapper events(@Path("sinceTime") long sinceTime);

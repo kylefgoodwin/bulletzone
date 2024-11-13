@@ -16,7 +16,7 @@ public class TurnableBuilder extends TankItem {
         int typeVal = (val / tankType) * tankType;
         int scaleFactor = 1000;
 
-        resourceID = R.drawable.builder;
+        resourceID = R.drawable.trans_builder;
         orientation = (val % 10) - 4;
         cellType = "Builder";
         tankID = (val - typeVal) / scaleFactor;

@@ -9,9 +9,9 @@ import edu.unh.cs.cs619.bulletzone.R;
 
 public class PowerUp extends BoardCell {
     protected String cellType;
-    public final int thingamajig = 4001;
-    public final int antigrav = 4002;
-    public final int fusionreactor = 4003;
+    public final int thingamajig = 3001;
+    public final int antigrav = 3002;
+    public final int fusionreactor = 3003;
 
     public PowerUp(int val, int r, int c) {
         super(val, r, c);

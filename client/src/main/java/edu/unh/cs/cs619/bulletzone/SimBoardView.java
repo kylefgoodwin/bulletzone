@@ -1,5 +1,6 @@
 package edu.unh.cs.cs619.bulletzone;
 
+import android.util.Log;
 import android.widget.GridView;
 
 import org.androidannotations.annotations.Bean;
@@ -18,22 +19,46 @@ public class SimBoardView {
 
     @Bean
     protected GridAdapter adapter;
+    @Bean
+    protected GridAdapter tAdapter;
 
-    private Object gridEventHandler = new Object() {
+    private PlayerData playerData = PlayerData.getPlayerData();
+
+    public Object gridEventHandler = new Object() {
         @Subscribe
         public void onUpdateGrid(GridUpdateEvent event) {
-            updateGrid(event.gw);
+            updateGrid(event.gw, event.tw);
         }
     };
 
-    public void updateGrid(GridWrapper gw) {
-        adapter.updateList(gw.getGrid());
+    public void updateGrid(GridWrapper gw, GridWrapper tw) {
+        adapter.updateList(gw.getGrid(), tw.getGrid());
+        tAdapter.updateList(gw.getGrid(), tw.getGrid());
     }
 
-    public void attach(GridView gView, Long tankID) {
+    public void attach(GridView gView, GridView tGridView, Long tankID) {
         adapter.setSimBoard(simBoard);
+        tAdapter.setSimBoard(simBoard);
         adapter.setTankId(tankID);
+
+        adapter.setTerrainView(false);
         gView.setAdapter(adapter);
+
+        tAdapter.setTerrainView(true);
+        tGridView.setAdapter(tAdapter);
+        EventBus.getDefault().register(gridEventHandler);
+    }
+
+    public void replayAttach(GridView gView, GridView tGridView) {
+        adapter.setSimBoard(simBoard);
+        tAdapter.setSimBoard(simBoard);
+        adapter.setTankId(playerData.getTankId());
+
+        adapter.setTerrainView(false);
+        gView.setAdapter(adapter);
+
+        tAdapter.setTerrainView(true);
+        tGridView.setAdapter(tAdapter);
         EventBus.getDefault().register(gridEventHandler);
     }
 

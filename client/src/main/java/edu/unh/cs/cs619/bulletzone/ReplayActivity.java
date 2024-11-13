@@ -24,6 +24,13 @@ public class ReplayActivity extends Activity {
         Log.e(TAG, "onCreate");
     }
 
+    @Click(R.id.replayTestButton)
+    void testReplay() {
+        Intent intent = new Intent(this, ReplayInstanceActivity_.class);
+        startActivity(intent);
+        finish();
+    }
+
     @Click(R.id.backToMenuButton)
     void backToMenu() {
         Intent intent = new Intent(this, MenuActivity_.class);

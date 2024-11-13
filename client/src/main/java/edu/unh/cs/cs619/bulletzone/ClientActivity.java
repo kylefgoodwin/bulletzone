@@ -19,17 +19,16 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import org.androidannotations.annotations.*;
-import org.androidannotations.rest.spring.annotations.RestService;
 import org.androidannotations.api.BackgroundExecutor;
 
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
-import edu.unh.cs.cs619.bulletzone.rest.BulletZoneRestClient;
 import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
-import edu.unh.cs.cs619.bulletzone.ui.GridAdapter;
 import edu.unh.cs.cs619.bulletzone.util.ClientActivityShakeDriver;
+import edu.unh.cs.cs619.bulletzone.util.ReplayData;
+
 import androidx.annotation.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -45,6 +44,9 @@ public class ClientActivity extends Activity {
 
     @ViewById
     protected GridView gridView;
+
+    @ViewById
+    protected GridView tGridView;
 
     @ViewById
     protected TextView userIdTextView;
@@ -102,6 +104,8 @@ public class ClientActivity extends Activity {
 
     PlayerData playerData = PlayerData.getPlayerData();
 
+    ReplayData replayData = ReplayData.getReplayData();
+
     private long playableId = -1;
     private int playableType = 1;
     private int improvementType = 1;
@@ -131,6 +135,8 @@ public class ClientActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EventBus.getDefault().register(this);
+
+        replayData.setInitialTimeStamp(System.currentTimeMillis());
 
         shakeDriver = new ClientActivityShakeDriver(this, new ClientActivityShakeDriver.OnShakeListener() {
             @Override
@@ -177,9 +183,9 @@ public class ClientActivity extends Activity {
         updateStatsDisplay();
 
         SystemClock.sleep(500);
-        simBoardView.attach(gridView, playableId);
         selectImprovement.setAdapter(new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, improvementSelections));
         selectPlayable.setAdapter(new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, playableSelections));
+        simBoardView.attach(gridView, tGridView, playableId);
     }
 
     @Background
@@ -194,7 +200,6 @@ public class ClientActivity extends Activity {
             updateBalanceUI(null);
         }
     }
-
 
     @UiThread
     void showPowerUpMessage(String message) {

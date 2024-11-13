@@ -61,14 +61,13 @@ public class BoardEventUpdateTest {
     @Mock
     GameEvent mockGameEvent;
 
-    private MockedStatic<Log> mockedLog;
     GameEventProcessor testEventProcessor;
 
     @Before
     public void setup() {
         initMocks(this);
-        mockedLog = mockStatic(Log.class);
-        mockedLog.when(() -> Log.d(anyString(), anyString())).thenReturn(0);
+//        mockedLog = mockStatic(Log.class);
+//        mockedLog.when(() -> Log.d(anyString(), anyString())).thenReturn(0);
 
         when(mockGV.getContext()).thenReturn(mockContext);
 
@@ -93,7 +92,7 @@ public class BoardEventUpdateTest {
 
         testEventProcessor = spy(new GameEventProcessor());
         testEventProcessor.setEventBus(mockEB);
-        testEventProcessor.setBoard(initialGrid);
+//        testEventProcessor.setBoard(initialGrid);
 
         // Mock the event handling
         doNothing().when(testEventProcessor).onNewEvent(mockSpawnEvent);
@@ -102,9 +101,38 @@ public class BoardEventUpdateTest {
     }
 
     @After
-    public void tearDown() {
-        mockedLog.close();
-    }
+//    public void tearDown() {
+//        mockedLog.close();
+//    }
+//    @Before
+//    public void setup() {
+//        initMocks(this);
+//        when(mockGV.getContext()).thenReturn(mockContext);
+//
+//        int[][] initialGrid = {
+//                {0, 1000, 1000, 1000, 0, 1000, 0, 1000, 1000, 1000, 0, 0, 0, 0, 0, 0},
+//                {0, 1000, 0, 0, 0, 1000, 0, 1000, 1000, 1000, 10010746, 0, 0, 0, 0, 0},
+//                {0, 0, 1000, 1000, 0, 1000, 0, 1000, 1000, 1000, 0, 0, 0, 9999610, 0, 0},
+//                {0, 0, 1000, 1000, 0, 1000, 0, 0, 2003, 1000, 0, 0, 0, 0, 0, 0},
+//                {0, 0, 0, 0, 0, 0, 0, 0, 10021006, 1000, 0, 0, 0, 0, 3000, 0},
+//                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2002, 0, 0, 0},
+//                {0, 2002, 0, 0, 0, 0, 0, 0, 0, 0, 2002, 0, 0, 0, 0, 0},
+//                {0, 0, 0, 0, 0, 0, 0, 0, 0, 2003, 0, 0, 0, 0, 0, 0},
+//                {0, 0, 0, 0, 0, 1001704, 0, 0, 0, 999736, 0, 0, 0, 0, 1000502, 0},
+//                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+//                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+//                {0, 0, 0, 0, 2003, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+//                {0, 0, 0, 0, 0, 3000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+//                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+//                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3000},
+//                {0, 0, 0, 3000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+//        };
+//
+//        testEventProcessor = spy(new GameEventProcessor());
+//        testEventProcessor.eb = mockEB;
+//
+//        testEventProcessor.setBoard(initialGrid);
+//    }
 
     @Test
     public void gameEventProcessor_onStartCalled_registersToEventBus() {

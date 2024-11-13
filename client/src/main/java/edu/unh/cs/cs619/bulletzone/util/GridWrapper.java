@@ -1,5 +1,9 @@
 package edu.unh.cs.cs619.bulletzone.util;
 
+import android.util.Log;
+
+import java.util.Arrays;
+
 /**
  * Created by simon on 10/1/14.
  */
@@ -16,6 +20,7 @@ public class GridWrapper {
     }
 
     public int[][] getGrid() {
+//        Log.d("GridWrapper", Arrays.toString(grid));
         return this.grid;
     }
 
