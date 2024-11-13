@@ -4,6 +4,14 @@ public class PlayerData {
     private static PlayerData playerData = null;
     private long tankId = -1;
     private long userId = -1;
+    private long curId = -1;
+    private String curEntity;
+    private int currentMap;
+    // Associated map
+    private int tankMap;
+    private int builderMap;
+
+    private long builderId = -1;
     private int moveInterval = 500;  // Base move interval
     private int fireInterval = 1500; // Base fire interval
     private int activePowerUps = 0; // Track number of active power-ups
@@ -11,7 +19,13 @@ public class PlayerData {
     private int tankLife = 100;
     private int soldierLife = 100;
 
-    private PlayerData() {} // Private constructor for singleton
+    private PlayerData() {
+        this.tankMap = 0;
+        this.builderMap = 0;
+        this.currentMap = 0;
+        this.curEntity = "";
+
+    } // Private constructor for singleton
 
     public static synchronized PlayerData getPlayerData() {
         if (playerData == null) {
@@ -96,7 +110,58 @@ public class PlayerData {
         return tankId;
     }
 
+    public long getBuilderId() {
+        return builderId;
+    }
+
+    public void setBuilderId(long builderId) {
+        this.builderId = builderId;
+    }
+
     public long getUserId() {
         return userId;
     }
+
+    public long getCurId() {
+        return curId;
+    }
+
+    public void setCurId(long curId) {
+        this.curId = curId;
+    }
+
+
+    public String getCurEntity() {
+        return curEntity;
+    }
+
+    public void setCurEntity(String curEntity) {
+        this.curEntity = curEntity;
+    }
+
+    public int getCurrentMap() {
+        return currentMap;
+    }
+
+    public void setCurrentMap(int currentMap) {
+        this.currentMap = currentMap;
+    }
+
+    public int getTankMap() {
+        return tankMap;
+    }
+
+    public void setTankMap(int tankMap) {
+        this.tankMap = tankMap;
+    }
+
+    public int getBuilderMap() {
+        return builderMap;
+    }
+
+    public void setBuilderMap(int builderMap) {
+        this.builderMap = builderMap;
+    }
+
+
 }

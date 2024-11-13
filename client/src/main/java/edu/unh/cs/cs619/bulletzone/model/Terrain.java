@@ -17,18 +17,18 @@ public class Terrain extends BoardCell {
     public Terrain(int val, int r, int c) {
         super(val, r, c);
 
-        if (val == meadow) {
-            resourceID = R.drawable.blank;
-            cellType = "Meadow";
-        } else if (val == rocky){
+        if (val == rocky){
             resourceID = R.drawable.rocky;
             cellType = "Rocky";
         } else if (val == hilly){
             resourceID = R.drawable.hilly;
             cellType = "Hilly";
-        } else {
+        } else if (val == forest){
             resourceID = R.drawable.forest;
             cellType = "Forest";
+        } else {
+            resourceID = R.drawable.blank;
+            cellType = "Meadow";
         }
     }
 

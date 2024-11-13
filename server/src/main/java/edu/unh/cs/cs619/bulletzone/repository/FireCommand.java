@@ -20,6 +20,7 @@ import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
+import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
@@ -67,23 +68,24 @@ public class FireCommand {
         boolean isVisible = currentField.isPresent() && (currentField.getEntity() == bullet);
 
         try {
+
             if (nextField.isPresent()) {
                 nextField.getEntity().hit(bullet.getDamage());
 
-                if (nextField.getEntity() instanceof Tank) { // Need to change this to playable?
-                    Tank t = (Tank) nextField.getEntity();
-                    System.out.println("Tank is hit, tank life: " + t.getLife());
-                    if (t.getLife() <= 0) {
-                        t.getParent().clearField();
-                        t.setParent(null);
-                        game.removeTank(t.getId());
+                if (nextField.getEntity().isPlayable()) {
+                    Playable p = (Playable) nextField.getEntity();
+                    System.out.println("Playable is hit, life: " + p.getLife());
+                    if (p.getLife() <= 0) {
+                        p.getParent().clearField();
+                        p.setParent(null);
+                        game.removeTank(p.getId());
                     }
-                } else if (nextField.getEntity() instanceof Wall) {
+                } else if (nextField.getEntity().isWall()) {
                     Wall w = (Wall) nextField.getEntity();
                     if (w.getIntValue() > 1000 && w.getIntValue() <= 2000) {
                         game.getHolderGrid().get(w.getPos()).clearField();
                     }
-                } else if (nextField.getEntity() instanceof Item) {
+                } else if (nextField.getEntity().isItem()) {
                     Item item = (Item) nextField.getEntity();
                     nextField.clearField();
                     EventBus.getDefault().post(new RemoveEvent(item.getIntValue(), item.getPosition()));
@@ -97,6 +99,21 @@ public class FireCommand {
                 playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
                 timerTask.cancel();
             } else {
+
+                if (nextField.isTerrainPresent()){
+                    Terrain t = (Terrain) nextField.getTerrainEntityHolder();
+                    if (t.isForest()) {
+                        if (isVisible) {
+                            currentField.clearField();
+                        }
+                        EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                        trackActiveBullets[bullet.getBulletId()] = 0;
+                        playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
+                        timerTask.cancel();
+                        return;
+                    }
+                }
+
                 if (isVisible) {
                     currentField.clearField();
                 }

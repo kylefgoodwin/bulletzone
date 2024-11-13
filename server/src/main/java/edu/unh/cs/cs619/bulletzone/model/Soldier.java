@@ -85,3 +85,4 @@ public class Soldier extends Playable {
 
 
 }
+

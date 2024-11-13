@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 
 import edu.unh.cs.cs619.bulletzone.model.Builder;
+import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
+import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -84,6 +86,26 @@ class GamesController {
             throws TankDoesNotExistException, LimitExceededException, IllegalTransitionException {
         return new ResponseEntity<BooleanWrapper>(
                 new BooleanWrapper(gameRepository.move(playableId, playableType, Direction.fromByte(direction))),
+                HttpStatus.OK
+        );
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "{builderId}/build/{entity}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    ResponseEntity<BooleanWrapper> build(@PathVariable long playableId, @PathVariable int playableType, @PathVariable String entity)
+            throws TankDoesNotExistException, LimitExceededException {
+        return new ResponseEntity<BooleanWrapper>(
+                new BooleanWrapper(gameRepository.build(playableId, playableType, entity)),
+                HttpStatus.OK
+        );
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/deploy/{direction}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    ResponseEntity<BooleanWrapper> deploy(@PathVariable long playableId, @PathVariable int playableType, @PathVariable byte direction)
+            throws TankDoesNotExistException, LimitExceededException, IllegalTransitionException {
+        return new ResponseEntity<BooleanWrapper>(
+                new BooleanWrapper(gameRepository.deploy(playableId, playableType, Direction.fromByte(direction))),
                 HttpStatus.OK
         );
     }

@@ -134,18 +134,21 @@ public class InMemoryGameRepository implements GameRepository {
         synchronized (this.monitor) {
             checkNotNull(direction);
 
-            Playable playable;
-            if (playableType == 1){
+            Playable playable = null;
+
+            if (playableType == 1) {
                 playable = game.getTanks().get(playableId);
-            } else if (playableType == 2){
-                playable = game.getBuilders().get(playableId);
-            } else {
-                //code to get soldier (do we want a soldier list too?
-                playable = null;
             }
+
+            if (playable == null && playableType == 2) {
+                playable = game.getBuilders().get(playableId);
+            }
+
+            if (playable == null && playableType == 3) {
+                playable = game.getSoldiers().get(playableId);
+            }
+
             if (playable == null) {
-                //Log.i(TAG, "Cannot find user with id: " + tankId);
-                //return false;
                 throw new TankDoesNotExistException(playableId);
             }
             long millis = System.currentTimeMillis();
@@ -167,18 +170,21 @@ public class InMemoryGameRepository implements GameRepository {
         synchronized (this.monitor) {
             // Find tank
 
-            Playable playable;
-            if (playableType == 1){
+            Playable playable = null;
+
+            if (playableType == 1) {
                 playable = game.getTanks().get(playableId);
-            } else if (playableType == 2){
-                playable = game.getBuilders().get(playableId);
-            } else {
-                //code to get soldier (do we want a soldier list too?
-                playable = null;
             }
+
+            if (playable == null && playableType == 2) {
+                playable = game.getBuilders().get(playableId);
+            }
+
+            if (playable == null && playableType == 3) {
+                playable = game.getSoldiers().get(playableId);
+            }
+
             if (playable == null) {
-                //Log.i(TAG, "Cannot find user with id: " + tankId);
-                //return false;
                 throw new TankDoesNotExistException(playableId);
             }
 
@@ -195,22 +201,25 @@ public class InMemoryGameRepository implements GameRepository {
         synchronized (this.monitor) {
 
             // Find playable
-            //Tank tank = game.getTanks().get(playableId);
-            Playable playable;
-            if (playableType == 1){
+            Playable playable = null;
+
+            if (playableType == 1) {
                 playable = game.getTanks().get(playableId);
-            } else if (playableType == 2){
-                playable = game.getBuilders().get(playableId);
-            } else {
-                //code to get soldier (do we want a soldier list too?
-                playable = null;
             }
+
+            if (playable == null && playableType == 2) {
+                playable = game.getBuilders().get(playableId);
+            }
+
+            if (playable == null && playableType == 3) {
+                playable = game.getSoldiers().get(playableId);
+            }
+
             if (playable == null) {
-                //Log.i(TAG, "Cannot find user with id: " + tankId);
-                //return false;
                 throw new TankDoesNotExistException(playableId);
             }
             long millis = System.currentTimeMillis();
+            final Playable finalPlayable = playable;
 
             //Log.i(TAG, "Cannot find user with id: " + tankId);
             Direction direction = playable.getDirection();
@@ -237,8 +246,8 @@ public class InMemoryGameRepository implements GameRepository {
                 @Override
                 public void run() {
                     synchronized (monitor) {
-                        System.out.println("Active Bullet: " + playable.getNumberOfBullets() + "---- Bullet ID: " + bullet.getIntValue());
-                        fireCommand.moveBulletAndHandleCollision(game, bullet, playable, trackActiveBullets, this);
+                        System.out.println("Active Bullet: " + finalPlayable.getNumberOfBullets() + "---- Bullet ID: " + bullet.getIntValue());
+                        fireCommand.moveBulletAndHandleCollision(game, bullet, finalPlayable, trackActiveBullets, this);
                     }
                 }
             }, 0, BULLET_PERIOD);
@@ -247,14 +256,45 @@ public class InMemoryGameRepository implements GameRepository {
         }
     }
 
-//    @Override
-//    public boolean build(long builderId, String entity)
-//            throws TankDoesNotExistException {
-//        synchronized (this.monitor) {
-//            BuildCommand buildCommand = new BuildCommand(builderId, entity);
-//            return buildCommand.execute();
-//        }
-//    }
+    @Override
+    public boolean build(long playableId, int playableType, String entity)
+            throws TankDoesNotExistException {
+        synchronized (this.monitor) {
+            if (playableType == 2) {
+                Playable playable = game.getBuilders().get(playableId);
+                if (playable == null) {
+                    //Log.i(TAG, "Cannot find user with id: " + tankId);
+                    throw new TankDoesNotExistException(playableId);
+                }
+                BuildCommand buildCommand = new BuildCommand(playableId, game, entity);
+                return buildCommand.execute();
+            } else {
+                System.out.println("Player is not controlling the builder, building blocked.");
+                return false;
+            }
+        }
+    }
+
+    @Override
+    public boolean deploy(long playableId, int playableType, Direction direction)
+            throws TankDoesNotExistException {
+        synchronized (this.monitor) {
+            if (playableType == 1) {
+                Playable playable = game.getTanks().get(playableId);
+                if (playable == null) {
+                    //Log.i(TAG, "Cannot find user with id: " + tankId);
+                    throw new TankDoesNotExistException(playableId);
+                }
+                long millis = System.currentTimeMillis();
+                DeployCommand deployCommand = new DeployCommand(playableId, game, direction, millis);
+                return deployCommand.execute();
+            } else {
+                System.out.println("Player is not controlling the tank, deployment blocked.");
+                return false;
+            }
+        }
+    }
+
 
     @Override
     public void leave(long playableId)

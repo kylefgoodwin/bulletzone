@@ -16,10 +16,9 @@ public class GameBoard {
     private final Object monitor = new Object();
     private final ArrayList<FieldHolder> holderGrid;
 
-    public GameBoard(int rows, int columns, int position) {
+    public GameBoard(int rows, int columns) {
         this.rows = rows;
         this.columns = columns;
-        this.position = position;
         holderGrid = new ArrayList<>();
     }
 
@@ -39,11 +38,11 @@ public class GameBoard {
         return holderGrid;
     }
 
-    public void createFieldHolderGrid() {
+    public void createFieldHolderGrid(Game game) {
         synchronized (this.monitor) {
-            holderGrid.clear();
+            game.getHolderGrid().clear();
             for (int i = 0; i < rows * columns; i++) {
-                holderGrid.add(new FieldHolder(position));
+                game.getHolderGrid().add(new FieldHolder(i));
             }
 
             FieldHolder targetHolder;
@@ -53,16 +52,11 @@ public class GameBoard {
             // Build connections
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < columns; j++) {
-                    int targetIndex = i * (rows / 3) + j;
-                    targetHolder = holderGrid.get(targetIndex);
-
-                    // ////////////INSERT DIFFERENT MAP CONDITIONS HERE//////////////////
-
-                    int rightHolderIndex = (i * rows / 3 + ((j + 1) % columns));
-                    int downHolderIndex = ((i + 1) % rows) * columns + j;
-
-                    rightHolder = holderGrid.get(rightHolderIndex);
-                    downHolder = holderGrid.get(downHolderIndex);
+                    targetHolder = game.getHolderGrid().get(i * rows + j);
+                    rightHolder = game.getHolderGrid().get(i * rows
+                            + ((j + 1) % columns));
+                    downHolder = game.getHolderGrid().get(((i + 1) % rows)
+                            * columns + j);
 
                     targetHolder.addNeighbor(Direction.Right, rightHolder);
                     rightHolder.addNeighbor(Direction.Left, targetHolder);
