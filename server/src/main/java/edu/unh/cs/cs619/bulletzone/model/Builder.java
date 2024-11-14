@@ -24,6 +24,7 @@ public class Builder extends Playable {
         allowedFireInterval = 1000;  // Minimum 1 second between shots
         allowedNumberOfBullets = 3; // Builders can fire up to 3 bullets
         lastFireTime = 0;
+        bulletDamage = 10;
 
         allowedTurnInterval = 300; // 300ms between turns
         lastTurnTime = 0;

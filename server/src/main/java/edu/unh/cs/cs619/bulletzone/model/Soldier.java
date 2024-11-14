@@ -21,6 +21,7 @@ public class Soldier extends Playable {
         allowedFireInterval = 250;  // Minimum 250 ms between shots
         allowedNumberOfBullets = 6; // Soldiers can fire up to 6 bullets
         lastFireTime = 0;
+        bulletDamage = 5;
 
         allowedMoveInterval = 1000; // Soldiers can move no faster than once per second
         lastMoveTime = 0;

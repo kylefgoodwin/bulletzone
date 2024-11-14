@@ -39,6 +39,7 @@ public abstract class Playable extends FieldEntity {
 
     protected int numberOfBullets;
     protected int allowedNumberOfBullets;
+    protected int bulletDamage;
 
     protected long lastEntryTime;
     protected int allowedDeployInterval;
@@ -149,6 +150,14 @@ public abstract class Playable extends FieldEntity {
 
     public void sethasSoldier(boolean set){
         hasSoldier = set;
+    }
+
+    public int getBulletDamage() {
+        return bulletDamage;
+    }
+
+    public void setBulletDamage(int bulletDamage) {
+        this.bulletDamage = bulletDamage;
     }
 
     //Setters

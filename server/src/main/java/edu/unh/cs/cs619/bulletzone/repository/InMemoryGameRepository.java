@@ -243,23 +243,21 @@ public class InMemoryGameRepository implements GameRepository {
             //Log.i(TAG, "Cannot find user with id: " + tankId);
             Direction direction = playable.getDirection();
             FieldHolder parent = playable.getParent();
-            playable.setNumberOfBullets(playable.getNumberOfBullets() + 1);
             if (!fireCommand.canFire(playable, millis, bulletType, bulletDelay)) {
                 return false;
             }
-
+            playable.setNumberOfBullets(playable.getNumberOfBullets() + 1);
             int bulletId = fireCommand.assignBulletId(trackActiveBullets, playable);
             if (bulletId == -1) {
                 // No available bullet slots
                 return false;
             }
             // Create a new bullet to fire
-            final Bullet bullet = new Bullet(playableId, direction, bulletDamage[bulletType - 1]);
+            final Bullet bullet = new Bullet(playableId, direction, playable.getBulletDamage());
             // Set the same parent for the bullet.
             // This should be only a one way reference.
             bullet.setParent(parent);
             bullet.setBulletId(bulletId);
-            //EventBus.getDefault().post(new SpawnEvent(bullet.getIntValue(), bullet.getPosition()));
 
             timer.schedule(new TimerTask() {
                 @Override
