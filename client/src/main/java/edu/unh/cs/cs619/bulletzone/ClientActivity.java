@@ -60,6 +60,8 @@ public class ClientActivity extends Activity {
     @ViewById
     protected ProgressView tankHealthBar;
 
+    @ViewById ProgressView soldierHealthBar;
+
     @ViewById
     protected ProgressView builderHealthBar;
 
@@ -338,6 +340,11 @@ public class ClientActivity extends Activity {
         tankEventController.fire(playableId, playableType);
     }
 
+    @Click(R.id.buttonEjectSoldier)
+    protected void onButtonEjectSoldier() {
+        clientController.ejectSoldierAsync(playableId);
+    }
+
     @Click(R.id.buttonLeave)
     void leaveGame() {
         Log.d(TAG, "leaveGame() called, tank ID: " + playableId);
@@ -356,11 +363,6 @@ public class ClientActivity extends Activity {
     void logout() {
         Log.d(TAG, "logout() called");
         logoutUI();
-    }
-
-    @Click(R.id.buttonEject)
-    protected void onButtonEject() {
-        clientController.ejectPowerUpAsync(playableId);
     }
 
     @UiThread
@@ -383,6 +385,11 @@ public class ClientActivity extends Activity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    @Click(R.id.buttonEject)
+    protected void onButtonEject(){
+        clientController.ejectPowerUpAsync(playableId);
     }
 
     @UiThread
@@ -462,6 +469,7 @@ public class ClientActivity extends Activity {
 //            Log.d("onHitEvent", "tank life: " + playerData.getTankLife());
             tankHealthBar.setProgress(playerData.getTankLife());
             builderHealthBar.setProgress(playerData.getBuilderLife());
+            soldierHealthBar.setProgress(playerData.getSoldierLife());
         }
     }
 

@@ -5,6 +5,7 @@
     android:id="@+id/LinearLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:baselineAligned="false"
     android:orientation="horizontal"
     android:padding="@dimen/activity_vertical_margin"
     tools:context=".ClientActivity">
@@ -167,9 +168,9 @@
             android:id="@+id/tankHealthBar"
             android:layout_width="match_parent"
             android:layout_height="30dp"
-            app:progressView_colorBackground="@color/silver"
+            app:progressView_colorBackground="@color/green"
             app:progressView_colorProgress="@color/red"
-            app:progressView_labelColorInner="@color/green"
+            app:progressView_labelColorInner="@color/black"
             app:progressView_labelColorOuter="@color/red"
             app:progressView_labelSize="13sp"
             app:progressView_labelSpace="10dp"
@@ -185,9 +186,9 @@
             android:id="@+id/builderHealthBar"
             android:layout_width="match_parent"
             android:layout_height="30dp"
-            app:progressView_colorBackground="@color/yellow"
+            app:progressView_colorBackground="@color/green"
             app:progressView_colorProgress="@color/red"
-            app:progressView_labelColorInner="@color/green"
+            app:progressView_labelColorInner="@color/black"
             app:progressView_labelColorOuter="@color/red"
             app:progressView_labelSize="13sp"
             app:progressView_labelSpace="10dp"
@@ -195,7 +196,25 @@
             app:progressView_labelTypeface="bold"
             app:progressView_max="80"
             app:progressView_padding="1dp"
-            app:progressView_progress="100"
+            app:progressView_progress="80"
+            app:progressView_progressFromPrevious="true"
+            app:progressView_radius="12dp" />
+
+        <com.skydoves.progressview.ProgressView
+            android:id="@+id/soldierHealthBar"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            app:progressView_colorBackground="@color/green"
+            app:progressView_colorProgress="@color/red"
+            app:progressView_labelColorInner="@color/black"
+            app:progressView_labelColorOuter="@color/red"
+            app:progressView_labelSize="13sp"
+            app:progressView_labelSpace="10dp"
+            app:progressView_labelText="Soldier Health"
+            app:progressView_labelTypeface="bold"
+            app:progressView_max="25"
+            app:progressView_padding="1dp"
+            app:progressView_progress="25"
             app:progressView_progressFromPrevious="true"
             app:progressView_radius="12dp" />
 
@@ -284,10 +303,10 @@
 
             <!-- Toggle Button for Units -->
             <Button
-                android:id="@+id/buttonUnits"
+                android:id="@+id/buttonEjectSoldier"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/units" />
+                android:text="@string/ejectsoldier" />
 
             <!-- Unit Group: Initially Hidden -->
             <LinearLayout
