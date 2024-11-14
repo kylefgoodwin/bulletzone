@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.greenrobot.eventbus.EventBus;
 
+import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 public class Tank extends Playable {
@@ -30,11 +31,17 @@ public class Tank extends Playable {
         allowedDeployInterval = 5000;
 
         powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        hasSoldier = false;
     }
 
     @Override
     public void hit(int damage) {
-        System.out.println("Tank life: " + id + " : " + life);
+        life -= damage;
+        if (life <= 0) {
+            //handle game over scenario
+        }
+        System.out.println("Tank id: " + id + " Tank Life: " + life);
+        EventBus.getDefault().post(new HitEvent((int) id, 1));
     }
 
     @JsonIgnore

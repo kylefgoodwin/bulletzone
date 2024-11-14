@@ -36,6 +36,11 @@ public class TankEventController {
         restClient.turn(playableId, playableType, direction);
     }
 
+    @Background
+    public void ejectSoldier(long playableId){
+        restClient.ejectSoldier(playableId);
+    }
+
     /**
      * Sends either a mine or build command depending on what unit is currently selected
      *

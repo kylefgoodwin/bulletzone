@@ -1,5 +1,8 @@
 package edu.unh.cs.cs619.bulletzone;
 
+import static java.lang.Thread.sleep;
+import static java.sql.Types.NULL;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Spinner;
@@ -22,6 +26,7 @@ import org.androidannotations.annotations.*;
 import org.androidannotations.api.BackgroundExecutor;
 
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
+import edu.unh.cs.cs619.bulletzone.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
@@ -30,6 +35,8 @@ import edu.unh.cs.cs619.bulletzone.util.ClientActivityShakeDriver;
 import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
 import androidx.annotation.VisibleForTesting;
+
+import com.skydoves.progressview.ProgressView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +48,12 @@ public class ClientActivity extends Activity {
 
     @Bean
     protected GameEventProcessor eventProcessor;
+
+    @ViewById
+    protected ProgressView tankHealthBar;
+
+    @ViewById
+    protected ProgressView builderHealthBar;
 
     @ViewById
     protected GridView gridView;
@@ -316,6 +329,11 @@ public class ClientActivity extends Activity {
         }
     }
 
+    @Click(R.id.buttonEjectSoldier)
+    protected void onButtonEjectSoldier() {
+        clientController.ejectSoldierAsync(playableId);
+    }
+
     @Click(R.id.buttonLeave)
     void leaveGame() {
         Log.d(TAG, "leaveGame() called, tank ID: " + playableId);
@@ -334,11 +352,6 @@ public class ClientActivity extends Activity {
     void logout() {
         Log.d(TAG, "logout() called");
         logoutUI();
-    }
-
-    @Click(R.id.buttonEject)
-    protected void onButtonEject() {
-        powerUpController.ejectPowerUpAsync(playableId);
     }
 
     @UiThread
@@ -361,6 +374,11 @@ public class ClientActivity extends Activity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    @Click(R.id.buttonEject)
+    protected void onButtonEject(){
+        clientController.ejectPowerUpAsync(playableId);
     }
 
     @UiThread
@@ -429,6 +447,18 @@ public class ClientActivity extends Activity {
                 itemInfoText.setText("");
             }
         }, 3000);
+    }
+
+    @Subscribe
+    public void onHitEvent(HitEvent event) throws InterruptedException {
+//        Log.d("onHitEvent", "Hit");
+        if (event.getPlayableId() == playableId) {
+            clientController.getLifeAsync((int) playableId);
+            sleep(100);
+//            Log.d("onHitEvent", "tank life: " + playerData.getTankLife());
+            tankHealthBar.setProgress(playerData.getTankLife());
+            builderHealthBar.setProgress(playerData.getBuilderLife());
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

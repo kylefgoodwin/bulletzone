@@ -18,6 +18,9 @@ public class PlayerData {
     private int moveInterval = 500;  // Base move interval
     private int fireInterval = 1500; // Base fire interval
     private int activePowerUps = 0; // Track number of active power-ups
+    private int builderLife = 100;
+    private int tankLife = 100;
+    private int soldierLife = 100;
 
     private PlayerData() {
         this.tankMap = 0;
@@ -32,6 +35,30 @@ public class PlayerData {
             playerData = new PlayerData();
         }
         return playerData;
+    }
+
+    public int getTankLife() {
+        return tankLife;
+    }
+
+    public void setTankLife(int tankLife) {
+        this.tankLife = tankLife;
+    }
+
+    public int getSoldierLife() {
+        return soldierLife;
+    }
+
+    public void setSoldierLife(int soldierLife) {
+        this.soldierLife = soldierLife;
+    }
+
+    public int getBuilderLife() {
+        return builderLife;
+    }
+
+    public void setBuilderLife(int builderLife) {
+        this.builderLife = builderLife;
     }
 
     public String getImprovement(int index) {

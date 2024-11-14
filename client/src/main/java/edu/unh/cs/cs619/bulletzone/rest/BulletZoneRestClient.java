@@ -16,6 +16,7 @@ import org.springframework.web.client.RestClientException;
 import edu.unh.cs.cs619.bulletzone.util.BooleanWrapper;
 import edu.unh.cs.cs619.bulletzone.util.GameEventCollectionWrapper;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
+import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
 import edu.unh.cs.cs619.bulletzone.util.ResultWrapper;
 
@@ -25,9 +26,9 @@ import edu.unh.cs.cs619.bulletzone.util.ResultWrapper;
  * Created by simon on 10/1/14.
  */
 
-@Rest(rootUrl = "http://10.20.26.7:8080/games",
+@Rest(rootUrl = "http://10.2.1.33:8080/games",
 //@Rest(rootUrl = "http://stman1.cs.unh.edu:6192/games",
-//@Rest(rootUrl = "http://stman1.cs.unh.edu:61902/games",
+//@Rest(rootUrl = "http://stman1.cs.unh.edu:61912/games",
         converters = {StringHttpMessageConverter.class, MappingJackson2HttpMessageConverter.class}
         // TODO: disable intercepting and logging
         // , interceptors = { HttpLoggerInterceptor.class }
@@ -65,8 +66,8 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     @Put("/{playableId}/{playableType}/fire/1")
     BooleanWrapper fire(@Path long playableId, @Path int playableType);
 
-    @Put("/{playableId}/{playableType}/build/{entity}")
-    BooleanWrapper build(@Path long playableId, @Path int playableType, @Path String entity);
+    @Put("/{playableId}/eject/0")
+    BooleanWrapper ejectSoldier(@Path long playableId);
 
     @Delete("/{playableId}/leave")
     BooleanWrapper leave(@Path long playableId);
@@ -80,6 +81,9 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     @Put("/account/balance/{userId}/deposit/{amount}")
     BooleanWrapper depositBalance(@Path("userId") long userId, @Path("amount") double amount);
 
-    @Put("/{playableId}/eject")
+    @Put("/{playableId}/ejectPowerUp")
     BooleanWrapper ejectPowerUp(@Path long playableId);
+
+    @Get("/{playableId}/{playableType}/life")
+    IntWrapper getLife(@Path int playableId, @Path int playableType);
 }

@@ -10,6 +10,7 @@ import org.greenrobot.eventbus.EventBus;
 
 import javax.management.ListenerNotFoundException;
 
+import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 public abstract class Playable extends FieldEntity {
@@ -47,6 +48,8 @@ public abstract class Playable extends FieldEntity {
 
     protected Direction direction;
 
+    protected boolean hasSoldier;
+
     public Playable(long id, Direction direction, String ip) {
         this.id = id;
         this.direction = direction;
@@ -59,6 +62,7 @@ public abstract class Playable extends FieldEntity {
 
     public void hit(int damage) {
         life -= damage;
+//        System.out.println("Life: " + life + "\n");
         if (life <= 0) {
             //handle game over scenario
         }
@@ -137,6 +141,14 @@ public abstract class Playable extends FieldEntity {
 
     public String getIp() {
         return ip;
+    }
+
+    public boolean gethasSoldier(){
+        return hasSoldier;
+    }
+
+    public void sethasSoldier(boolean set){
+        hasSoldier = set;
     }
 
     //Setters

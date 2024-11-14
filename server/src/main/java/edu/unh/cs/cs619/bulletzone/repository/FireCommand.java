@@ -21,7 +21,9 @@ import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
+import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
+import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TurnEvent;
@@ -47,19 +49,32 @@ public class FireCommand {
         return true;
     }
 
-    public int assignBulletId(int[] trackActiveBullets) {
+    public int assignBulletId(int[] trackActiveBullets, Playable playable) {
         int bulletId = -1;
-        if (trackActiveBullets[0] == 0) {
-            bulletId = 0;
-            trackActiveBullets[0] = 1;
-        } else if (trackActiveBullets[1] == 0) {
-            bulletId = 1;
-            trackActiveBullets[1] = 1;
+        for(int i = 0; i < playable.getAllowedNumberOfBullets(); i++){
+            if (trackActiveBullets[i] == 0) {
+                bulletId = i;
+                trackActiveBullets[i] = 1;
+                break;
+            }
         }
         return bulletId;
     }
 
-    public void moveBulletAndHandleCollision(Game game, Bullet bullet, Playable playable, int[] trackActiveBullets, TimerTask timerTask) {
+    public void handleRemovingPlayable(FieldHolder currentField, Playable playable, int playableType, Game game){
+        playable.getParent().clearField();
+        playable.setParent(new FieldHolder(currentField.getPosition()));
+        if (playableType == 1){
+            game.removeTank(playable.getId());
+        } else if (playableType == 2){
+            game.removeBuilder(playable.getId());
+        } else if (playableType == 3){
+            game.removeSoldier(playable.getId());
+            game.getTanks().get(playable.getId()).sethasSoldier(false);
+        }
+    }
+
+    public void moveBulletAndHandleCollision(Game game, Bullet bullet, Playable playable, int playableType, int[] trackActiveBullets, TimerTask timerTask) {
         FieldHolder currentField = bullet.getParent();
         Direction direction = bullet.getDirection();
         FieldHolder nextField = currentField.getNeighbor(direction);
@@ -70,20 +85,21 @@ public class FireCommand {
             if (nextField.isPresent()) {
                 nextField.getEntity().hit(bullet.getDamage());
 
-                if (nextField.getEntity() instanceof Tank) {
-                    Tank t = (Tank) nextField.getEntity();
-                    System.out.println("Tank is hit, tank life: " + t.getLife());
-                    if (t.getLife() <= 0) {
-                        t.getParent().clearField();
-                        t.setParent(null);
-                        game.removeTank(t.getId());
+                //Handle damaging playable
+                if (nextField.getEntity().isPlayable()) {
+                    Playable p = (Playable) nextField.getEntity();
+                    System.out.println("Playable is hit, life: " + p.getLife());
+                    if (p.getLife() <= 0) {
+                        handleRemovingPlayable(currentField, p, playableType, game);
                     }
-                } else if (nextField.getEntity() instanceof Wall) {
+                //Handle hitting wall
+                } else if (nextField.getEntity().isWall()) {
                     Wall w = (Wall) nextField.getEntity();
                     if (w.getIntValue() > 1000 && w.getIntValue() <= 2000) {
                         game.getHolderGrid().get(w.getPos()).clearField();
                     }
-                } else if (nextField.getEntity() instanceof Item) {
+                //Handle hitting an item (remove it)
+                } else if (nextField.getEntity().isItem()) {
                     Item item = (Item) nextField.getEntity();
                     nextField.clearField();
                     EventBus.getDefault().post(new RemoveEvent(item.getIntValue(), item.getPosition()));
@@ -92,11 +108,27 @@ public class FireCommand {
                 if (isVisible) {
                     currentField.clearField();
                 }
+
                 EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
                 trackActiveBullets[bullet.getBulletId()] = 0;
                 playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
                 timerTask.cancel();
             } else {
+
+                if (nextField.isTerrainPresent()){
+                    Terrain t = (Terrain) nextField.getTerrainEntityHolder();
+                    if (t.isForest()) {
+                        if (isVisible) {
+                            currentField.clearField();
+                        }
+                        EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                        trackActiveBullets[bullet.getBulletId()] = 0;
+                        playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
+                        timerTask.cancel();
+                        return;
+                    }
+                }
+
                 if (isVisible) {
                     currentField.clearField();
                 }
