@@ -79,4 +79,9 @@ public class ClientController {
     public void ejectPowerUpAsync(long tankId) {
         restClient.ejectPowerUp(tankId);
     }
+
+    @Background
+    public void ejectSoldierAsync(long tankId) {
+        restClient.ejectSoldier(tankId);
+    }
 }

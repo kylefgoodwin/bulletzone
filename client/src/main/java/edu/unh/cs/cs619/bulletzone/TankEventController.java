@@ -32,6 +32,11 @@ public class TankEventController {
         restClient.turn(playableId, playableType, direction);
     }
 
+    @Background
+    public void ejectSoldier(long playableId){
+        restClient.ejectSoldier(playableId);
+    }
+
     private boolean onePointTurn(int currentButtonId) {
         // Check if the previous and current directions are 90-degree turns
         if ((lastPressedButtonId == R.id.buttonUp && currentButtonId == R.id.buttonLeft) ||

@@ -27,6 +27,7 @@ public class Tank extends Playable {
         moveMultiplier = 1;  // Initialize move multiplier
 
         powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        hasSoldier = false;
     }
 
     @Override

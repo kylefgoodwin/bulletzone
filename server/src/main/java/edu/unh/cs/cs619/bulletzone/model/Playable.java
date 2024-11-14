@@ -40,6 +40,8 @@ public abstract class Playable extends FieldEntity {
 
     protected Direction direction;
 
+    protected boolean hasSoldier;
+
     public Playable(long id, Direction direction, String ip) {
         this.id = id;
         this.direction = direction;
@@ -103,6 +105,14 @@ public abstract class Playable extends FieldEntity {
 
     public String getIp() {
         return ip;
+    }
+
+    public boolean gethasSoldier(){
+        return hasSoldier;
+    }
+
+    public void sethasSoldier(boolean set){
+        hasSoldier = set;
     }
 
     //Setters
