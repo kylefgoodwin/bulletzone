@@ -1,5 +1,8 @@
 package edu.unh.cs.cs619.bulletzone;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class PlayerData {
     private static PlayerData playerData = null;
     private long tankId = -1;
@@ -10,7 +13,7 @@ public class PlayerData {
     // Associated map
     private int tankMap;
     private int builderMap;
-
+    private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility"));
     private long builderId = -1;
     private int moveInterval = 500;  // Base move interval
     private int fireInterval = 1500; // Base fire interval
@@ -56,6 +59,28 @@ public class PlayerData {
 
     public void setBuilderLife(int builderLife) {
         this.builderLife = builderLife;
+    }
+
+    public String getImprovement(int index) {
+        if (index >= 0 && index < improvementSelections.size()) {
+            return improvementSelections.get(index);
+        } else {
+            throw new IndexOutOfBoundsException("Invalid index: " + index);
+        }
+    }
+
+    // Setter method to set an improvement at a specific index
+    public void setImprovement(int index, String improvement) {
+        if (index >= 0 && index < improvementSelections.size()) {
+            improvementSelections.set(index, improvement);
+        } else {
+            throw new IndexOutOfBoundsException("Invalid index: " + index);
+        }
+    }
+
+    // Optional getter to retrieve all improvements
+    public ArrayList<String> getAllImprovements() {
+        return new ArrayList<>(improvementSelections);
     }
 
     public void setTankId(long tankId) {

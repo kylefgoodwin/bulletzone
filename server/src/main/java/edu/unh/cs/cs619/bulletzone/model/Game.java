@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.juli.logging.Log;
 import org.greenrobot.eventbus.EventBus;
 
+import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 public final class Game {
@@ -27,6 +28,7 @@ public final class Game {
     private final ConcurrentMap<Long, Soldier> soldiers = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Long> playersIPSoldiers = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, Double> playerCredits = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, BankAccount> playerAccounts = new ConcurrentHashMap<>();
 
     public Game() {
         this.id = 0;
@@ -36,6 +38,10 @@ public final class Game {
     public long getId() {
         return id;
     }
+
+//    public BankAccount getBankAccount(long playerId) {
+//        return playerAccounts.computeIfAbsent(playerId, BankAccount::new);
+//    }
 
     @JsonIgnore
     public ArrayList<FieldHolder> getHolderGrid() {
@@ -56,7 +62,8 @@ public final class Game {
         synchronized (tanks) {
             tanks.put(tank.getId(), tank);
             playersIP.put(ip, tank.getId());
-            playerCredits.put(tank.getId(), 0.0); // Initialize credits for new tank
+            playerCredits.put(tank.getId(), 1000.0); // Initialize credits for new tank
+//            playerAccounts.putIfAbsent(tank.getId(), new BankAccount(tank.getId()));
         }
         EventBus.getDefault().post(new SpawnEvent(tank.getIntValue(), tank.getPosition()));
     }
@@ -65,12 +72,19 @@ public final class Game {
         synchronized (soldiers) {
             soldiers.put(soldier.getId(), soldier);
             playersIPSoldiers.put(ip, soldier.getId());
+            playerCredits.put(soldier.getId(), 1000.0); // Initialize credits for new tank
         }
+        EventBus.getDefault().post(new SpawnEvent(soldier.getIntValue(), soldier.getPosition()));
     }
 
     public void addCredits(long tankId, double amount) {
         playerCredits.compute(tankId, (key, oldValue) ->
                 (oldValue == null ? 0 : oldValue) + amount);
+    }
+
+    public void removeCredits(long tankId, double amount) {
+        playerCredits.compute(tankId, (key, oldValue) ->
+                (oldValue == null ? 0 : oldValue) - amount);
     }
 
     public double getCredits(long tankId) {
@@ -148,6 +162,7 @@ public final class Game {
         synchronized (builders) {
             builders.put(builder.getId(), builder);
             playersIPBuilders.put(ip, builder.getId());
+            playerCredits.put(builder.getId(), 1000.0); // Initialize credits for new tank
         }
         EventBus.getDefault().post(new SpawnEvent(builder.getIntValue(), builder.getPosition()));
     }

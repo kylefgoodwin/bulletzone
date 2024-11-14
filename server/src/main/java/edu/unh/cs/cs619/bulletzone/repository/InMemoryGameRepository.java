@@ -23,6 +23,7 @@ import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
+import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -51,6 +52,7 @@ public class InMemoryGameRepository implements GameRepository {
     private final AtomicLong idGenerator = new AtomicLong();
     private final Object monitor = new Object();
     private Game game = null;
+    private final int[] bulletDamage = {5, 10, 30};
     private final int[] bulletDelay = {500, 1000, 1500};
     private final int[] trackActiveBullets = {0, 0, 0, 0, 0, 0};
     private final Timer itemSpawnTimer = new Timer();
@@ -61,13 +63,13 @@ public class InMemoryGameRepository implements GameRepository {
     private GameBoardBuilder gameBoardBuilder;
 
     @Autowired
-    public InMemoryGameRepository(Constraints tankConstraintChecker, GameBoardBuilder gameBoardBuilder) {
+    public InMemoryGameRepository(FireCommand fireCommand, GameBoardBuilder gameBoardBuilder) {
         this.fireCommand = new FireCommand();
         this.gameBoardBuilder = new GameBoardBuilder();
     }
 
     @Override
-    public Pair<Tank, Builder> join(String ip) {
+    public Tank join(String ip) {
         synchronized (this.monitor) {
             Tank tank;
             Builder builder;
@@ -76,7 +78,7 @@ public class InMemoryGameRepository implements GameRepository {
             }
 
             if ((tank = game.getTank(ip)) != null && (builder = game.getBuilder(ip)) != null) {
-                return Pair.with(tank,builder);
+                return tank;
             }
 
             Long Id = this.idGenerator.getAndIncrement();
@@ -113,7 +115,7 @@ public class InMemoryGameRepository implements GameRepository {
 
             game.addTank(ip, tank);
             game.addBuilder(ip, builder);
-            return Pair.with(tank,builder);
+            return tank;
         }
     }
 

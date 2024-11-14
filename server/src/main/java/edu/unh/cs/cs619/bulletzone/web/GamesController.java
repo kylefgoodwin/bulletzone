@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
+import edu.unh.cs.cs619.bulletzone.util.PlayableWrapper;
 import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import com.google.common.base.Preconditions;
@@ -51,14 +53,10 @@ class GamesController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     ResponseEntity<LongWrapper> join(HttpServletRequest request) {
-        Pair<Tank, Builder> ret;
-        Playable tank;
-        Playable builder;
+        Tank tank;
         try {
-            ret = gameRepository.join(request.getRemoteAddr());
-            tank = ret.getValue0();
-            builder = ret.getValue1();
-            log.info("Player joined: Id={} IP={}", tank.getId(), request.getRemoteAddr());
+            tank = gameRepository.join(request.getRemoteAddr());
+            log.info("Player joined: tankId={} IP={}", tank.getId(), request.getRemoteAddr());
 
             return new ResponseEntity<LongWrapper>(
                     new LongWrapper(tank.getId()),
@@ -90,7 +88,7 @@ class GamesController {
         );
     }
 
-    @RequestMapping(method = RequestMethod.PUT, value = "{builderId}/build/{entity}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/build/{entity}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     ResponseEntity<BooleanWrapper> build(@PathVariable long playableId, @PathVariable int playableType, @PathVariable String entity)
             throws TankDoesNotExistException, LimitExceededException {

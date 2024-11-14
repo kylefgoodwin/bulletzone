@@ -48,7 +48,7 @@ public class TurnCommand implements Command {
             //return false;
             throw new TankDoesNotExistException(playableId);
         }
-        if (millis < playable.getLastMoveTime()) {
+        if (millis < playable.getLastTurnTime()) {
             return false;
         }
         FieldHolder currentField = playable.getParent();
@@ -80,7 +80,7 @@ public class TurnCommand implements Command {
             return false;
         }
 
-        playable.setLastMoveTime(millis+playable.getAllowedMoveInterval());
+        playable.setLastTurnTime(millis+playable.getAllowedTurnInterval());
 
 
         return false;

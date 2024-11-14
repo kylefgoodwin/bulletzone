@@ -107,6 +107,7 @@ public class MoveCommand implements Command {
                 game.removeSoldier(playableId);
                 game.getTanks().get(playableId).sethasSoldier(false);
                 currentField.clearField();
+                playable.setLastFireTime(millis + playable.getAllowedDeployInterval());
                 EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
                 return false;
             }
@@ -151,6 +152,23 @@ public class MoveCommand implements Command {
             return false;
         }
 
+        // Soldier re-entry
+        else if (nextField.getEntity() instanceof Tank && playableType == 3) {
+            playable.setDirection(direction);
+            // Create and eject the soldier
+            Tank tank = new Tank(playableId, direction, playable.getIp());
+            game.addTank(playable.getIp(), tank);
+            game.removeSoldier(playableId);
+
+            // Place the soldier on the grid
+            playable.setLastEntryTime(millis + playable.getAllowedDeployInterval());
+            int oldPos = playable.getPosition();
+            currentField.clearField();
+            nextField.setFieldEntity(tank);
+            tank.setParent(nextField);
+            int newPos = tank.getPosition();
+            return false;
+        }
 
         playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
         return false;

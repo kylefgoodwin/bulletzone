@@ -1,5 +1,7 @@
 package edu.unh.cs.cs619.bulletzone;
 
+import android.util.Log;
+
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.rest.spring.annotations.RestService;
@@ -19,6 +21,8 @@ public class TankEventController {
     @RestService
     BulletZoneRestClient restClient;
     private int lastPressedButtonId = -1;
+    PlayerData playerData;
+    private static final String TAG = "TankEventController";
 
     public TankEventController() {}
 
@@ -35,6 +39,29 @@ public class TankEventController {
     @Background
     public void ejectSoldier(long playableId){
         restClient.ejectSoldier(playableId);
+    }
+
+    /**
+     * Sends either a dismantle or build command depending on what unit is currently selected
+     *
+     * @param playableId  unit id currently selected
+     * @param entity currently selected improvement type
+     */
+    @Background
+    public void buildOrDismantle(long playableId, int playableType, String entity) {
+        if (playableType == 2) {
+            // send build
+            if (playerData.getCurEntity().equals("destructibleWall") || playerData.getCurEntity().equals("indestructibleWall") || playerData.getCurEntity().equals("miningFacility")) {
+                restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
+            }
+        } else {
+            Log.d(TAG, "Cannot build while controlling another vehicle");
+        }
+    }
+
+    @Background
+    public void buildAsync(long playableId, int playableType, String entity) {
+        restClient.build(playableId, playableType, entity);
     }
 
     private boolean onePointTurn(int currentButtonId) {
