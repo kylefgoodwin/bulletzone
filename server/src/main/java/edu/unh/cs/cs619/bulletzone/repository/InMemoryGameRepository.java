@@ -448,7 +448,8 @@ public class InMemoryGameRepository implements GameRepository {
         if (playable == null) {
             //Log.i(TAG, "Cannot find user with id: " + tankId);
             //return false;
-            throw new TankDoesNotExistException(playableId);
+            return 0;
+//            throw new TankDoesNotExistException(playableId);
         }
 
         return playable.getLife();

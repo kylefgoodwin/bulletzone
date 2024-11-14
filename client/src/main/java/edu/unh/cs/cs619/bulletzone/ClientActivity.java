@@ -458,6 +458,12 @@ public class ClientActivity extends Activity {
             tankHealthBar.setProgress(playerData.getTankLife());
             builderHealthBar.setProgress(playerData.getBuilderLife());
             soldierHealthBar.setProgress(playerData.getSoldierLife());
+
+            sleep(100);
+
+            if (playerData.getTankLife() == 0 || playerData.getSoldierLife() == 0) {
+                leaveGame();
+            }
         }
     }
 

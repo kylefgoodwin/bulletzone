@@ -90,7 +90,7 @@ public class FireCommand {
                     Playable p = (Playable) nextField.getEntity();
                     System.out.println("Playable is hit, life: " + p.getLife());
                     if (p.getLife() <= 0) {
-                        handleRemovingPlayable(currentField, p, playableType, game);
+                        handleRemovingPlayable(currentField, p, p.getPlayableType(), game);
                     }
                 //Handle hitting wall
                 } else if (nextField.getEntity().isWall()) {
