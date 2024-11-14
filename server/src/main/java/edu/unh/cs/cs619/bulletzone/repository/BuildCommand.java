@@ -16,6 +16,7 @@ import edu.unh.cs.cs619.bulletzone.model.MiningFacility;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
+import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 public class BuildCommand implements Command {
@@ -121,6 +122,8 @@ public class BuildCommand implements Command {
             }
         } else {
             int fieldIndex = currentField.getPosition();
+            int nextIndex = nextField.getPosition();
+
             int row = fieldIndex / FIELD_DIM;
             int col = fieldIndex % FIELD_DIM;
 
@@ -145,12 +148,14 @@ public class BuildCommand implements Command {
             if (entityInNextField instanceof Wall || entityInNextField instanceof MiningFacility) {
                 if (entityInNextField instanceof Wall) {
                     System.out.println("Dismantling wall...");
-                    nextField.setFieldEntity(null);
+                    nextField.clearField();
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                     return true;
                 }
                 // If it's an indestructible wall or mining facility, dismantle it if the rules allow
                 System.out.println("Dismantling mining facility...");
-                nextField.setFieldEntity(null);
+                nextField.clearField();
+                EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                 return true;
             }
         }

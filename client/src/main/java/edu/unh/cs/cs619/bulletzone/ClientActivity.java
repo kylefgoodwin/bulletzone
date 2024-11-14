@@ -110,9 +110,6 @@ public class ClientActivity extends Activity {
     @Bean
     SimBoardView simBoardView;
 
-    @Bean
-    PowerUpController powerUpController;
-
     ClientActivityShakeDriver shakeDriver;
 
     PlayerData playerData = PlayerData.getPlayerData();

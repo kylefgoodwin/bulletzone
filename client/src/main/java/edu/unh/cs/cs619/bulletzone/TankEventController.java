@@ -42,7 +42,7 @@ public class TankEventController {
     }
 
     /**
-     * Sends either a mine or build command depending on what unit is currently selected
+     * Sends either a dismantle or build command depending on what unit is currently selected
      *
      * @param playableId  unit id currently selected
      * @param entity currently selected improvement type

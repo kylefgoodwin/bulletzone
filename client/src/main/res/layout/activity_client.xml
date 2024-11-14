@@ -227,6 +227,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+        <Spinner
+            android:id="@+id/selectImprovement"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
         <Button
             android:id="@+id/buttonEject"
             android:layout_width="wrap_content"
@@ -276,117 +281,20 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- Toggle Button for Units -->
+        <Button
+            android:id="@+id/buttonEjectSoldier"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:layout_marginTop="16dp">
+            android:text="@string/ejectsoldier" />
 
-            <!-- Toggle Button for Units -->
-            <Button
-                android:id="@+id/buttonEjectSoldier"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/ejectsoldier" />
-
-            <!-- Unit Group: Initially Hidden -->
-            <LinearLayout
-                android:id="@+id/unitGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center_horizontal"
-                android:layout_marginTop="8dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/unit_controls_label"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="8dp"/>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/buttonTank"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/tank"
-                        android:layout_marginRight="8dp" />
-
-                    <Button
-                        android:id="@+id/buttonBuilder"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/builder" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Toggle Button for Materials -->
-            <Button
-                android:id="@+id/buttonMaterials"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/materials"
-                android:layout_marginTop="16dp" />
-
-            <!-- Material Group: Initially Hidden -->
-            <LinearLayout
-                android:id="@+id/materialGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center_horizontal"
-                android:layout_marginTop="8dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/material_controls_label"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="8dp"/>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/buttonIndWall"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/indestructible_wall"
-                        android:layout_marginRight="8dp" />
-
-                    <Button
-                        android:id="@+id/buttonDesWall"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/destructible_wall"
-                        android:layout_marginRight="8dp" />
-
-                    <Button
-                        android:id="@+id/buttonFacility"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/factory" />
-                </LinearLayout>
-
-                <!-- Build or Dismantle Button -->
-                <Button
-                    android:id="@+id/buttonBuildOrDismantle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/build_or_dismantle"
-                    android:layout_marginTop="8dp" />
-            </LinearLayout>
-        </LinearLayout>
+        <!-- Build or Dismantle Button -->
+        <Button
+            android:id="@+id/buttonBuildOrDismantle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/build_or_dismantle"
+            android:layout_marginTop="8dp" />
 
         <!-- Eject Power-up Button -->
         <Button
