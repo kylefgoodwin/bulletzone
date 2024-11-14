@@ -107,6 +107,7 @@ public class MoveCommand implements Command {
                 game.removeSoldier(playableId);
                 game.getTanks().get(playableId).sethasSoldier(false);
                 currentField.clearField();
+                playable.setLastFireTime(millis + playable.getAllowedDeployInterval());
                 EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
                 return false;
             }

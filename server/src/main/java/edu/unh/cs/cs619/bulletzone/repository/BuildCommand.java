@@ -59,6 +59,7 @@ public class BuildCommand implements Command {
         boolean isVisible = currentField.isPresent()
                 && (currentField.getEntity() == builder);
         FieldHolder nextField = currentField.getNeighbor(direction);
+        int built = builder.getAllowBuildInterval();
         if (!nextField.isPresent()) { //nothing there, can build
             // If the next field is empty move the user
             int fieldIndex = currentField.getPosition();
@@ -86,6 +87,12 @@ public class BuildCommand implements Command {
             int currentValue = currentField.getEntity().getIntValue();
             if (Objects.equals(entity, "destructibleWall")) {
                 if (game.getCredits(builderId) >= 80) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
                     Wall destructibleWall = new Wall(1500, nextIndex);
                     game.getHolderGrid().get(nextIndex).setFieldEntity(destructibleWall);
                     game.removeCredits(builderId, 80);
@@ -98,6 +105,12 @@ public class BuildCommand implements Command {
             } else if (Objects.equals(entity, "indestructibleWall")) {
 
                 if (game.getCredits(builderId) >= 150) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
                     Wall indestructibleWall = new Wall();
                     game.getHolderGrid().get(nextIndex).setFieldEntity(indestructibleWall);
                     game.removeCredits(builderId, 150);
@@ -109,6 +122,12 @@ public class BuildCommand implements Command {
                 }
             } else if (Objects.equals(entity, "miningFacility")) {
                 if (game.getCredits(builderId) >= 300) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
                     MiningFacility miningFacility = new MiningFacility(920, nextIndex);
                     game.getHolderGrid().get(nextIndex).setFieldEntity(miningFacility);
                     game.removeCredits(builderId, 300);
@@ -145,17 +164,42 @@ public class BuildCommand implements Command {
             }
             FieldEntity entityInNextField = nextField.getEntity();
 
-            if (entityInNextField instanceof Wall || entityInNextField instanceof MiningFacility) {
-                if (entityInNextField instanceof Wall) {
-                    System.out.println("Dismantling wall...");
+            if (entityInNextField.isWall() || entityInNextField instanceof MiningFacility) {
+                if (entityInNextField.isWall()) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Dismantling wall...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
                     nextField.clearField();
+                    game.addCredits(builderId, 80);
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                     return true;
                 }
                 // If it's an indestructible wall or mining facility, dismantle it if the rules allow
-                System.out.println("Dismantling mining facility...");
-                nextField.clearField();
-                EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                if (entityInNextField.getIntValue() == 902) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Dismantling mining facility...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    nextField.clearField();
+                    game.addCredits(builderId, 300);
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                } else {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Dismantling indestructible wall...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    nextField.clearField();
+                    game.addCredits(builderId, 150);
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                }
+
                 return true;
             }
         }
