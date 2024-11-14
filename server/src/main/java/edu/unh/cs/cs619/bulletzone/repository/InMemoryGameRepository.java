@@ -1,5 +1,7 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.greenrobot.eventbus.EventBus;
 import org.javatuples.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +11,6 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
-//import org.java.tuples.Pair; // ???
 
 import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.Bullet;
@@ -22,9 +23,8 @@ import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
+import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component
 public class InMemoryGameRepository implements GameRepository {
@@ -76,35 +76,38 @@ public class InMemoryGameRepository implements GameRepository {
             }
 
             if ((tank = game.getTank(ip)) != null && (builder = game.getBuilder(ip)) != null) {
-                return Pair.with(tank,builder);
+                return Pair.with(tank, builder);
             }
 
             Long Id = this.idGenerator.getAndIncrement();
-
             tank = new Tank(Id, Direction.Up, ip);
             builder = new Builder(Id, Direction.Up, ip);
 
             Random random = new Random();
-            int x;
-            int y;
+            int x, y;
 
-            // This may run for forever.. If there is no free space. XXX
-            for (; ; ) {
+            // Find a valid spawn position for the tank
+            while (true) {
                 x = random.nextInt(FIELD_DIM);
                 y = random.nextInt(FIELD_DIM);
                 FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
-                if (!fieldElement.isPresent()) {
+
+                // Check if this cell is empty and not surrounded by walls
+                if (!fieldElement.isPresent() && !isSurroundedByWalls(x, y)) {
                     fieldElement.setFieldEntity(tank);
                     tank.setParent(fieldElement);
                     break;
                 }
             }
 
-            for (; ; ) {
+            // Find a valid spawn position for the builder
+            while (true) {
                 x = random.nextInt(FIELD_DIM);
                 y = random.nextInt(FIELD_DIM);
                 FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
-                if (!fieldElement.isPresent()) {
+
+                // Check if this cell is empty and not surrounded by walls
+                if (!fieldElement.isPresent() && !isSurroundedByWalls(x, y)) {
                     fieldElement.setFieldEntity(builder);
                     builder.setParent(fieldElement);
                     break;
@@ -113,8 +116,34 @@ public class InMemoryGameRepository implements GameRepository {
 
             game.addTank(ip, tank);
             game.addBuilder(ip, builder);
-            return Pair.with(tank,builder);
+            return Pair.with(tank, builder);
         }
+    }
+
+    /**
+     * Checks if a given position is surrounded by indestructible walls.
+     */
+    private boolean isSurroundedByWalls(int x, int y) {
+        FieldHolder target = game.getHolderGrid().get(x * FIELD_DIM + y);
+
+        // Get neighbors in all four directions
+        FieldHolder right = game.getHolderGrid().get(x * FIELD_DIM + ((y + 1) % FIELD_DIM));
+        FieldHolder down = game.getHolderGrid().get(((x + 1) % FIELD_DIM) * FIELD_DIM + y);
+        FieldHolder left = game.getHolderGrid().get(x * FIELD_DIM + ((y - 1 + FIELD_DIM) % FIELD_DIM));
+        FieldHolder up = game.getHolderGrid().get(((x - 1 + FIELD_DIM) % FIELD_DIM) * FIELD_DIM + y);
+
+        // Check if all neighbors are indestructible walls
+        return isIndestructibleWall(right) && isIndestructibleWall(down) &&
+                isIndestructibleWall(left) && isIndestructibleWall(up);
+    }
+
+    /**
+     * Checks if a FieldHolder contains an indestructible wall.
+     */
+    private boolean isIndestructibleWall(FieldHolder fieldHolder) {
+        return fieldHolder.isTerrainPresent() &&
+                fieldHolder.getTerrainEntityHolder() instanceof Wall &&
+                ((Wall) fieldHolder.getTerrainEntityHolder()).getIntValue() == 0;
     }
 
     @Override

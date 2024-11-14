@@ -10,10 +10,8 @@ import java.util.Map;
 import edu.unh.cs.cs619.bulletzone.datalayer.terrain.TerrainType;
 import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.Game;
-//import edu.unh.cs.cs619.bulletzone.model.GameBoard;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
-import jdk.jfr.Category;
 
 @Component()
 public class GameBoardBuilder {

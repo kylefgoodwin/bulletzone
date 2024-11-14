@@ -1,5 +1,10 @@
 package edu.unh.cs.cs619.bulletzone.datalayer;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -8,9 +13,6 @@ import java.util.Collection;
 import edu.unh.cs.cs619.bulletzone.datalayer.account.AccountTransferHistoryRecord;
 import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
 import edu.unh.cs.cs619.bulletzone.datalayer.user.GameUser;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
 
 public class BankAccountRepositoryTest {
     static BulletZoneData db;

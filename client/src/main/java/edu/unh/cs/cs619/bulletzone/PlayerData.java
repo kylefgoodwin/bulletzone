@@ -18,6 +18,8 @@ public class PlayerData {
     private int builderLife = 100;
     private int tankLife = 100;
     private int soldierLife = 100;
+    private int fusionReactorCount = 0;
+    private int antiGravCount = 0;
 
     private PlayerData() {
         this.tankMap = 0;
@@ -58,14 +60,16 @@ public class PlayerData {
         this.builderLife = builderLife;
     }
 
-    public void setTankId(long tankId) {
-        this.tankId = tankId;
-    }
-
     public void setUserId(long userId) {
         this.userId = userId;
     }
 
+    // ID-related methods
+    public void setTankId(long tankId) {
+        this.tankId = tankId;
+    }
+
+    // Interval getters and setters
     public int getMoveInterval() {
         return moveInterval;
     }
@@ -86,13 +90,24 @@ public class PlayerData {
         }
     }
 
-    public void incrementPowerUps() {
+    // Power-up management methods
+    public void incrementPowerUps(int type) {
         activePowerUps++;
+        if (type == 2) { // AntiGrav
+            antiGravCount++;
+        } else if (type == 3) { // FusionReactor
+            fusionReactorCount++;
+        }
     }
 
-    public void decrementPowerUps() {
+    public void decrementPowerUps(int type) {
         if (activePowerUps > 0) {
             activePowerUps--;
+            if (type == 2 && antiGravCount > 0) {
+                antiGravCount--;
+            } else if (type == 3 && fusionReactorCount > 0) {
+                fusionReactorCount--;
+            }
         }
     }
 
@@ -100,8 +115,18 @@ public class PlayerData {
         return activePowerUps;
     }
 
+    public int getAntiGravCount() {
+        return antiGravCount;
+    }
+
+    public int getFusionReactorCount() {
+        return fusionReactorCount;
+    }
+
     public void resetPowerUps() {
         activePowerUps = 0;
+        antiGravCount = 0;
+        fusionReactorCount = 0;
         moveInterval = 500;   // Reset to base value
         fireInterval = 1500;  // Reset to base value
     }

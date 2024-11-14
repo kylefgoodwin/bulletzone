@@ -12,9 +12,9 @@ import java.util.Vector;
 import edu.unh.cs.cs619.bulletzone.datalayer.BulletZoneData;
 import edu.unh.cs.cs619.bulletzone.datalayer.core.EntityRecord;
 import edu.unh.cs.cs619.bulletzone.datalayer.core.EntityType;
+import edu.unh.cs.cs619.bulletzone.datalayer.core.Status;
 import edu.unh.cs.cs619.bulletzone.datalayer.permission.OwnableEntity;
 import edu.unh.cs.cs619.bulletzone.datalayer.permission.OwnableEntityRepository;
-import edu.unh.cs.cs619.bulletzone.datalayer.core.Status;
 
 public class BankAccountRepository implements OwnableEntityRepository {
     HashMap<Integer, BankAccount> accountMap = new HashMap<Integer, BankAccount>();

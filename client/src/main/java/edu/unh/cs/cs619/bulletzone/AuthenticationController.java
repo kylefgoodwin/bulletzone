@@ -1,7 +1,5 @@
 package edu.unh.cs.cs619.bulletzone;
 
-import android.content.Context;
-
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.rest.spring.annotations.RestService;
@@ -13,7 +11,6 @@ import org.springframework.web.client.RestClientException;
 import edu.unh.cs.cs619.bulletzone.rest.BulletZoneRestClient;
 import edu.unh.cs.cs619.bulletzone.util.BooleanWrapper;
 import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
-
 import edu.unh.cs.cs619.bulletzone.util.ResultWrapper;
 
 @EBean

@@ -2,7 +2,10 @@ package edu.unh.cs.cs619.bulletzone.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class HitEvent extends GameEvent{
+import java.io.Serializable;
+
+public class HitEvent extends GameEvent implements Serializable {
+    private static final long serialVersionUID = 1L;
     @JsonProperty
     private long playableId;
     @JsonProperty

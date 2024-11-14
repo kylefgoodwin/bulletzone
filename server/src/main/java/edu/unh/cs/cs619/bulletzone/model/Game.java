@@ -1,15 +1,14 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.Optional;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import org.apache.juli.logging.Log;
-import org.greenrobot.eventbus.EventBus;
 
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 

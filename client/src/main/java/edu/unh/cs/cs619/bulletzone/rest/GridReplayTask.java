@@ -7,11 +7,7 @@ import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.UiThread;
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import edu.unh.cs.cs619.bulletzone.events.GameEvent;
-import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.events.ReplayEventProcessor;
 import edu.unh.cs.cs619.bulletzone.events.UpdateBoardEvent;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
@@ -52,12 +48,6 @@ public class GridReplayTask {
         try {
             Log.d(TAG, "Stating GridReplayTask");
 
-//            GridWrapper grid = replayData.getInitialGrid();
-//            GridWrapper tGrid = replayData.getInitialTerrainGrid();
-//            onGridUpdate(grid, tGrid);
-//
-//            eventProcessor.setBoard(grid.getGrid(), tGrid.getGrid());
-
             while (replayData.getEventAt(replayIndex) != null) {
 
                 while (paused == 1);
@@ -72,12 +62,13 @@ public class GridReplayTask {
 
                 Thread.sleep(waitForMillis);
 
+//                Log.d(TAG, "Posting " + currEvent.getClass() + "Event");
                 EventBus.getDefault().post(currEvent);
                 EventBus.getDefault().post(new UpdateBoardEvent());
                 Log.d(TAG, currEvent.toString());
                 replayIndex++;
             }
-            Log.d(TAG, "Exited While Loop");
+//            Log.d(TAG, "Exited While Loop");
         } catch (Exception exe) {
             Log.e(TAG, "Unexpected error in doReplay", exe);
         }
