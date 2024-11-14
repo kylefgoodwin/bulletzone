@@ -12,7 +12,7 @@ public class MiningFacility extends BoardCell{
     public MiningFacility(int val, int r, int c) {
         super(val, r, c);
 
-        resourceID = R.drawable.miningfacility;
+        resourceID = R.drawable.indestwall;
         cellType = "MiningFacility";
 
     }

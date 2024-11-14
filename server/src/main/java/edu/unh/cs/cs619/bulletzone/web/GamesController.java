@@ -51,18 +51,14 @@ class GamesController {
     @RequestMapping(method = RequestMethod.POST, value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    ResponseEntity<PlayableWrapper> join(HttpServletRequest request) {
-        Pair<Tank, Builder> ret;
-        Playable tank;
-        Playable builder;
+    ResponseEntity<LongWrapper> join(HttpServletRequest request) {
+        Tank tank;
         try {
-            ret = gameRepository.join(request.getRemoteAddr());
-            tank = ret.getValue0();
-            builder = ret.getValue1();
-            log.info("Player joined: Id={} IP={}", tank.getId(), request.getRemoteAddr());
+            tank = gameRepository.join(request.getRemoteAddr());
+            log.info("Player joined: tankId={} IP={}", tank.getId(), request.getRemoteAddr());
 
-            return new ResponseEntity<PlayableWrapper>(
-                    new PlayableWrapper(tank.getId(), builder.getId()),
+            return new ResponseEntity<LongWrapper>(
+                    new LongWrapper(tank.getId()),
                     HttpStatus.CREATED
             );
         } catch (RestClientException e) {
@@ -70,6 +66,7 @@ class GamesController {
         }
         return null;
     }
+
 
     @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/turn/{direction}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
@@ -91,7 +88,7 @@ class GamesController {
         );
     }
 
-    @RequestMapping(method = RequestMethod.PUT, value = "{builderId}/build/{entity}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/build/{entity}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     ResponseEntity<BooleanWrapper> build(@PathVariable long playableId, @PathVariable int playableType, @PathVariable String entity)
             throws TankDoesNotExistException, LimitExceededException {

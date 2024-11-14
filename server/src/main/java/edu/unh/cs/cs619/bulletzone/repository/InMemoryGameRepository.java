@@ -23,6 +23,7 @@ import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
+import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -68,7 +69,7 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     @Override
-    public Pair<Tank, Builder> join(String ip) {
+    public Tank join(String ip) {
         synchronized (this.monitor) {
             Tank tank;
             Builder builder;
@@ -77,7 +78,7 @@ public class InMemoryGameRepository implements GameRepository {
             }
 
             if ((tank = game.getTank(ip)) != null && (builder = game.getBuilder(ip)) != null) {
-                return Pair.with(tank,builder);
+                return tank;
             }
 
             Long Id = this.idGenerator.getAndIncrement();
@@ -114,7 +115,7 @@ public class InMemoryGameRepository implements GameRepository {
 
             game.addTank(ip, tank);
             game.addBuilder(ip, builder);
-            return Pair.with(tank,builder);
+            return tank;
         }
     }
 

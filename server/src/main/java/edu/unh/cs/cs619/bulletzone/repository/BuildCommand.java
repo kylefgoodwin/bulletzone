@@ -1,5 +1,7 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -14,6 +16,7 @@ import edu.unh.cs.cs619.bulletzone.model.MiningFacility;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
+import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 public class BuildCommand implements Command {
     Game game;
@@ -82,9 +85,10 @@ public class BuildCommand implements Command {
             int currentValue = currentField.getEntity().getIntValue();
             if (Objects.equals(entity, "destructibleWall")) {
                 if (game.getCredits(builderId) >= 80) {
-                    // //////////INSERT EVENT LOGIC HERE ///////////////
-                    game.getHolderGrid().get(nextIndex).setFieldEntity(new Wall(1500, nextIndex));
+                    Wall destructibleWall = new Wall(1500, nextIndex);
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(destructibleWall);
                     game.removeCredits(builderId, 80);
+                    EventBus.getDefault().post(new SpawnEvent(destructibleWall.getIntValue(), nextIndex));
                     return true;
                 } else {
                     System.out.println("You don't have enough credits, building blocked.");
@@ -93,9 +97,10 @@ public class BuildCommand implements Command {
             } else if (Objects.equals(entity, "indestructibleWall")) {
 
                 if (game.getCredits(builderId) >= 150) {
-                    // //////////INSERT EVENT LOGIC HERE ///////////////
-                    game.getHolderGrid().get(nextIndex).setFieldEntity(new Wall());
+                    Wall indestructibleWall = new Wall();
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(indestructibleWall);
                     game.removeCredits(builderId, 150);
+                    EventBus.getDefault().post(new SpawnEvent(indestructibleWall.getIntValue(), nextIndex));
                     return true;
                 } else {
                     System.out.println("You don't have enough credits, building blocked.");
@@ -103,9 +108,10 @@ public class BuildCommand implements Command {
                 }
             } else if (Objects.equals(entity, "miningFacility")) {
                 if (game.getCredits(builderId) >= 300) {
-                    // //////////INSERT EVENT LOGIC HERE ///////////////
-                    game.getHolderGrid().get(nextIndex).setFieldEntity(new MiningFacility(920, nextIndex));
+                    MiningFacility miningFacility = new MiningFacility(920, nextIndex);
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(miningFacility);
                     game.removeCredits(builderId, 300);
+                    EventBus.getDefault().post(new SpawnEvent(miningFacility.getIntValue(), nextIndex));
                     return true;
                 } else {
                     System.out.println("You don't have enough credits, building blocked.");

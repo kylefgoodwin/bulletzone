@@ -65,7 +65,9 @@ public final class Game {
         synchronized (soldiers) {
             soldiers.put(soldier.getId(), soldier);
             playersIPSoldiers.put(ip, soldier.getId());
+            playerCredits.put(soldier.getId(), 0.0); // Initialize credits for new tank
         }
+        EventBus.getDefault().post(new SpawnEvent(soldier.getIntValue(), soldier.getPosition()));
     }
 
     public void addCredits(long tankId, double amount) {
@@ -153,6 +155,7 @@ public final class Game {
         synchronized (builders) {
             builders.put(builder.getId(), builder);
             playersIPBuilders.put(ip, builder.getId());
+            playerCredits.put(builder.getId(), 0.0); // Initialize credits for new tank
         }
         EventBus.getDefault().post(new SpawnEvent(builder.getIntValue(), builder.getPosition()));
     }
