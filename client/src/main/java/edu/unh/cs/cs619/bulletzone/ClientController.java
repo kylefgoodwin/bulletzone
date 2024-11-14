@@ -46,7 +46,11 @@ public class ClientController {
 
         PlayerData.getPlayerData().setTankLife(newLifeTank);
         PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
-        PlayerData.getPlayerData().setSoldierLife(newLifeSoldier);
+
+        if (newLifeSoldier != -1) {
+            PlayerData.getPlayerData().setSoldierLife(newLifeSoldier);
+        }
+
 
 //        Log.d("LifeCheck", "Builder Life: " + PlayerData.getPlayerData().getBuilderLife() + "\n");
 //        Log.d("LifeCheck", "Goblin Life: " + PlayerData.getPlayerData().getTankLife() + "\n");

@@ -439,6 +439,9 @@ public class InMemoryGameRepository implements GameRepository {
             playable = game.getBuilders().get(playableId);
         } else {
             playable = game.getSoldier(playableId);
+            if (playable == null) {
+                return -1;
+            }
         }
         if (playable == null) {
             //Log.i(TAG, "Cannot find user with id: " + tankId);

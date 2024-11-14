@@ -47,7 +47,7 @@ public class Builder extends Playable {
             //handle game over scenario
         }
         System.out.println("Builder id: " + id + " Builder Life: " + life);
-        EventBus.getDefault().post(new HitEvent((int) id, 1));
+        EventBus.getDefault().post(new HitEvent((int) id, 2));
     }
 
     @JsonIgnore
