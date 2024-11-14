@@ -66,6 +66,9 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     @Put("/{playableId}/{playableType}/fire/1")
     BooleanWrapper fire(@Path long playableId, @Path int playableType);
 
+    @Put("/{playableId}/eject/0")
+    BooleanWrapper ejectSoldier(@Path long playableId);
+
     @Delete("/{playableId}/leave")
     BooleanWrapper leave(@Path long playableId);
 
@@ -78,7 +81,7 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     @Put("/account/balance/{userId}/deposit/{amount}")
     BooleanWrapper depositBalance(@Path("userId") long userId, @Path("amount") double amount);
 
-    @Put("/{playableId}/eject")
+    @Put("/{playableId}/ejectPowerUp")
     BooleanWrapper ejectPowerUp(@Path long playableId);
 
     @Get("/{playableId}/{playableType}/life")

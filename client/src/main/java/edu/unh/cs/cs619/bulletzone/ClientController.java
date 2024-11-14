@@ -40,11 +40,17 @@ public class ClientController {
     public void getLifeAsync(int playableId) {
         int newLifeBuilder = restClient.getLife(playableId, 2).getResult();
         int newLifeTank = restClient.getLife(playableId, 1).getResult();
+        int newLifeSoldier = restClient.getLife(playableId, 3).getResult();
 
 //        Log.d("getLifeAsync", "Tank Life from Server: " + newLifeTank);
 
         PlayerData.getPlayerData().setTankLife(newLifeTank);
         PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
+
+        if (newLifeSoldier != -1) {
+            PlayerData.getPlayerData().setSoldierLife(newLifeSoldier);
+        }
+
 
 //        Log.d("LifeCheck", "Builder Life: " + PlayerData.getPlayerData().getBuilderLife() + "\n");
 //        Log.d("LifeCheck", "Goblin Life: " + PlayerData.getPlayerData().getTankLife() + "\n");
@@ -78,5 +84,10 @@ public class ClientController {
     @Background
     public void ejectPowerUpAsync(long tankId) {
         restClient.ejectPowerUp(tankId);
+    }
+
+    @Background
+    public void ejectSoldierAsync(long tankId) {
+        restClient.ejectSoldier(tankId);
     }
 }
