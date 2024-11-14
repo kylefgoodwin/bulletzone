@@ -103,7 +103,6 @@ public class BuildCommand implements Command {
                     return false;
                 }
             } else if (Objects.equals(entity, "indestructibleWall")) {
-
                 if (game.getCredits(builderId) >= 150) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
@@ -112,6 +111,7 @@ public class BuildCommand implements Command {
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
                     Wall indestructibleWall = new Wall();
+//                    System.out.println("Building Indest Wall");
                     game.getHolderGrid().get(nextIndex).setFieldEntity(indestructibleWall);
                     game.removeCredits(builderId, 150);
                     EventBus.getDefault().post(new SpawnEvent(indestructibleWall.getIntValue(), nextIndex));
