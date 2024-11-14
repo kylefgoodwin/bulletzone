@@ -61,7 +61,6 @@ public class ClientController {
             PlayerData.getPlayerData().setSoldierLife(newLifeSoldier);
         }
 
-
 //        Log.d("LifeCheck", "Builder Life: " + PlayerData.getPlayerData().getBuilderLife() + "\n");
 //        Log.d("LifeCheck", "Goblin Life: " + PlayerData.getPlayerData().getTankLife() + "\n");
     }

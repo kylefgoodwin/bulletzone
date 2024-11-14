@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 
@@ -21,9 +20,6 @@ import edu.unh.cs.cs619.bulletzone.util.ReplayDataFlat;
 public class ReplayActivity extends Activity {
 
     private static final String TAG = "ReplayActivity";
-
-    @Bean
-    ReplayController replayController;
 
     ReplayData replayData = ReplayData.getReplayData();
 

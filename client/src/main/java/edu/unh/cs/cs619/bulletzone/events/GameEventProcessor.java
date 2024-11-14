@@ -82,6 +82,7 @@ public class GameEventProcessor {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onNewEvent(GameEvent event) {
+        replayData.addGameEvent(event);
         if (event == null) {
             Log.w(TAG, "Received null event");
             return;
@@ -101,7 +102,6 @@ public class GameEventProcessor {
 
             try {
                 event.applyTo(playerLayer);
-                replayData.addGameEvent(event);
                 Log.d(TAG, "Successfully applied event: " + event);
             } catch (Exception e) {
                 Log.e(TAG, "Error applying event: " + e.getMessage(), e);

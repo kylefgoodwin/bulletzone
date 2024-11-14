@@ -31,7 +31,7 @@ public class FileHelper {
             oos.writeObject(replayList);
             oos.close();
             fos.close();
-            Log.d(TAG, "Successfully saved " + replayList.size() + " replays");
+//            Log.d(TAG, "Successfully saved " + replayList.size() + " replays");
         } catch (IOException e) {
             Log.e(TAG, "Error saving replay list", e);
         }
@@ -47,7 +47,7 @@ public class FileHelper {
             replayList = (List<ReplayDataFlat>) ois.readObject();
             ois.close();
             fis.close();
-            Log.d(TAG, "Successfully loaded " + replayList.size() + " replays");
+//            Log.d(TAG, "Successfully loaded " + replayList.size() + " replays");
         } catch (FileNotFoundException e) {
             Log.d(TAG, "No existing replay file found");
         } catch (IOException | ClassNotFoundException e) {
@@ -61,7 +61,7 @@ public class FileHelper {
         List<ReplayDataFlat> existingReplays = loadReplayList(filename);
         existingReplays.add(0, newReplay);
         saveReplayList(filename, existingReplays);
-        Log.d(TAG, "Added new replay. Total replays: " + existingReplays.size());
+//        Log.d(TAG, "Added new replay. Total replays: " + existingReplays.size());
     }
 
     // Check if replay file exists

@@ -1,10 +1,14 @@
 package edu.unh.cs.cs619.bulletzone.util;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 import edu.unh.cs.cs619.bulletzone.events.GameEvent;
 
 public class ReplayData {
+
+    private static final String TAG = "ReplayData";
 
     private static ReplayData replayData = null;
 
@@ -69,6 +73,7 @@ public class ReplayData {
 
     public void addGameEvent(GameEvent event) {
         eventHistory.add(event);
+        Log.d(TAG, "Added Event: " + event.toString());
     }
 
     public GameEvent getEventAt(int index) {
