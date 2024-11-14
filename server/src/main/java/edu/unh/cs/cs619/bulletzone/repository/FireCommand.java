@@ -1,6 +1,7 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
 import org.greenrobot.eventbus.EventBus;
+import org.springframework.stereotype.Component;
 
 import java.util.TimerTask;
 
@@ -17,7 +18,9 @@ import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
+import edu.unh.cs.cs619.bulletzone.model.events.TurnEvent;
 
+@Component
 public class FireCommand {
 
     Game game;

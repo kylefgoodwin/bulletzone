@@ -26,6 +26,8 @@ public class BoardCellFactory {
             return new BoardCell(val, row, col);
         } else if (val < 2000 && val >= 1000) {
             return new Wall(val, row, col);
+        } else if (val == 920){
+            return new MiningFacility(val, row, col);
         } else {
             return new BoardCell(val, row, col);
         }
