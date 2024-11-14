@@ -14,7 +14,8 @@ public class RemoveEvent extends GameEvent  implements Serializable {
 
     public RemoveEvent() {}
 
-    void applyTo(int [][]board) {
+    @Override
+    public void applyTo(int[][] board) {
         board[position / 16][position % 16] = 0;
     }
 

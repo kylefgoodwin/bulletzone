@@ -4,6 +4,10 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -19,8 +23,6 @@ import edu.unh.cs.cs619.bulletzone.datalayer.itemType.ItemCategory;
 import edu.unh.cs.cs619.bulletzone.datalayer.itemType.ItemType;
 import edu.unh.cs.cs619.bulletzone.datalayer.user.GameUser;
 import edu.unh.cs.cs619.bulletzone.datalayer.user.UserAssociation;
-
-import static org.junit.Assert.*;
 
 public class BulletZoneDataTest {
 

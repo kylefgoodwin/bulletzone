@@ -1,7 +1,5 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
-import android.util.Log;
-
 import edu.unh.cs.cs619.bulletzone.R;
 
 /**

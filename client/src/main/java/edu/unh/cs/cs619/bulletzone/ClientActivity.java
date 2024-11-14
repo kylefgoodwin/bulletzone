@@ -23,6 +23,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import org.androidannotations.annotations.*;
+import org.androidannotations.rest.spring.annotations.RestService;
 import org.androidannotations.api.BackgroundExecutor;
 
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
@@ -30,7 +31,9 @@ import edu.unh.cs.cs619.bulletzone.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
+import edu.unh.cs.cs619.bulletzone.rest.BulletZoneRestClient;
 import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
+import edu.unh.cs.cs619.bulletzone.ui.GridAdapter;
 import edu.unh.cs.cs619.bulletzone.util.ClientActivityShakeDriver;
 import edu.unh.cs.cs619.bulletzone.util.FileHelper;
 import edu.unh.cs.cs619.bulletzone.util.ReplayData;
@@ -43,6 +46,8 @@ import com.skydoves.progressview.ProgressView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @EActivity(R.layout.activity_client)
 public class ClientActivity extends Activity {
@@ -122,7 +127,9 @@ public class ClientActivity extends Activity {
     private int playableType = 1;
     private long userId = -1;
     private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier"));
-
+    private long lastEventTimestamp = 0;
+    private Set<Long> processedItemEvents = new HashSet<>();
+    private Set<Long> processedEventIds = new HashSet<>();
 
     // For testing purposes only
     @VisibleForTesting
@@ -145,38 +152,44 @@ public class ClientActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate called");
         EventBus.getDefault().register(this);
 
         fileHelper = new FileHelper(getApplicationContext());
         replayData.setInitialTimeStamp(System.currentTimeMillis());
-
-        shakeDriver = new ClientActivityShakeDriver(this, new ClientActivityShakeDriver.OnShakeListener() {
-            @Override
-            public void onShake() {
-                onButtonFire();
-            }
-        });
-
-        Log.e(TAG, "onCreate");
+        shakeDriver = new ClientActivityShakeDriver(this, () -> onButtonFire());
+        processedItemEvents = new HashSet<>();
+        processedEventIds = new HashSet<>();
     }
 
     @Override
     protected void onDestroy() {
-        EventBus.getDefault().unregister(this);
-        super.onDestroy();
         Log.d(TAG, "onDestroy called");
+
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
 
         clientController.updateReplays(getApplicationContext());
 
         gridPollTask.stop();
         BackgroundExecutor.cancelAll("grid_poller_task", true);
+        processedItemEvents.clear();
+        processedEventIds.clear();
 
-        simBoardView.detach();
+        if (simBoardView != null) {
+            simBoardView.detach();
+        }
+
         if (eventProcessor != null) {
             eventProcessor.stop();
         }
 
-        shakeDriver.stop();
+        if (shakeDriver != null) {
+            shakeDriver.stop();
+        }
+
+        super.onDestroy();
     }
 
     @AfterViews
@@ -185,6 +198,7 @@ public class ClientActivity extends Activity {
         userId = playerData.getUserId();
         playableId = playerData.getTankId();
         replayData.setPlayerTankID(playableId);
+
         if (userId != -1) {
             userIdTextView.setText("User ID: " + userId);
             fetchAndUpdateBalance();
@@ -193,13 +207,24 @@ public class ClientActivity extends Activity {
             updateBalanceUI(null);
         }
 
-        // Initialize stat displays with base values
-        playerData.resetPowerUps(); // Ensure we start with base values
+        playerData.resetPowerUps();
         updateStatsDisplay();
 
         SystemClock.sleep(500);
-        selectPlayable.setAdapter(new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, playableSelections));
+        selectPlayable.setAdapter(new ArrayAdapter<>(this,
+                androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, playableSelections));
         simBoardView.attach(gridView, tGridView, playableId);
+    }
+
+    @Background
+    protected void initializeGameBoard() {
+        try {
+            // Get initial board state through the GameEventProcessor
+            Log.d(TAG, "Initializing game board");
+            gridPollTask.doPoll(eventProcessor);
+        } catch (Exception e) {
+            Log.e(TAG, "Error initializing game board", e);
+        }
     }
 
     @Background
@@ -219,7 +244,6 @@ public class ClientActivity extends Activity {
     void showPowerUpMessage(String message) {
         if (itemInfoText != null) {
             itemInfoText.setText(message);
-            // Clear message after delay
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 if (itemInfoText != null) {
                     itemInfoText.setText("");
@@ -241,7 +265,7 @@ public class ClientActivity extends Activity {
 
     @UiThread
     protected void updateStatsDisplay() {
-        Log.d(TAG, "Updating stats display - Move: " + playerData.getMoveInterval() + "ms, Fire: " + playerData.getFireInterval() + "ms");
+        Log.d(TAG, "Updating stats - Move: " + playerData.getMoveInterval() + "ms, Fire: " + playerData.getFireInterval() + "ms");
 
         if (movementSpeedText != null) {
             movementSpeedText.setText("Movement Speed: " + playerData.getMoveInterval() + "ms");
@@ -257,20 +281,19 @@ public class ClientActivity extends Activity {
             Log.d(TAG, "Active power-ups: " + powerUps);
 
             if (powerUps > 0) {
-                if (playerData.getMoveInterval() < 500) {
-                    effects.append("• Anti-Grav Speed Boost\n");
-                    effects.append("  Movement: " + playerData.getMoveInterval() + "ms\n");
+                int antiGravCount = playerData.getAntiGravCount();
+                int fusionCount = playerData.getFusionReactorCount();
+
+                if (antiGravCount > 0) {
+                    effects.append("• Anti-Grav (").append(antiGravCount).append(")\n");
                 }
-                if (playerData.getFireInterval() < 1500) {
-                    effects.append("• Fusion Reactor Fire Boost\n");
-                    effects.append("  Fire Rate: " + playerData.getFireInterval() + "ms\n");
+                if (fusionCount > 0) {
+                    effects.append("• Fusion Reactor (").append(fusionCount).append(")\n");
                 }
                 activeEffects.setText(effects.toString().trim());
             } else {
                 activeEffects.setText("None");
             }
-
-            Log.d(TAG, "Active effects text set to: " + effects.toString());
         }
     }
 
@@ -283,16 +306,15 @@ public class ClientActivity extends Activity {
     }
 
     @ItemSelect({R.id.selectPlayable})
-    protected void onPlayableSelect(boolean checked, int position){
-        Log.d(TAG,"spinnerpositon = " + position);
-        playableType = position+1;
+    protected void onPlayableSelect(boolean checked, int position) {
+        Log.d(TAG, "Spinner position = " + position);
+        playableType = position + 1;
     }
 
     @Click({R.id.buttonUp, R.id.buttonDown, R.id.buttonLeft, R.id.buttonRight})
     protected void onButtonMove(View view) {
-        final int viewId = view.getId();
-        byte direction = 0;
-        switch (viewId) {
+        byte direction;
+        switch (view.getId()) {
             case R.id.buttonUp:
                 direction = 0;
                 break;
@@ -305,8 +327,10 @@ public class ClientActivity extends Activity {
             case R.id.buttonRight:
                 direction = 2;
                 break;
+            default:
+                return;
         }
-        tankEventController.turnOrMove(viewId, playableId, playableType, direction);
+        tankEventController.turnOrMove(view.getId(), playableId, playableType, direction);
     }
 
     @Click(R.id.buttonFire)
@@ -443,76 +467,98 @@ public class ClientActivity extends Activity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onItemPickup(ItemPickupEvent event) {
+        // Create a unique identifier for this event
+        long eventId = event.getTimeStamp() + event.getItemType();
+
+        // Check for duplicate events
+        if (event.getTimeStamp() <= lastEventTimestamp || processedItemEvents.contains(eventId)) {
+            Log.d(TAG, "Skipping duplicate item pickup event");
+            return;
+        }
+
+        lastEventTimestamp = event.getTimeStamp();
+        processedItemEvents.add(eventId);
+
         Log.d(TAG, "Item pickup event received. Type: " + event.getItemType());
 
-        if (event.getItemType() == 1) { // Thingamajig
-            String message = String.format("Picked up Thingamajig! Added $%.2f credits", event.getAmount());
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-            fetchAndUpdateBalance();
-        } else if (event.getItemType() == 2) { // AntiGrav
-            Log.d(TAG, "AntiGrav pickup: Current move interval = " + playerData.getMoveInterval());
+        switch (event.getItemType()) {
+            case 1: // Thingamajig
+                String message = String.format("Picked up Thingamajig! Added $%.2f credits", event.getAmount());
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                fetchAndUpdateBalance();
+                break;
 
-            playerData.incrementPowerUps();
+            case 2: // AntiGrav
+                Log.d(TAG, "AntiGrav pickup - Current move interval: " + playerData.getMoveInterval());
+                playerData.incrementPowerUps(2);
 
-            // Halve the move interval (double speed)
-            int newMoveInterval = playerData.getMoveInterval() / 2;
-            // Add 100ms to fire interval
-            int newFireInterval = playerData.getFireInterval() + 100;
+                int newMoveInterval = playerData.getMoveInterval() / 2;
+                int newFireInterval = playerData.getFireInterval() + 100;
 
-            Log.d(TAG, "AntiGrav applying: New move interval = " + newMoveInterval + ", new fire interval = " + newFireInterval);
+                playerData.setMoveInterval(newMoveInterval);
+                playerData.setFireInterval(newFireInterval);
 
-            playerData.setMoveInterval(newMoveInterval);
-            playerData.setFireInterval(newFireInterval);
+                Log.d(TAG, "Updated intervals - Move: " + newMoveInterval + ", Fire: " + newFireInterval);
+                updateStatsDisplay();
 
-            updateStatsDisplay();
+                Toast.makeText(this, "Anti-Grav Power-up Acquired!", Toast.LENGTH_SHORT).show();
+                showPowerUpMessage("Anti-Grav activated!\nSpeed doubled! Fire rate slightly reduced");
+                break;
 
-            String effectStr = String.format("Anti-Grav activated!\nSpeed: %dms → %dms\nFire rate: %dms → %dms",
-                    newMoveInterval * 2, newMoveInterval,
-                    newFireInterval - 100, newFireInterval);
+            case 3: // FusionReactor
+                Log.d(TAG, "FusionReactor pickup - Current fire interval: " + playerData.getFireInterval());
+                playerData.incrementPowerUps(3);
 
-            Toast.makeText(this, "Anti-Grav Power-up Acquired!", Toast.LENGTH_SHORT).show();
-            showPowerUpMessage(effectStr);
+                newFireInterval = playerData.getFireInterval() / 2;
+                newMoveInterval = playerData.getMoveInterval() + 100;
 
-        } else if (event.getItemType() == 3) { // FusionReactor
-            Log.d(TAG, "FusionReactor pickup: Current fire interval = " + playerData.getFireInterval());
+                playerData.setMoveInterval(newMoveInterval);
+                playerData.setFireInterval(newFireInterval);
 
-            playerData.incrementPowerUps();
+                Log.d(TAG, "Updated intervals - Move: " + newMoveInterval + ", Fire: " + newFireInterval);
+                updateStatsDisplay();
 
-            // Halve the fire interval (double fire rate)
-            int newFireInterval = playerData.getFireInterval() / 2;
-            // Add 100ms to move interval
-            int newMoveInterval = playerData.getMoveInterval() + 100;
-
-            Log.d(TAG, "FusionReactor applying: New fire interval = " + newFireInterval + ", new move interval = " + newMoveInterval);
-
-            playerData.setMoveInterval(newMoveInterval);
-            playerData.setFireInterval(newFireInterval);
-
-            updateStatsDisplay();
-
-            String effectStr = String.format("Fusion Reactor activated!\nFire rate: %dms → %dms\nSpeed: %dms → %dms",
-                    newFireInterval * 2, newFireInterval,
-                    newMoveInterval - 100, newMoveInterval);
-
-            Toast.makeText(this, "Fusion Reactor Power-up Acquired!", Toast.LENGTH_SHORT).show();
-            showPowerUpMessage(effectStr);
+                Toast.makeText(this, "Fusion Reactor Power-up Acquired!", Toast.LENGTH_SHORT).show();
+                showPowerUpMessage("Fusion Reactor activated!\nFire rate doubled! Speed slightly reduced");
+                break;
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPowerUpEjected(PowerUpEjectEvent event) {
-        Log.d(TAG, "Power-up ejected event received");
+        Log.d(TAG, "Power-up ejected event received - Type: " + event.getPowerUpType());
 
-        playerData.decrementPowerUps();
+        playerData.decrementPowerUps(event.getPowerUpType());
+        int remainingPowerUps = playerData.getActivePowerUps();
 
-        if (playerData.getActivePowerUps() == 0) {
+        if (remainingPowerUps == 0) {
             Log.d(TAG, "No active power-ups remaining, resetting to base values");
             playerData.resetPowerUps();
-            showPowerUpMessage("Power-up ejected! Stats reset:\nMove Speed: 500ms\nFire Rate: 1500ms");
+            showPowerUpMessage("Power-up ejected!\nStats reset to base values");
         } else {
-            Log.d(TAG, "Power-up ejected, remaining: " + playerData.getActivePowerUps());
-            String status = String.format("Power-up ejected!\nCurrent Move Speed: %dms\nCurrent Fire Rate: %dms",
-                    playerData.getMoveInterval(), playerData.getFireInterval());
+            Log.d(TAG, "Recalculating stats with " + remainingPowerUps + " power-ups remaining");
+
+            // Start with base values
+            int moveInterval = 500;
+            int fireInterval = 1500;
+
+            // Apply remaining FusionReactors
+            for (int i = 0; i < playerData.getFusionReactorCount(); i++) {
+                fireInterval /= 2;  // Double fire rate
+                moveInterval += 100; // Small movement penalty
+            }
+
+            // Apply remaining AntiGrav
+            for (int i = 0; i < playerData.getAntiGravCount(); i++) {
+                moveInterval /= 2;  // Double speed
+                fireInterval += 100; // Small fire rate penalty
+            }
+
+            playerData.setMoveInterval(moveInterval);
+            playerData.setFireInterval(fireInterval);
+
+            String status = String.format("Power-up ejected!\nMove Speed: %dms\nFire Rate: %dms",
+                    moveInterval, fireInterval);
             showPowerUpMessage(status);
         }
 
