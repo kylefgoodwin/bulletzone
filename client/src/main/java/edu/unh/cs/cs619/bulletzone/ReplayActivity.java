@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.VisibleForTesting;
+
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 
@@ -103,5 +105,4 @@ public class ReplayActivity extends Activity {
         startActivity(intent);
         finish();
     }
-
 }

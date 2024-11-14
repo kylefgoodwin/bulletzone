@@ -73,7 +73,7 @@ public class ReplayData {
 
     public void addGameEvent(GameEvent event) {
         eventHistory.add(event);
-        Log.d(TAG, "Added Event: " + event.toString());
+//        Log.d(TAG, "Added Event: " + event.toString());
     }
 
     public GameEvent getEventAt(int index) {
