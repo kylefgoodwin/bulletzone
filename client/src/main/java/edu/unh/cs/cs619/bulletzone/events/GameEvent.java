@@ -19,7 +19,7 @@ import edu.unh.cs.cs619.bulletzone.util.ReplayDataFlat;
         @JsonSubTypes.Type(name = "spawn", value = SpawnEvent.class),
         @JsonSubTypes.Type(name = "remove", value = RemoveEvent.class),
         @JsonSubTypes.Type(name = "turn", value = TurnEvent.class),
-        @JsonSubTypes.Type(name = "hit", value = HitEvent.class)
+        @JsonSubTypes.Type(name = "hit", value = HitEvent.class),
         @JsonSubTypes.Type(name = "turn", value = TurnEvent.class),
         @JsonSubTypes.Type(name = "itemPickup", value = ItemPickupEvent.class)
 })

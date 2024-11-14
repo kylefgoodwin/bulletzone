@@ -1,7 +1,10 @@
 package edu.unh.cs.cs619.bulletzone.rest;
 
+import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -20,6 +23,7 @@ import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
 import edu.unh.cs.cs619.bulletzone.events.UpdateBoardEvent;
 import edu.unh.cs.cs619.bulletzone.util.GameEventCollectionWrapper;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
+import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
 @EBean
 public class GridPollerTask {
@@ -30,6 +34,8 @@ public class GridPollerTask {
 
     @Bean
     ClientController clientController;
+
+    ReplayData replayData = ReplayData.getReplayData();
 
     private long previousTimeStamp = -1;
     private GameEventProcessor currentProcessor = null;
@@ -69,8 +75,10 @@ public class GridPollerTask {
     private final Set<ItemLocation> itemsPresent = new HashSet<>();
     private final Set<ItemLocation> processedItemPickups = new HashSet<>();
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Background(id = "grid_poller_task")
     public void doPoll(GameEventProcessor eventProcessor) {
+        replayData.initialGridToSet = restClient.playerGrid().getGrid();
         try {
             Log.d(TAG, "Starting GridPollerTask");
             currentProcessor = eventProcessor;

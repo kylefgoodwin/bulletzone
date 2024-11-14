@@ -2,7 +2,10 @@ package edu.unh.cs.cs619.bulletzone.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ItemPickupEvent extends GameEvent {
+import java.io.Serializable;
+
+public class ItemPickupEvent extends GameEvent implements Serializable {
+    private static final long serialVersionUID = 1L;
     @JsonProperty
     private int itemType;
     @JsonProperty
@@ -18,7 +21,14 @@ public class ItemPickupEvent extends GameEvent {
 
     @Override
     void applyTo(int[][] board) {
-        if (position >= 0) {
+        int currentValue = board[position / 16][position % 16];
+
+        // If there's a goblin in this cell (check if value > 10000000)
+        if (currentValue > 10000000) {
+            // Preserve the goblin value
+            board[position / 16][position % 16] = currentValue;
+        } else {
+            // Otherwise just clear the item
             board[position / 16][position % 16] = 0;
         }
     }

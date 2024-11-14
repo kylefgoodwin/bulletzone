@@ -60,10 +60,6 @@ public class PlayerData {
         this.builderLife = builderLife;
     }
 
-    public void setTankId(long tankId) {
-        this.tankId = tankId;
-    }
-
     public void setUserId(long userId) {
         this.userId = userId;
     }
@@ -71,10 +67,6 @@ public class PlayerData {
     // ID-related methods
     public void setTankId(long tankId) {
         this.tankId = tankId;
-    }
-
-    public long getUserId() {
-        return userId;
     }
 
     // Interval getters and setters

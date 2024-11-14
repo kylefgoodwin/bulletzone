@@ -9,7 +9,7 @@ public class MoveEvent extends GameEvent implements Serializable {
     private int rawServerValue;
 
     @JsonProperty
-    private int position; // Must match server field name
+    private int oldPosition; // Must match server field name
 
     @JsonProperty
     private int newPosition;
@@ -20,14 +20,14 @@ public class MoveEvent extends GameEvent implements Serializable {
 
     @Override
     void applyTo(int[][] board) {
-        board[position / 16][position % 16] = 0;
+        board[oldPosition / 16][oldPosition % 16] = 0;
         board[newPosition / 16][newPosition % 16] = rawServerValue;
     }
 
     @Override
     public String toString() {
         return "Move " + rawServerValue +
-                " from " + position +
+                " from " + oldPosition +
                 " to " + newPosition +
                 super.toString();
     }

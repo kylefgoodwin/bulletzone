@@ -43,10 +43,11 @@ public class ReplayActivity extends Activity {
     }
 
     @Click(R.id.clearReplaysButton)
-    void testReplay() {
+    void clearReplays() {
         Log.d(TAG, "Attempting to delete replays");
         if(fileHelper.replayFileExists("Replays")) {
             fileHelper.deleteReplayFile("Replays");
+            replayDataList = new ArrayList<>();
             Log.d(TAG, "Replays Deleted");
         } else {
             Log.d(TAG, "No Replay File Found");
