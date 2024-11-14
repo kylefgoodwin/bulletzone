@@ -438,8 +438,7 @@ public class InMemoryGameRepository implements GameRepository {
         } else if (playableType == 2){
             playable = game.getBuilders().get(playableId);
         } else {
-            //code to get soldier (do we want a soldier list too?
-            playable = null;
+            playable = game.getSoldier(playableId);
         }
         if (playable == null) {
             //Log.i(TAG, "Cannot find user with id: " + tankId);

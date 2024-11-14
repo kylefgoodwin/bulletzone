@@ -52,6 +52,8 @@ public class ClientActivity extends Activity {
     @ViewById
     protected ProgressView tankHealthBar;
 
+    @ViewById ProgressView soldierHealthBar;
+
     @ViewById
     protected ProgressView builderHealthBar;
 
@@ -434,6 +436,7 @@ public class ClientActivity extends Activity {
 //            Log.d("onHitEvent", "tank life: " + playerData.getTankLife());
             tankHealthBar.setProgress(playerData.getTankLife());
             builderHealthBar.setProgress(playerData.getBuilderLife());
+            soldierHealthBar.setProgress(playerData.getSoldierLife());
         }
     }
 

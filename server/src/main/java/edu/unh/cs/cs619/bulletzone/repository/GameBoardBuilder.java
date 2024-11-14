@@ -36,9 +36,12 @@ public class GameBoardBuilder {
         attachGame(game);
         addWalls(List.of(1, 2, 3, 17, 34, 35, 51, 5, 21, 37, 53, 7, 23, 39, 8, 40, 9, 25, 41, 57, 73));
         addWalls(List.of(33, 49, 65, 66, 67, 69, 71, 72), 1500);
-        addTerrain(115, 1);
-        addTerrain(118, 2);
-        addTerrain(121, 3);
+//        addTerrain(118, 2);
+//        addTerrain(121, 3);
+        addTerrains(List.of(115, 116, 117, 118, 130, 131, 132, 133), 1);
+        addTerrains(List.of(205, 206, 207, 208, 209, 220, 222, 223, 224), 3);
+        addTerrains(List.of(182, 183, 184, 187, 188, 189, 199, 200, 201, 202), 2);
+        addTerrains(List.of(76, 77, 78, 60, 61, 62, 44, 45, 46), 3);
         build();
     }
     public GameBoardBuilder attachGame(Game game) {

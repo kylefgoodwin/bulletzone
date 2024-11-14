@@ -6,6 +6,10 @@ package edu.unh.cs.cs619.bulletzone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.greenrobot.eventbus.EventBus;
+
+import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
+
 public class Soldier extends Playable {
 
     private static final String TAG = "Soldier";
@@ -50,6 +54,7 @@ public class Soldier extends Playable {
             System.out.println("Soldier has been eliminated.");
             // Handle game over scenario
         }
+        EventBus.getDefault().post(new HitEvent((int) id, 3));
     }
 
     // Method to handle re-entering a tank
