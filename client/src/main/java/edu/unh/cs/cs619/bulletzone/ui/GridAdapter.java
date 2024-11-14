@@ -37,6 +37,7 @@ public class GridAdapter extends BaseAdapter {
     private long tankId = -1;
     private boolean isTerrainView = false;
     private long builderId = -1;
+    private long soldierId = -1;
 
     @AfterInject
     protected void afterInject() {
@@ -144,6 +145,10 @@ public class GridAdapter extends BaseAdapter {
         this.builderId = builderId;
     }
 
+    public void setSoldierId(long builderId) {
+        this.soldierId = soldierId;
+    }
+
     /**
      * Updates the desired cell from events in the gridView, using SimulationBoard's Board Cells
      *
@@ -189,11 +194,18 @@ public class GridAdapter extends BaseAdapter {
                 } else if (playerCell.getCellType().equals("Builder")) {
                     int builderIdTest = (playerCell.getRawValue() / 10000) - 1000;
                     if (builderIdTest == this.tankId) {
-                        imageView.setImageResource(R.drawable.builder);
+                        imageView.setImageResource(R.drawable.trans_builder_player);
                     } else {
                         imageView.setImageResource(playerCell.getResourceID());
                     }
-                } else {
+                } else if (playerCell.getCellType().equals("Soldier")) {
+                     int soldierIdTest = (playerCell.getRawValue() / 10000) - 1000;
+                     if (soldierIdTest == this.tankId) {
+                         imageView.setImageResource(R.drawable.soldier_player);
+                     } else {
+                         imageView.setImageResource(playerCell.getResourceID());
+                     }
+                 }else {
                     if (playerCell.getCellType().equals("Empty")) {
                         imageView.setImageResource(android.R.color.transparent);
                     } else {

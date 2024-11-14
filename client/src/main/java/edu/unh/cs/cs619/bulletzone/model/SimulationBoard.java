@@ -1,11 +1,5 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
-import android.util.Log;
-
-import org.greenrobot.eventbus.Subscribe;
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
 
 /**

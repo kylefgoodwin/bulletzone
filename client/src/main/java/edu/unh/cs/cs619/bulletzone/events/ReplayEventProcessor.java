@@ -6,8 +6,6 @@ import org.androidannotations.annotations.EBean;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-import edu.unh.cs.cs619.bulletzone.util.ReplayData;
-
 @EBean
 public class ReplayEventProcessor {
     private final String TAG = "ReplayEventProcessor";
