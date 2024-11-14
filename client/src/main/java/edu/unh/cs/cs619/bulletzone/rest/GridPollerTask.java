@@ -142,6 +142,7 @@ public class GridPollerTask {
 
                     for (GameEvent event : events.getEvents()) {
                         if (currentProcessor != null && currentProcessor.isRegistered()) {
+                            Log.d(TAG, "Posting: " + event.toString());
                             EventBus.getDefault().post(event);
                             previousTimeStamp = event.getTimeStamp();
                             haveEvents = true;
