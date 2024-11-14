@@ -24,5 +24,6 @@
     <string name="materials">Materials</string>
     <string name="build_or_dismantle">Build or Dismantle</string>
     <string name="factory">Factory</string>
+    <string name="ejectsoldier">Eject Soldier</string>
 
 </resources>

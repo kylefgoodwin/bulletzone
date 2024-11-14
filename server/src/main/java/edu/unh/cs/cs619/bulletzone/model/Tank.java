@@ -18,6 +18,7 @@ public class Tank extends Playable {
         allowedFireInterval = 1500;
         allowedNumberOfBullets = 2;
         lastFireTime = 0;
+        bulletDamage = 30;
 
         allowedTurnInterval = 0;
         lastTurnTime = 0;
@@ -27,6 +28,7 @@ public class Tank extends Playable {
         moveMultiplier = 1;  // Initialize move multiplier
 
         powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        hasSoldier = false;
     }
 
     @Override

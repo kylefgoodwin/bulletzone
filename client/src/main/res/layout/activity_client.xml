@@ -5,6 +5,7 @@
     android:id="@+id/LinearLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:baselineAligned="false"
     android:orientation="horizontal"
     android:padding="@dimen/activity_vertical_margin"
     tools:context=".ClientActivity">
@@ -284,10 +285,10 @@
 
             <!-- Toggle Button for Units -->
             <Button
-                android:id="@+id/buttonUnits"
+                android:id="@+id/buttonEjectSoldier"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/units" />
+                android:text="@string/ejectsoldier" />
 
             <!-- Unit Group: Initially Hidden -->
             <LinearLayout

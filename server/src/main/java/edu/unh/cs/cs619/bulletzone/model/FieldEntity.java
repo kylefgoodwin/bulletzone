@@ -45,6 +45,7 @@ public abstract class FieldEntity {
     public boolean isPlayable(){
         return getIntValue() >= 10000000;
     }
+}
 
     /*public static final void registerEventBusListener(Object listener) {
         checkNotNull(listener);
@@ -55,4 +56,4 @@ public abstract class FieldEntity {
         checkNotNull(listener);
         eventBus.unregister(listener);
     }*/
-}
+
