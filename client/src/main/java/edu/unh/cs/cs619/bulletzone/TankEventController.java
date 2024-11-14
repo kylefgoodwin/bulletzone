@@ -1,18 +1,13 @@
 package edu.unh.cs.cs619.bulletzone;
 
+import android.util.Log;
+
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.rest.spring.annotations.RestService;
 
 import edu.unh.cs.cs619.bulletzone.rest.BulletZoneRestClient;
 
-/**
- * Made by Alec Rydeen
- * This class takes the responsibility of communicating with the Rest Client away from the ClientActivity,
- * and moves it here, which is then used inside of ClientActivity. Focused on Tank Controls
- */
-
-// Controller Class to move rest client calls for tank controls outside of ClientActivity
 @EBean
 public class TankEventController {
 
@@ -24,12 +19,22 @@ public class TankEventController {
 
     @Background
     public void moveAsync(long playableId, int playableType, byte direction) {
-        restClient.move(playableId, playableType, direction);
+        Log.d("TankEventController", "Moving playable: id=" + playableId + ", type=" + playableType + ", direction=" + direction);
+        try {
+            restClient.move(playableId, playableType, direction);
+        } catch (Exception e) {
+            Log.e("TankEventController", "Error moving: " + e.getMessage());
+        }
     }
 
     @Background
     public void turnAsync(long playableId, int playableType, byte direction) {
-        restClient.turn(playableId, playableType, direction);
+        Log.d("TankEventController", "Turning playable: id=" + playableId + ", type=" + playableType + ", direction=" + direction);
+        try {
+            restClient.turn(playableId, playableType, direction);
+        } catch (Exception e) {
+            Log.e("TankEventController", "Error turning: " + e.getMessage());
+        }
     }
 
     private boolean onePointTurn(int currentButtonId) {
@@ -49,8 +54,10 @@ public class TankEventController {
 
     @Background
     public void turnOrMove(int currentButtonId, long playableId, int playableType, byte direction) {
+        Log.d("TankEventController", "TurnOrMove called: playableId=" + playableId + ", type=" + playableType +
+                ", direction=" + direction + ", currentButton=" + currentButtonId);
+
         if (lastPressedButtonId != -1 && onePointTurn(currentButtonId)) {
-//            Log.d(TAG, "One-point turn detected: from " + lastPressedButtonId + " to " + viewId);
             this.turnAsync(playableId, playableType, direction);
         } else {
             this.moveAsync(playableId, playableType, direction);
@@ -60,7 +67,11 @@ public class TankEventController {
 
     @Background
     public void fire(long playableId, int playableType) {
-        restClient.fire(playableId, playableType);
+        Log.d("TankEventController", "Fire called: playableId=" + playableId + ", type=" + playableType);
+        try {
+            restClient.fire(playableId, playableType);
+        } catch (Exception e) {
+            Log.e("TankEventController", "Error firing: " + e.getMessage());
+        }
     }
-
 }

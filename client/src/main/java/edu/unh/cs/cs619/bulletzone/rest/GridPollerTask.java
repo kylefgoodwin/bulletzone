@@ -1,6 +1,5 @@
 package edu.unh.cs.cs619.bulletzone.rest;
 
-import android.content.ClipData;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -11,7 +10,10 @@ import org.androidannotations.annotations.UiThread;
 import org.androidannotations.rest.spring.annotations.RestService;
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import edu.unh.cs.cs619.bulletzone.ClientController;
@@ -36,15 +38,29 @@ public class GridPollerTask {
     ReplayData replayData = ReplayData.getReplayData();
 
     private long previousTimeStamp = -1;
-    private boolean updateUsingEvents = false;
     private GameEventProcessor currentProcessor = null;
     private boolean isRunning = true;
-    private Set<Integer> itemsPresent = new HashSet<>();
-    private Integer lastRemovedItem = null;
+    private final Map<Integer, ItemInfo> itemTracker = new HashMap<>();
+
+    private static class ItemInfo {
+        final int x;
+        final int y;
+        final int value;
+
+        ItemInfo(int x, int y, int value) {
+            this.x = x;
+            this.y = y;
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Item %d at [%d,%d]", value, x, y);
+        }
+    }
 
     @Background(id = "grid_poller_task")
     public void doPoll(GameEventProcessor eventProcessor) {
-        replayData.initialGridToSet = restClient.playerGrid().getGrid();
         try {
             Log.d(TAG, "Starting GridPollerTask");
             currentProcessor = eventProcessor;
@@ -53,66 +69,133 @@ public class GridPollerTask {
             GridWrapper grid = restClient.playerGrid();
             GridWrapper tGrid = restClient.terrainGrid();
             replayData.setInitialGrids(grid, tGrid);
-            Log.d(TAG, replayData.toString());
+            replayData.initialGridToSet = grid.getGrid();
+
+            Log.d(TAG, "Initial grid state obtained");
             onGridUpdate(grid, tGrid);
             previousTimeStamp = grid.getTimeStamp();
 
-            // Set up board but DON'T start the processor
+            // Do initial board scan
+            scanBoardForItems(grid.getGrid());
+
+            // Set up board
+            Log.d(TAG, "Setting up game board");
             eventProcessor.setBoard(grid.getGrid(), tGrid.getGrid());
 
             while (isRunning) {
                 try {
                     grid = restClient.playerGrid();
-                    Set<Integer> currentItems = new HashSet<>();
-                    int[][] boardState = grid.getGrid();
 
-                    // Scan board for items
-                    for (int i = 0; i < boardState.length; i++) {
-                        for (int j = 0; j < boardState[i].length; j++) {
-                            if (boardState[i][j] >= 3000 && boardState[i][j] <= 3003) {
-                                currentItems.add(boardState[i][j]);
-                            }
-                        }
-                    }
+                    // Get current items
+                    Map<Integer, ItemInfo> currentItems = getCurrentItems(grid.getGrid());
 
-                    // Check for disappeared items (picked up)
-                    for (Integer item : itemsPresent) {
-                        if (!currentItems.contains(item) && item >= 3000 && item <= 3003) {
-                            // Item was picked up
-                            Log.d(TAG, "Item pickup detected: " + (item - 3000));
-                            clientController.handleItemPickup(item - 3000);
-                            EventBus.getDefault().post(new ItemPickupEvent(item - 3000, 0.0));
-                        }
-                    }
+                    // Check for item pickups
+                    checkForPickups(currentItems);
 
-                    itemsPresent = currentItems;
+                    // Update our tracking
+                    itemTracker.clear();
+                    itemTracker.putAll(currentItems);
+
                     onGridUpdate(grid, tGrid);
-
-                    // Process events
-                    GameEventCollectionWrapper events = restClient.events(previousTimeStamp);
-                    boolean haveEvents = false;
-
-                    for (GameEvent event : events.getEvents()) {
-                        Log.d(TAG, "Processing event: " + event);
-                        if (currentProcessor != null && currentProcessor.isRegistered()) {
-                            EventBus.getDefault().post(event);
-                            previousTimeStamp = event.getTimeStamp();
-                            haveEvents = true;
-                        }
-                    }
-
-                    if (haveEvents) {
-                        EventBus.getDefault().post(new UpdateBoardEvent());
-                    }
+                    processEvents();
 
                 } catch (Exception e) {
-                    Log.e(TAG, "Error in polling", e);
+                    Log.e(TAG, "Error in polling loop", e);
                 }
 
                 SystemClock.sleep(100);
             }
         } catch (Exception e) {
-            Log.e(TAG, "Unexpected error in doPoll", e);
+            Log.e(TAG, "Fatal error in doPoll", e);
+            isRunning = false;
+        }
+    }
+
+    private void scanBoardForItems(int[][] board) {
+        Log.d(TAG, "Starting initial board scan");
+        itemTracker.clear();
+
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                int value = board[i][j];
+                if (isItem(value)) {
+                    itemTracker.put(value, new ItemInfo(i, j, value));
+                    Log.d(TAG, String.format("Initial scan found item %d at [%d,%d]", value, i, j));
+                }
+            }
+        }
+
+        Log.d(TAG, String.format("Initial scan complete. Found %d items", itemTracker.size()));
+    }
+
+    private Map<Integer, ItemInfo> getCurrentItems(int[][] board) {
+        Map<Integer, ItemInfo> items = new HashMap<>();
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                int value = board[i][j];
+                if (isItem(value)) {
+                    items.put(value, new ItemInfo(i, j, value));
+                }
+            }
+        }
+        return items;
+    }
+
+    private void checkForPickups(Map<Integer, ItemInfo> currentItems) {
+        // Check for items that were in our tracker but are no longer on the board
+        for (Map.Entry<Integer, ItemInfo> entry : itemTracker.entrySet()) {
+            int itemValue = entry.getKey();
+            ItemInfo itemInfo = entry.getValue();
+
+            if (!currentItems.containsKey(itemValue)) {
+                // Item was picked up
+                Log.d(TAG, String.format("Item pickup detected: %s", itemInfo));
+
+                try {
+                    int itemType = itemValue - 3000;
+                    double value = calculateItemValue(itemType);
+
+                    clientController.handleItemPickup(itemType);
+                    EventBus.getDefault().post(new ItemPickupEvent(itemType, value));
+
+                    Log.d(TAG, String.format("Posted pickup event for item type %d with value %f", itemType, value));
+                } catch (Exception e) {
+                    Log.e(TAG, "Error processing item pickup", e);
+                }
+            }
+        }
+    }
+
+    private boolean isItem(int value) {
+        return value >= 3000 && value <= 3003;
+    }
+
+    private double calculateItemValue(int itemType) {
+        if (itemType == 1) { // Thingamajig
+            return 100 + new Random().nextInt(901);
+        }
+        return 0.0;
+    }
+
+    private void processEvents() {
+        try {
+            GameEventCollectionWrapper events = restClient.events(previousTimeStamp);
+            boolean haveEvents = false;
+
+            for (GameEvent event : events.getEvents()) {
+                Log.d(TAG, "Processing event: " + event);
+                if (currentProcessor != null && currentProcessor.isRegistered()) {
+                    EventBus.getDefault().post(event);
+                    previousTimeStamp = event.getTimeStamp();
+                    haveEvents = true;
+                }
+            }
+
+            if (haveEvents) {
+                EventBus.getDefault().post(new UpdateBoardEvent());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error processing events", e);
         }
     }
 

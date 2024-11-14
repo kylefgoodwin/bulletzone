@@ -317,7 +317,8 @@ public class ClientActivity extends Activity {
 
     @Click(R.id.buttonEject)
     protected void onButtonEject() {
-        powerUpController.ejectPowerUpAsync(playableId);
+        int lastPowerUpType = playerData.getLastPowerUpType();
+        powerUpController.ejectPowerUpAsync(playableId, lastPowerUpType);
     }
 
     @UiThread
@@ -474,6 +475,7 @@ public class ClientActivity extends Activity {
 
         playerData.decrementPowerUps();
 
+        // Reset stats if no power-ups remain
         if (playerData.getActivePowerUps() == 0) {
             Log.d(TAG, "No active power-ups remaining, resetting to base values");
             playerData.resetPowerUps();
@@ -483,6 +485,18 @@ public class ClientActivity extends Activity {
             String status = String.format("Power-up ejected!\nCurrent Move Speed: %dms\nCurrent Fire Rate: %dms",
                     playerData.getMoveInterval(), playerData.getFireInterval());
             showPowerUpMessage(status);
+        }
+
+        // Update the displayed stats
+        updateStatsDisplay();
+
+        // Reset move/fire intervals back to pre-powerup values
+        if (event.getPowerUpType() == 2) { // AntiGrav
+            playerData.setMoveInterval(playerData.getMoveInterval() * 2);  // Revert speed boost
+            playerData.setFireInterval(playerData.getFireInterval() - 100); // Remove fire rate penalty
+        } else if (event.getPowerUpType() == 3) { // FusionReactor
+            playerData.setFireInterval(playerData.getFireInterval() * 2);  // Revert fire rate boost
+            playerData.setMoveInterval(playerData.getMoveInterval() - 100); // Remove move speed penalty
         }
 
         updateStatsDisplay();

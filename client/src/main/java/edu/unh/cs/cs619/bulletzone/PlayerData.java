@@ -7,6 +7,7 @@ public class PlayerData {
     private int moveInterval = 500;  // Base move interval
     private int fireInterval = 1500; // Base fire interval
     private int activePowerUps = 0; // Track number of active power-ups
+    private int lastPowerUpType = 0;  // 0=none, 2=AntiGrav, 3=FusionReactor
 
     private PlayerData() {} // Private constructor for singleton
 
@@ -69,7 +70,20 @@ public class PlayerData {
         return tankId;
     }
 
+
     public long getUserId() {
         return userId;
+    }
+
+    public void setLastPowerUpType(int type) {
+        this.lastPowerUpType = type;
+    }
+
+    public int getLastPowerUpType() {
+        return lastPowerUpType;
+    }
+
+    public void clearLastPowerUpType() {
+        this.lastPowerUpType = 0;
     }
 }
