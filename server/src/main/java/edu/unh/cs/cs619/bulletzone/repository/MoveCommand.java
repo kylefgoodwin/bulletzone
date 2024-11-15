@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Random;
 
 
+import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
 import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
@@ -107,7 +108,7 @@ public class MoveCommand implements Command {
                 game.removeSoldier(playableId);
                 game.getTanks().get(playableId).sethasSoldier(false);
                 currentField.clearField();
-                playable.setLastFireTime(millis + playable.getAllowedDeployInterval());
+                playable.setLastEntryTime(millis + playable.getAllowedDeployInterval());
                 EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
                 return false;
             }
@@ -152,24 +153,6 @@ public class MoveCommand implements Command {
             return false;
         }
 
-        // Soldier re-entry
-        else if (nextField.getEntity() instanceof Tank && playableType == 3) {
-            playable.setDirection(direction);
-            // Create and eject the soldier
-            Tank tank = new Tank(playableId, direction, playable.getIp());
-            game.addTank(playable.getIp(), tank);
-            game.removeSoldier(playableId);
-
-            // Place the soldier on the grid
-            playable.setLastEntryTime(millis + playable.getAllowedDeployInterval());
-            int oldPos = playable.getPosition();
-            currentField.clearField();
-            nextField.setFieldEntity(tank);
-            tank.setParent(nextField);
-            int newPos = tank.getPosition();
-            return false;
-        }
-
         playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
         return false;
     }
@@ -207,10 +190,12 @@ public class MoveCommand implements Command {
      * @param playable playable picking up the item
      */
     private void handleItemPickup(Item item, Playable playable) {
+        BankAccount balance = game.getBankAccount(playableId);
         if (item.getType() == 1) { // Thingamajig
             log.debug("Processing Thingamajig pickup for tank {}", playableId);
             double credits = item.getCredits();
-            game.addCredits(playable.getId(), credits);
+            balance.modifyBalance(credits);
+            game.modifyBalance(playableId, credits);
         } else if (item.isAntiGrav()) {
             log.debug("Processing AntiGrav pickup for tank {}", playableId);
             playable.addPowerUp(item);

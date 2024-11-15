@@ -1,7 +1,5 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.util.Map;
 import java.util.Optional;
 
@@ -10,12 +8,11 @@ import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Soldier;
-import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
-import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 public class EjectSoldierCommand implements Command {
     Game game;
+    Playable playable;
     long playableId;
     Direction direction;
     long millis;
@@ -29,7 +26,8 @@ public class EjectSoldierCommand implements Command {
      * @param playableId
      * tank to eject power-up
      */
-    public EjectSoldierCommand(long playableId, Game game, Direction direction, long currentTimeMillis) {
+    public EjectSoldierCommand(Playable playable, long playableId, Game game, Direction direction, long currentTimeMillis) {
+        this.playable = playable;
         this.playableId = playableId;
         this.game = game;
         this.direction = direction;
@@ -138,9 +136,7 @@ public class EjectSoldierCommand implements Command {
             return false;
         }
 
-        // Create and eject the soldier
-        Soldier soldier = new Soldier(playableId, playable.getDirection(), playable.getIp());
-        game.addSoldier(playable.getIp(), soldier);
+        Soldier soldier = joinSoldier();
 
         // Place the soldier on the grid
         int oldPos = playable.getPosition();
@@ -148,8 +144,6 @@ public class EjectSoldierCommand implements Command {
         soldier.setParent(targetField);
         int newPos = soldier.getPosition();
         playable.sethasSoldier(true);
-
-        EventBus.getDefault().post(new SpawnEvent(soldier.getIntValue(), soldier.getPosition()));
 
         return true;
     }
@@ -170,6 +164,14 @@ public class EjectSoldierCommand implements Command {
             }
         }
         return Optional.empty(); // No empty neighbors found
+    }
+
+    public Soldier joinSoldier() {
+        // Create and eject the soldier
+        String ip = playable.getIp();
+        Soldier soldier = new Soldier(playableId, playable.getDirection(), ip);
+        game.addSoldier(playable.getIp(), soldier);
+        return soldier;
     }
 
 

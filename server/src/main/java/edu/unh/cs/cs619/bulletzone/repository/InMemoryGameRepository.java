@@ -69,7 +69,7 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     @Override
-    public Tank join(String ip) {
+    public Pair<Tank, Builder> join(String ip) {
         synchronized (this.monitor) {
             Tank tank;
             Builder builder;
@@ -78,7 +78,7 @@ public class InMemoryGameRepository implements GameRepository {
             }
 
             if ((tank = game.getTank(ip)) != null && (builder = game.getBuilder(ip)) != null) {
-                return tank;
+                return Pair.with(tank, builder);
             }
 
             Long Id = this.idGenerator.getAndIncrement();
@@ -115,7 +115,7 @@ public class InMemoryGameRepository implements GameRepository {
 
             game.addTank(ip, tank);
             game.addBuilder(ip, builder);
-            return tank;
+            return Pair.with(tank, builder);
         }
     }
 
@@ -413,7 +413,7 @@ public class InMemoryGameRepository implements GameRepository {
                 return false;
             }
             long millis = System.currentTimeMillis();
-            EjectSoldierCommand ejectsoldier = new EjectSoldierCommand(playableId, game, playable.getDirection(), millis);
+            EjectSoldierCommand ejectsoldier = new EjectSoldierCommand(playable, playableId, game, playable.getDirection(), millis);
             return ejectsoldier.execute();
         }
     }

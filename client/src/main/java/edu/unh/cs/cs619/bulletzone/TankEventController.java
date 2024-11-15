@@ -5,8 +5,12 @@ import android.util.Log;
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.rest.spring.annotations.RestService;
+import org.greenrobot.eventbus.EventBus;
 
+import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
+import edu.unh.cs.cs619.bulletzone.events.SpawnEvent;
 import edu.unh.cs.cs619.bulletzone.rest.BulletZoneRestClient;
+import edu.unh.cs.cs619.bulletzone.util.BooleanWrapper;
 
 /**
  * Made by Alec Rydeen
@@ -51,8 +55,30 @@ public class TankEventController {
     public void buildOrDismantle(long playableId, int playableType, String entity) {
         if (playableType == 2) {
             // send build
-            if (playerData.getCurEntity().equals("destructibleWall") || playerData.getCurEntity().equals("indestructibleWall") || playerData.getCurEntity().equals("miningFacility")) {
-                restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
+            switch (playerData.getCurEntity()) {
+                case "destructibleWall": {
+                    double amount = -80;
+                    restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
+                    // Remove credits to user's account
+                    restClient.depositBalance(PlayerData.getPlayerData().getUserId(), amount);
+                    break;
+                }
+                case "indestructibleWall": {
+                    double amount = -150;
+                    restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
+                    // Remove credits to user's account
+                    restClient.depositBalance(PlayerData.getPlayerData().getUserId(), amount);
+                    break;
+                }
+                case "miningFacility": {
+                    double amount = -300;
+                    if (restClient.getBalance(PlayerData.getPlayerData().getUserId()) >= 300) {
+                        restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
+                        // Remove credits to user's account
+                        restClient.depositBalance(PlayerData.getPlayerData().getUserId(), amount);
+                        break;
+                    }
+                }
             }
         } else {
             Log.d(TAG, "Cannot build while controlling another vehicle");

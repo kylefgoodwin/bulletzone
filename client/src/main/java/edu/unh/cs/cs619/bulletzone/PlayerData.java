@@ -160,8 +160,9 @@ public class PlayerData {
         return curEntity;
     }
 
-    public void setCurEntity(String curEntity) {
+    public String setCurEntity(String curEntity) {
         this.curEntity = curEntity;
+        return curEntity;
     }
 
     public int getCurrentMap() {
