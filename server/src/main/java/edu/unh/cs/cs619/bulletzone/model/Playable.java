@@ -19,6 +19,7 @@ public abstract class Playable extends FieldEntity {
 
     protected PowerUpManager powerUpManager;
 
+
     protected final long id;
 
     protected final String ip;
@@ -33,11 +34,18 @@ public abstract class Playable extends FieldEntity {
     protected long lastFireTime;
     protected int allowedFireInterval;
 
+    protected long lastBuildTime;
+    protected int allowBuildInterval;
+
     protected int numberOfBullets;
     protected int allowedNumberOfBullets;
     protected int bulletDamage;
 
+    protected long lastEntryTime;
+    protected int allowedDeployInterval;
+
     protected int life;
+    protected int playableType;
 
     protected Direction direction;
 
@@ -62,6 +70,14 @@ public abstract class Playable extends FieldEntity {
     }
 
     //Getters
+    public long getLastTurnTime() {
+        return lastTurnTime;
+    }
+
+    public long getAllowedTurnInterval() {
+        return allowedTurnInterval;
+    }
+
     public long getLastMoveTime() {
         return lastMoveTime;
     }
@@ -90,12 +106,32 @@ public abstract class Playable extends FieldEntity {
         return allowedNumberOfBullets;
     }
 
+    public long getLastEntryTime() {
+        return lastEntryTime;
+    }
+
+    public int getAllowedDeployInterval() {
+        return allowedDeployInterval;
+    }
+
+    public long getLastBuildTime() {
+        return lastBuildTime;
+    }
+
+    public int getAllowBuildInterval() {
+        return allowBuildInterval;
+    }
+
     public Direction getDirection() {
         return direction;
     }
 
     public long getId() {
         return id;
+    }
+
+    public int getPlayableType() {
+        return playableType;
     }
 
     public abstract int getIntValue();
@@ -125,6 +161,14 @@ public abstract class Playable extends FieldEntity {
     }
 
     //Setters
+    public void setLastTurnTime(long lastTurnTime) {
+        this.lastTurnTime = lastTurnTime;
+    }
+
+    public void setAllowedTurnInterval(int allowedTurnInterval) {
+        this.allowedTurnInterval = allowedTurnInterval;
+    }
+
     public void setLastMoveTime(long lastMoveTime) {
         this.lastMoveTime = lastMoveTime;
     }
@@ -149,11 +193,35 @@ public abstract class Playable extends FieldEntity {
         this.allowedNumberOfBullets = allowedNumberOfBullets;
     }
 
+    public void setLastBuildTime(long lastBuildTime) {
+        this.lastBuildTime = lastBuildTime;
+    }
+
+    public void setAllowBuildInterval(int allowBuildInterval) {
+        this.allowBuildInterval = allowBuildInterval;
+    }
+
+    public void setAllowedFireInterval(int allowedFireInterval) {
+        this.allowedFireInterval = allowedFireInterval;
+    }
+
+    public void setLastEntryTime(long lastMoveTime) {
+        this.lastEntryTime = lastMoveTime;
+    }
+
+    public void setAllowedDeployInterval(int allowedDeployInterval) {
+        this.allowedDeployInterval = allowedDeployInterval;
+    }
+
     public void setDirection(Direction direction) {
         this.direction = direction;
     }
     public void setLife(int life) {
         this.life = life;
+    }
+
+    public void setPlayableType(int playableType) {
+        this.playableType = playableType;
     }
 
     public String toString() {

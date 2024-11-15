@@ -19,6 +19,7 @@ public class Soldier extends Playable {
     public Soldier(long id, Direction direction, String ip) {
         super(id, direction, ip);
         life = 25;  // Soldiers start with 25 life points
+        playableType = 3;
 
         numberOfBullets = 0;
         allowedFireInterval = 250;  // Minimum 250 ms between shots
@@ -32,6 +33,9 @@ public class Soldier extends Playable {
 
         allowedTurnInterval = 0; // Soldiers can turn as fast as they want
         lastTurnTime = 0;
+
+        lastEntryTime = 0;
+        allowedDeployInterval = 5000;
 
         recentlyEnteredTank = false;
         powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);

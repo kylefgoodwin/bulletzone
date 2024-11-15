@@ -23,7 +23,7 @@ import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
  * Created by simon on 10/1/14.
  */
 
-@Rest(rootUrl = "http://10.0.2.2:8080/games",
+@Rest(rootUrl = "http://10.0.2.2:61922/games",
 //@Rest(rootUrl = "http://stman1.cs.unh.edu:6192/games",
 //@Rest(rootUrl = "http://stman1.cs.unh.edu:61902/games",
         converters = {StringHttpMessageConverter.class, MappingJackson2HttpMessageConverter.class}
@@ -62,6 +62,9 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
 
     @Put("/{playableId}/{playableType}/fire/1")
     BooleanWrapper fire(@Path long playableId, @Path int playableType);
+
+    @Put("/{playableId}/{playableType}/build/{entity}")
+    BooleanWrapper build(@Path long playableId, @Path int playableType, @Path String entity);
 
     @Put("/{playableId}/eject/0")
     BooleanWrapper ejectSoldier(@Path long playableId);

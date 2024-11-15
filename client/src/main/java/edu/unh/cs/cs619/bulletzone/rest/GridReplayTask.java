@@ -2,6 +2,8 @@ package edu.unh.cs.cs619.bulletzone.rest;
 
 import android.util.Log;
 
+import androidx.annotation.VisibleForTesting;
+
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.UiThread;
@@ -23,6 +25,10 @@ public class GridReplayTask {
     private long diffStamp = 0; //Used to calculate the difference between time stamps
     private int speed = 1;
     private int paused = 0;
+    private boolean testGameEvent = false;
+    private GameEvent testEvent;
+
+    private EventBus eventBus = EventBus.getDefault();
 
     public void startReplay(ReplayEventProcessor eventProcessor) {
         currentProcessor = eventProcessor;
@@ -33,6 +39,16 @@ public class GridReplayTask {
         onGridUpdate(grid, tGrid);
 
         eventProcessor.setBoard(grid.getGrid(), tGrid.getGrid());
+    }
+
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
+
+    @VisibleForTesting
+    public void createTestEvent(GameEvent gameEvent) {
+        this.testEvent = gameEvent;
+        testGameEvent = true;
     }
 
     public void setPaused(int value) {
@@ -46,7 +62,7 @@ public class GridReplayTask {
     @Background(id = "grid_replay_task")
     public void doReplay() {
         try {
-            Log.d(TAG, "Stating GridReplayTask");
+//            Log.d(TAG, "Stating GridReplayTask");
 
             while (replayData.getEventAt(replayIndex) != null) {
 
@@ -63,14 +79,17 @@ public class GridReplayTask {
                 Thread.sleep(waitForMillis);
 
 //                Log.d(TAG, "Posting " + currEvent.getClass() + "Event");
-                EventBus.getDefault().post(currEvent);
-                EventBus.getDefault().post(new UpdateBoardEvent());
+                eventBus.post(currEvent);
+                eventBus.post(new UpdateBoardEvent());
                 Log.d(TAG, currEvent.toString());
                 replayIndex++;
             }
+            if (testGameEvent) {
+                eventBus.post(testEvent);
+            }
 //            Log.d(TAG, "Exited While Loop");
         } catch (Exception exe) {
-            Log.e(TAG, "Unexpected error in doReplay", exe);
+//            Log.e(TAG, "Unexpected error in doReplay", exe);
         }
     }
 

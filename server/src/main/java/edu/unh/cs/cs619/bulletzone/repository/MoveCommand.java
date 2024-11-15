@@ -80,13 +80,10 @@ public class MoveCommand implements Command {
                 return true;
             }
         }
-
         if (nextField.isTerrainPresent()) {
             Terrain t = (Terrain) nextField.getTerrainEntityHolder();
             return handleTerrainConstraints(playable, t, currentField, nextField);
         }
-
-
         // Handle movement to empty space
         if (!nextField.isPresent()) {
             moveUnit(currentField, nextField, playable, direction);
@@ -99,7 +96,9 @@ public class MoveCommand implements Command {
                 game.removeSoldier(playableId);
                 game.getTanks().get(playableId).sethasSoldier(false);
                 currentField.clearField();
+                game.getTanks().get(playableId).setLastEntryTime(millis);
                 EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
+                game.setSoldierEjected(false);
                 return false;
             }
         }
@@ -142,7 +141,6 @@ public class MoveCommand implements Command {
             playable.setDirection(direction);
             return false;
         }
-
 
         playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
         return false;

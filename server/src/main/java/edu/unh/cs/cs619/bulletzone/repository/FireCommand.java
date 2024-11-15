@@ -1,6 +1,7 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
 import org.greenrobot.eventbus.EventBus;
+import org.springframework.stereotype.Component;
 
 import java.util.TimerTask;
 
@@ -17,7 +18,9 @@ import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
+import edu.unh.cs.cs619.bulletzone.model.events.TurnEvent;
 
+@Component
 public class FireCommand {
 
     Game game;
@@ -80,7 +83,7 @@ public class FireCommand {
                     Playable p = (Playable) nextField.getEntity();
                     System.out.println("Playable is hit, life: " + p.getLife());
                     if (p.getLife() <= 0) {
-                        handleRemovingPlayable(currentField, p, playableType, game);
+                        handleRemovingPlayable(currentField, p, p.getPlayableType(), game);
                     }
                 //Handle hitting wall
                 } else if (nextField.getEntity().isWall()) {

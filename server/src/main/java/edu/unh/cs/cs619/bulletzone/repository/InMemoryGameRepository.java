@@ -25,6 +25,7 @@ import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
+import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
 
 @Component
 public class InMemoryGameRepository implements GameRepository {
@@ -51,6 +52,7 @@ public class InMemoryGameRepository implements GameRepository {
     private final AtomicLong idGenerator = new AtomicLong();
     private final Object monitor = new Object();
     private Game game = null;
+    private final int[] bulletDamage = {5, 10, 30};
     private final int[] bulletDelay = {500, 1000, 1500};
     private final int[] trackActiveBullets = {0, 0, 0, 0, 0, 0};
     private final Timer itemSpawnTimer = new Timer();
@@ -61,13 +63,13 @@ public class InMemoryGameRepository implements GameRepository {
     private GameBoardBuilder gameBoardBuilder;
 
     @Autowired
-    public InMemoryGameRepository(Constraints tankConstraintChecker, GameBoardBuilder gameBoardBuilder) {
+    public InMemoryGameRepository(FireCommand fireCommand, GameBoardBuilder gameBoardBuilder) {
         this.fireCommand = new FireCommand();
         this.gameBoardBuilder = new GameBoardBuilder();
     }
 
     @Override
-    public Pair<Tank, Builder> join(String ip) {
+    public Tank join(String ip) {
         synchronized (this.monitor) {
             Tank tank;
             Builder builder;
@@ -76,7 +78,7 @@ public class InMemoryGameRepository implements GameRepository {
             }
 
             if ((tank = game.getTank(ip)) != null && (builder = game.getBuilder(ip)) != null) {
-                return Pair.with(tank, builder);
+                return tank;
             }
 
             Long Id = this.idGenerator.getAndIncrement();
@@ -116,7 +118,7 @@ public class InMemoryGameRepository implements GameRepository {
 
             game.addTank(ip, tank);
             game.addBuilder(ip, builder);
-            return Pair.with(tank, builder);
+            return tank;
         }
     }
 
@@ -436,10 +438,14 @@ public class InMemoryGameRepository implements GameRepository {
             if (playable == null) {
                 throw new TankDoesNotExistException(playableId);
             }
-            if (game.getSoldiers().get(playableId) != null){
+            if (game.getSoldiers().containsKey(playableId)){
                 return false;
             }
             long millis = System.currentTimeMillis();
+            System.out.println("Attempting to eject soldier w/ time cur:  " + System.currentTimeMillis() + "and calculated: " + playable.getLastEntryTime() + playable.getAllowedDeployInterval());
+            if (millis < playable.getLastEntryTime() + playable.getAllowedDeployInterval()) {
+                return false;
+            }
             EjectSoldierCommand ejectsoldier = new EjectSoldierCommand(playableId, game, playable.getDirection(), millis);
             return ejectsoldier.execute();
         }
@@ -469,13 +475,18 @@ public class InMemoryGameRepository implements GameRepository {
         } else {
             playable = game.getSoldier(playableId);
             if (playable == null) {
-                return -1;
+                if (game.getSolderEjected()) {
+                    return 0;
+                } else {
+                    return -1;
+                }
             }
         }
         if (playable == null) {
             //Log.i(TAG, "Cannot find user with id: " + tankId);
             //return false;
-            throw new TankDoesNotExistException(playableId);
+            return 0;
+//            throw new TankDoesNotExistException(playableId);
         }
 
         return playable.getLife();
