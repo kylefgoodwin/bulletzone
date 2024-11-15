@@ -409,10 +409,14 @@ public class InMemoryGameRepository implements GameRepository {
             if (playable == null) {
                 throw new TankDoesNotExistException(playableId);
             }
-            if (game.getSoldiers().get(playableId) != null){
+            if (game.getSoldiers().containsKey(playableId)){
                 return false;
             }
             long millis = System.currentTimeMillis();
+            System.out.println("Attempting to eject soldier w/ time cur:  " + System.currentTimeMillis() + "and calculated: " + playable.getLastEntryTime() + playable.getAllowedDeployInterval());
+            if (millis < playable.getLastEntryTime() + playable.getAllowedDeployInterval()) {
+                return false;
+            }
             EjectSoldierCommand ejectsoldier = new EjectSoldierCommand(playableId, game, playable.getDirection(), millis);
             return ejectsoldier.execute();
         }

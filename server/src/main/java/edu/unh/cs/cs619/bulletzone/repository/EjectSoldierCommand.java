@@ -48,9 +48,6 @@ public class EjectSoldierCommand implements Command {
         if (playable == null) {
             throw new TankDoesNotExistException(playableId);
         }
-        if (millis < playable.getLastEntryTime()) {
-            return false;
-        }
 
         FieldHolder currentField = playable.getParent();
         Direction direction = Direction.Up;
@@ -140,7 +137,6 @@ public class EjectSoldierCommand implements Command {
 
         // Create and eject the soldier
         Soldier soldier = new Soldier(playableId, playable.getDirection(), playable.getIp());
-        game.addSoldier(playable.getIp(), soldier);
 
         // Place the soldier on the grid
         int oldPos = playable.getPosition();
@@ -149,7 +145,7 @@ public class EjectSoldierCommand implements Command {
         int newPos = soldier.getPosition();
         playable.sethasSoldier(true);
 
-        EventBus.getDefault().post(new SpawnEvent(soldier.getIntValue(), soldier.getPosition()));
+        game.addSoldier(playable.getIp(), soldier);
 
         return true;
     }
