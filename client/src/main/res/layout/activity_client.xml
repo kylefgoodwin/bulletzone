@@ -311,7 +311,7 @@
             android:id="@+id/buttonBuild"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/build_or_dismantle"
+            android:text="@string/build"
             android:layout_marginTop="8dp" />
 
         <!-- Build or Dismantle Button -->
@@ -319,7 +319,7 @@
             android:id="@+id/buttonDismantle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/build_or_dismantle"
+            android:text="@string/dismantle"
             android:layout_marginTop="8dp" />
 
         <!-- Eject Power-up Button -->
