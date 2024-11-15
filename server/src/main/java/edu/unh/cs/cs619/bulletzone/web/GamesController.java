@@ -54,10 +54,14 @@ class GamesController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     ResponseEntity<LongWrapper> join(HttpServletRequest request) {
-        Tank tank;
+        Pair<Tank, Builder> ret;
+        Playable tank;
+        Playable builder;
         try {
-            tank = gameRepository.join(request.getRemoteAddr());
-            log.info("Player joined: tankId={} IP={}", tank.getId(), request.getRemoteAddr());
+            ret = gameRepository.join(request.getRemoteAddr());
+            tank = ret.getValue0();
+            builder = ret.getValue1();
+            log.info("Player joined: Id={} IP={}", tank.getId(), request.getRemoteAddr());
 
             return new ResponseEntity<LongWrapper>(
                     new LongWrapper(tank.getId()),

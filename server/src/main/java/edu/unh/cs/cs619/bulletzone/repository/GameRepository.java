@@ -14,7 +14,7 @@ import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
 
 public interface GameRepository {
 
-    Tank join(String ip);
+    Pair<Tank, Builder> join(String ip);
 
     Game getGame();
 

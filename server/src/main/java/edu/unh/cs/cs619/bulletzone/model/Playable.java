@@ -21,6 +21,7 @@ public abstract class Playable extends FieldEntity {
 
 
     protected final long id;
+    protected int userId;
 
     protected final String ip;
 
@@ -70,6 +71,10 @@ public abstract class Playable extends FieldEntity {
     }
 
     //Getters
+    public int getUserId() {
+        return userId;
+    }
+
     public long getLastTurnTime() {
         return lastTurnTime;
     }

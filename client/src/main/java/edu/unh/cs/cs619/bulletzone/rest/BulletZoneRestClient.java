@@ -64,10 +64,10 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     BooleanWrapper fire(@Path long playableId, @Path int playableType);
 
     @Put("/{playableId}/{playableType}/build/{entity}")
-    BooleanWrapper build(@Path long playableId, @Path int playableType, @Path String entity);
+    BooleanWrapper build(@Path("playableId") long playableId, @Path("playableType") int playableType, @Path("entity") String entity);
 
     @Put("/{playableId}/eject/0")
-    BooleanWrapper ejectSoldier(@Path long playableId);
+    BooleanWrapper ejectSoldier(@Path("playableId") long playableId);
 
     @Delete("/{playableId}/leave")
     BooleanWrapper leave(@Path long playableId);

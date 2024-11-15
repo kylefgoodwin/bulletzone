@@ -130,7 +130,7 @@ public class ClientActivity extends Activity {
 
     private long playableId = -1;
     private int playableType = 1;
-    private int improvementType = 1;
+    private int improvementType = 0;
     private long userId = -1;
     private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier"));
     private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility"));
@@ -316,13 +316,13 @@ public class ClientActivity extends Activity {
     @ItemSelect({R.id.selectPlayable})
     protected void onPlayableSelect(boolean checked, int position) {
         Log.d(TAG, "Spinner position = " + position);
-        playableType = position + 1;
+        playableType = position+1;
     }
 
     @ItemSelect({R.id.selectImprovement})
     protected void onBuildSelect(boolean checked, int position){
         Log.d(TAG,"spinnerpositon = " + position);
-        improvementType = position+1;
+        improvementType = position;
     }
 
     @Click({R.id.buttonUp, R.id.buttonDown, R.id.buttonLeft, R.id.buttonRight})
@@ -354,11 +354,16 @@ public class ClientActivity extends Activity {
 
     @Click(R.id.buttonBuildOrDismantle)
     protected void onButtonBuild() {
-        if (improvementType >= 0 && improvementType < improvementSelections.size()) {
-            tankEventController.buildAsync(playableId, playableType, playerData.getImprovement(improvementType));
+        if (improvementType == 0) {
+            tankEventController.buildAsync(playableId, playableType, playerData.setCurEntity("destructibleWall"));
+        } else if (improvementType == 1) {
+            tankEventController.buildAsync(playableId, playableType, playerData.setCurEntity("indestructibleWall"));
+        } else if (improvementType == 2) {
+            tankEventController.buildAsync(playableId, playableType, playerData.setCurEntity("miningFacility"));
         } else {
             // Handle the case where improvementType is out of bounds
             Log.e("onButtonBuild", "Invalid improvement type index: " + improvementType);
+
         }
     }
 
