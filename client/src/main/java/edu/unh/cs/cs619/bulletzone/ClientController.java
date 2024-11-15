@@ -57,7 +57,7 @@ public class ClientController {
         PlayerData.getPlayerData().setTankLife(newLifeTank);
         PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
 
-        if (newLifeSoldier != -1) {
+        if (newLifeSoldier >= 0) {
             PlayerData.getPlayerData().setSoldierLife(newLifeSoldier);
         }
 

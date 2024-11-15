@@ -475,7 +475,11 @@ public class InMemoryGameRepository implements GameRepository {
         } else {
             playable = game.getSoldier(playableId);
             if (playable == null) {
-                return -1;
+                if (game.getSolderEjected()) {
+                    return 0;
+                } else {
+                    return -1;
+                }
             }
         }
         if (playable == null) {

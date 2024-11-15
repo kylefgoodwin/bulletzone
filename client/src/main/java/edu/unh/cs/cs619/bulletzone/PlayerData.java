@@ -23,6 +23,7 @@ public class PlayerData {
     private int soldierLife = 100;
     private int fusionReactorCount = 0;
     private int antiGravCount = 0;
+    private boolean soldierEjected = false;
 
     private PlayerData() {
         this.tankMap = 0;
@@ -42,6 +43,11 @@ public class PlayerData {
     public int getTankLife() {
         return tankLife;
     }
+
+    public void setSoldierEjected(boolean set) {
+        this.soldierEjected = set;
+    }
+
 
     public void setTankLife(int tankLife) {
         this.tankLife = tankLife;

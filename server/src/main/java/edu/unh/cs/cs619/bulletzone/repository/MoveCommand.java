@@ -98,6 +98,7 @@ public class MoveCommand implements Command {
                 currentField.clearField();
                 game.getTanks().get(playableId).setLastEntryTime(millis);
                 EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
+                game.setSoldierEjected(false);
                 return false;
             }
         }

@@ -32,6 +32,8 @@ public final class Game {
     private final ConcurrentMap<Long, Double> playerCredits = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, BankAccount> playerAccounts = new ConcurrentHashMap<>();
 
+    private boolean isSoldierEjected = false;
+
     public Game() {
         this.id = 0;
     }
@@ -58,6 +60,14 @@ public final class Game {
     @JsonIgnore
     public ArrayList<FieldHolder> getTerrainHolderGrid() {
         return terrainHolderGrid;
+    }
+
+    public void setSoldierEjected(boolean isEjected) {
+        this.isSoldierEjected = isEjected;
+    }
+
+    public boolean getSolderEjected() {
+        return this.isSoldierEjected;
     }
 
     public void addTank(String ip, Tank tank) {

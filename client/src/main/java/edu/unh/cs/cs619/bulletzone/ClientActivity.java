@@ -365,6 +365,7 @@ public class ClientActivity extends Activity {
     @Click(R.id.buttonEjectSoldier)
     protected void onButtonEjectSoldier() {
         clientController.ejectSoldierAsync(playableId);
+//        playerData.setSoldierEjected(true);
     }
 
     @Click(R.id.buttonLeave)

@@ -49,6 +49,8 @@ public class EjectSoldierCommand implements Command {
             throw new TankDoesNotExistException(playableId);
         }
 
+        game.setSoldierEjected(true);
+
         FieldHolder currentField = playable.getParent();
         Direction direction = Direction.Up;
         if (playable.getDirection() == Direction.Up) {
