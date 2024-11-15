@@ -352,7 +352,7 @@ public class ClientActivity extends Activity {
         tankEventController.fire(playableId, playableType);
     }
 
-    @Click(R.id.buttonBuildOrDismantle)
+    @Click(R.id.buttonBuild)
     protected void onButtonBuild() {
         if (improvementType == 0) {
             tankEventController.buildAsync(playableId, playableType, playerData.setCurEntity("destructibleWall"));
@@ -363,8 +363,23 @@ public class ClientActivity extends Activity {
         } else {
             // Handle the case where improvementType is out of bounds
             Log.e("onButtonBuild", "Invalid improvement type index: " + improvementType);
-
         }
+        fetchAndUpdateBalance();
+    }
+
+    @Click(R.id.buttonDismantle)
+    protected void onButtonDismantle() {
+        if (improvementType == 0) {
+            tankEventController.dismantleAsync(playableId, playableType, playerData.setCurEntity("destructibleWall"));
+        } else if (improvementType == 1) {
+            tankEventController.dismantleAsync(playableId, playableType, playerData.setCurEntity("indestructibleWall"));
+        } else if (improvementType == 2) {
+            tankEventController.dismantleAsync(playableId, playableType, playerData.setCurEntity("miningFacility"));
+        } else {
+            // Handle the case where improvementType is out of bounds
+            Log.e("onButtonBuild", "Invalid improvement type index: " + improvementType);
+        }
+        fetchAndUpdateBalance();
     }
 
     @Click(R.id.buttonEjectSoldier)

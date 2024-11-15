@@ -52,30 +52,58 @@ public class TankEventController {
      * @param entity currently selected improvement type
      */
     @Background
-    public void buildOrDismantle(long playableId, int playableType, String entity) {
+    public void buildAsync(long playableId, int playableType, String entity) {
         if (playableType == 2) {
             // send build
             switch (playerData.getCurEntity()) {
                 case "destructibleWall": {
-                    double amount = -80;
-                    restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
-                    // Remove credits to user's account
-                    restClient.depositBalance(PlayerData.getPlayerData().getUserId(), amount);
-                    break;
+                    if (restClient.getBalance(PlayerData.getPlayerData().getUserId()) >= 80.0) {
+                        restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
+                        // Remove credits to user's account
+                        double amount = -80.0;
+                        PlayerData playerData = PlayerData.getPlayerData();
+                        Log.d(TAG, "Processing build on Destructible Wall, amount: " + amount);
+
+                        BooleanWrapper result = restClient.depositBalance(playerData.getUserId(), amount);
+                        if (result != null && result.isResult()) {
+                            Log.d(TAG, "Successfully withdrew " + amount + " credits");
+                        } else {
+                            Log.e(TAG, "Failed to withdraw credits");
+                        }
+                        break;
+                    }
                 }
                 case "indestructibleWall": {
-                    double amount = -150;
-                    restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
-                    // Remove credits to user's account
-                    restClient.depositBalance(PlayerData.getPlayerData().getUserId(), amount);
-                    break;
+                    if (restClient.getBalance(PlayerData.getPlayerData().getUserId()) >= 150.0) {
+                        restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
+                        // Remove credits to user's account
+                        double amount = -150.0;
+                        PlayerData playerData = PlayerData.getPlayerData();
+                        Log.d(TAG, "Processing build on Indestructible Wall, amount: " + amount);
+
+                        BooleanWrapper result = restClient.depositBalance(playerData.getUserId(), amount);
+                        if (result != null && result.isResult()) {
+                            Log.d(TAG, "Successfully withdrew " + amount + " credits");
+                        } else {
+                            Log.e(TAG, "Failed to withdraw credits");
+                        }
+                        break;
+                    }
                 }
                 case "miningFacility": {
-                    double amount = -300;
                     if (restClient.getBalance(PlayerData.getPlayerData().getUserId()) >= 300) {
                         restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
                         // Remove credits to user's account
-                        restClient.depositBalance(PlayerData.getPlayerData().getUserId(), amount);
+                        double amount = -300.0;
+                        PlayerData playerData = PlayerData.getPlayerData();
+                        Log.d(TAG, "Processing build on Mining Facility, amount: " + amount);
+
+                        BooleanWrapper result = restClient.depositBalance(playerData.getUserId(), amount);
+                        if (result != null && result.isResult()) {
+                            Log.d(TAG, "Successfully withdrew " + amount + " credits");
+                        } else {
+                            Log.e(TAG, "Failed to withdraw credits");
+                        }
                         break;
                     }
                 }
@@ -85,9 +113,67 @@ public class TankEventController {
         }
     }
 
+    /**
+     * Sends either a dismantle or build command depending on what unit is currently selected
+     *
+     * @param playableId  unit id currently selected
+     * @param entity currently selected improvement type
+     */
     @Background
-    public void buildAsync(long playableId, int playableType, String entity) {
-        restClient.build(playableId, playableType, entity);
+    public void dismantleAsync(long playableId, int playableType, String entity) {
+        if (playableType == 2) {
+            // send build
+            switch (playerData.getCurEntity()) {
+                case "destructibleWall": {
+                    restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
+                    // Remove credits to user's account
+                    double amount = 80.0;
+                    PlayerData playerData = PlayerData.getPlayerData();
+                    Log.d(TAG, "Processing build on Destructible Wall, amount: " + amount);
+
+                    BooleanWrapper result = restClient.depositBalance(playerData.getUserId(), amount);
+                    if (result != null && result.isResult()) {
+                        Log.d(TAG, "Successfully withdrew " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Failed to withdraw credits");
+                    }
+                    break;
+                }
+                case "indestructibleWall": {
+                    restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
+                    // Remove credits to user's account
+                    double amount = 150.0;
+                    PlayerData playerData = PlayerData.getPlayerData();
+                    Log.d(TAG, "Processing build on Indestructible Wall, amount: " + amount);
+
+                    BooleanWrapper result = restClient.depositBalance(playerData.getUserId(), amount);
+                    if (result != null && result.isResult()) {
+                        Log.d(TAG, "Successfully withdrew " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Failed to withdraw credits");
+                    }
+                    break;
+
+                }
+                case "miningFacility": {
+                    restClient.build(playerData.getBuilderId(), playableType, playerData.getCurEntity());
+                    // Remove credits to user's account
+                    double amount = 300.0;
+                    PlayerData playerData = PlayerData.getPlayerData();
+                    Log.d(TAG, "Processing build on Mining Facility, amount: " + amount);
+
+                    BooleanWrapper result = restClient.depositBalance(playerData.getUserId(), amount);
+                    if (result != null && result.isResult()) {
+                        Log.d(TAG, "Successfully withdrew " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Failed to withdraw credits");
+                    }
+                    break;
+                }
+            }
+        } else {
+            Log.d(TAG, "Cannot build while controlling another vehicle");
+        }
     }
 
     private boolean onePointTurn(int currentButtonId) {

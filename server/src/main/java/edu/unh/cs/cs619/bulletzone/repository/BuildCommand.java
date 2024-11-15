@@ -98,8 +98,9 @@ public class BuildCommand implements Command {
                     }
                     Wall destructibleWall = new Wall(1500, nextIndex);
                     game.getHolderGrid().get(nextIndex).setFieldEntity(destructibleWall);
-                    balance.modifyBalance(-80);
-                    game.modifyBalance(builderId, -80);
+                    double credits = -80.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
                     EventBus.getDefault().post(new SpawnEvent(destructibleWall.getIntValue(), nextIndex));
                     return true;
                 } else {
@@ -108,7 +109,7 @@ public class BuildCommand implements Command {
                 }
             } else if (Objects.equals(entity, "indestructibleWall")) {
 
-                if (balance.getBalance() >= 150) {
+                if (balance.getBalance() >= 150.0) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     while (builder.getLastBuildTime() - millis < built) {
@@ -117,8 +118,9 @@ public class BuildCommand implements Command {
                     }
                     Wall indestructibleWall = new Wall();
                     game.getHolderGrid().get(nextIndex).setFieldEntity(indestructibleWall);
-                    balance.modifyBalance(-150);
-                    game.modifyBalance(builderId, -150);
+                    double credits = -150.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
                     EventBus.getDefault().post(new SpawnEvent(indestructibleWall.getIntValue(), nextIndex));
                     return true;
                 } else {
@@ -127,7 +129,7 @@ public class BuildCommand implements Command {
                 }
             } else if (Objects.equals(entity, "miningFacility")) {
 
-                if (balance.getBalance() >= 300) {
+                if (balance.getBalance() >= 300.0) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     while (builder.getLastBuildTime() - millis < built) {
@@ -136,8 +138,9 @@ public class BuildCommand implements Command {
                     }
                     MiningFacility miningFacility = new MiningFacility(920, nextIndex);
                     game.getHolderGrid().get(nextIndex).setFieldEntity(miningFacility);
-                    balance.modifyBalance(-300);
-                    game.modifyBalance(builderId, -300);
+                    double credits = -300.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
                     EventBus.getDefault().post(new SpawnEvent(miningFacility.getIntValue(), nextIndex));
                     return true;
                 } else {
@@ -180,8 +183,9 @@ public class BuildCommand implements Command {
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
                     nextField.clearField();
-                    balance.modifyBalance(80);
-                    game.modifyBalance(builderId, 80);
+                    double credits = 80.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                     return true;
                 }
@@ -194,8 +198,9 @@ public class BuildCommand implements Command {
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
                     nextField.clearField();
-                    balance.modifyBalance(300);
-                    game.modifyBalance(builderId, 300);
+                    double credits = 300.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                 } else if (entityInNextField.isIndestructibleWall()){
                     long millis = System.currentTimeMillis();
@@ -205,8 +210,9 @@ public class BuildCommand implements Command {
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
                     nextField.clearField();
-                    balance.modifyBalance(150);
-                    game.modifyBalance(builderId, 150);
+                    double credits = 150.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                 }
 
