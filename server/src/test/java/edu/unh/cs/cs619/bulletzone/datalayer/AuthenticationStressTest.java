@@ -1,8 +1,8 @@
 package edu.unh.cs.cs619.bulletzone.datalayer;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import edu.unh.cs.cs619.bulletzone.datalayer.user.GameUser;
 import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
+import edu.unh.cs.cs619.bulletzone.datalayer.user.GameUser;
 
 public class AuthenticationStressTest {
     static BulletZoneData db;

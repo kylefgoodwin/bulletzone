@@ -2,22 +2,14 @@ package edu.unh.cs.cs619.bulletzone.repository;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.apache.juli.logging.Log;
 import org.greenrobot.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.Random;
-
-
-import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
-import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.IllegalTransitionException;
-import edu.unh.cs.cs619.bulletzone.model.Improvement;
 import edu.unh.cs.cs619.bulletzone.model.Item;
 import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
@@ -28,7 +20,6 @@ import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
-import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TurnEvent;
 
 public class MoveCommand implements Command {
@@ -89,13 +80,10 @@ public class MoveCommand implements Command {
                 return true;
             }
         }
-
         if (nextField.isTerrainPresent()) {
             Terrain t = (Terrain) nextField.getTerrainEntityHolder();
             return handleTerrainConstraints(playable, t, currentField, nextField);
         }
-
-
         // Handle movement to empty space
         if (!nextField.isPresent()) {
             moveUnit(currentField, nextField, playable, direction);
@@ -108,8 +96,9 @@ public class MoveCommand implements Command {
                 game.removeSoldier(playableId);
                 game.getTanks().get(playableId).sethasSoldier(false);
                 currentField.clearField();
-                playable.setLastEntryTime(millis + playable.getAllowedDeployInterval());
+                game.getTanks().get(playableId).setLastEntryTime(millis);
                 EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
+                game.setSoldierEjected(false);
                 return false;
             }
         }
@@ -190,12 +179,10 @@ public class MoveCommand implements Command {
      * @param playable playable picking up the item
      */
     private void handleItemPickup(Item item, Playable playable) {
-        BankAccount balance = game.getBankAccount(playableId);
         if (item.getType() == 1) { // Thingamajig
             log.debug("Processing Thingamajig pickup for tank {}", playableId);
             double credits = item.getCredits();
-            balance.modifyBalance(credits);
-            game.modifyBalance(playableId, credits);
+            game.addCredits(playable.getId(), credits);
         } else if (item.isAntiGrav()) {
             log.debug("Processing AntiGrav pickup for tank {}", playableId);
             playable.addPowerUp(item);

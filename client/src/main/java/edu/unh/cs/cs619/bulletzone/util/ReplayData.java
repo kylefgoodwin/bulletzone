@@ -1,10 +1,14 @@
 package edu.unh.cs.cs619.bulletzone.util;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 import edu.unh.cs.cs619.bulletzone.events.GameEvent;
 
 public class ReplayData {
+
+    private static final String TAG = "ReplayData";
 
     private static ReplayData replayData = null;
 
@@ -15,7 +19,8 @@ public class ReplayData {
 
     private long initialTimeStamp = -1;
 
-    private GameEvent[] eventHistoryArray;
+    private long playerTankID = -1;
+
     private ArrayList<GameEvent> eventHistory = new ArrayList<>();
 
     private ReplayData() {}
@@ -25,6 +30,32 @@ public class ReplayData {
             replayData = new ReplayData();
         }
         return replayData;
+    }
+
+    public ReplayDataFlat turnToFlat() {
+        return new ReplayDataFlat(initialGrid, initialTerrainGrid, eventHistory, initialTimeStamp,
+                initialGridToSet, playerTankID);
+    }
+
+    public void loadReplay(ReplayDataFlat flatData) {
+        this.initialGrid = flatData.getInitialGrid();
+        this.initialTerrainGrid = flatData.getInitialTerrainGrid();
+        this.eventHistory = flatData.getGameEvents();
+        this.initialTimeStamp = flatData.getInitialTimestamp();
+        this.initialGridToSet = flatData.initialGridToSet;
+        this.playerTankID = flatData.getPlayerTankID();
+    }
+
+    public void clearReplay() {
+        replayData = new ReplayData();
+    }
+
+    public long getPlayerTankID() {
+        return playerTankID;
+    }
+
+    public void setPlayerTankID(long playerTankID) {
+        this.playerTankID = playerTankID;
     }
 
     public void setInitialGrids(GridWrapper initialGrid, GridWrapper initialTerrainGrid) {
@@ -42,6 +73,7 @@ public class ReplayData {
 
     public void addGameEvent(GameEvent event) {
         eventHistory.add(event);
+//        Log.d(TAG, "Added Event: " + event.toString());
     }
 
     public GameEvent getEventAt(int index) {

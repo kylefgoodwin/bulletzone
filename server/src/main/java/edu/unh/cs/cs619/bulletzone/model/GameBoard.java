@@ -1,12 +1,6 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-
-import edu.unh.cs.cs619.bulletzone.model.Direction;
-import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
-import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
-import edu.unh.cs.cs619.bulletzone.model.Game;
 
 public class GameBoard {
 

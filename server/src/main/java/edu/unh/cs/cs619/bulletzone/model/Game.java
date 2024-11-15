@@ -1,10 +1,12 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.Optional;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -29,6 +31,8 @@ public final class Game {
     private final ConcurrentMap<String, Long> playersIPSoldiers = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, Double> playerCredits = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, BankAccount> playerAccounts = new ConcurrentHashMap<>();
+
+    private boolean isSoldierEjected = false;
 
     public Game() {
         this.id = 0;
@@ -56,6 +60,14 @@ public final class Game {
     @JsonIgnore
     public ArrayList<FieldHolder> getTerrainHolderGrid() {
         return terrainHolderGrid;
+    }
+
+    public void setSoldierEjected(boolean isEjected) {
+        this.isSoldierEjected = isEjected;
+    }
+
+    public boolean getSolderEjected() {
+        return this.isSoldierEjected;
     }
 
     public void addTank(String ip, Tank tank) {

@@ -3,7 +3,6 @@ package edu.unh.cs.cs619.bulletzone.web;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import org.greenrobot.eventbus.EventBus;
@@ -18,14 +17,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Collection;
+
 import edu.unh.cs.cs619.bulletzone.BulletZoneServer;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.events.EventHistory;
 import edu.unh.cs.cs619.bulletzone.model.events.GameEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 import edu.unh.cs.cs619.bulletzone.repository.GameRepository;
-
-import java.util.Collection;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {BulletZoneServer.class})
