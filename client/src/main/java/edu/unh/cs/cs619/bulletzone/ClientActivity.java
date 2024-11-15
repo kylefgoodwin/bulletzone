@@ -385,6 +385,8 @@ public class ClientActivity extends Activity {
     @Click(R.id.buttonLogout)
     void logout() {
         Log.d(TAG, "logout() called");
+        BackgroundExecutor.cancelAll("grid_poller_task", true);
+        clientController.leaveGameAsync(playableId);
         logoutUI();
     }
 
