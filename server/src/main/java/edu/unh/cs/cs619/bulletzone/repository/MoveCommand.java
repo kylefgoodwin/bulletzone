@@ -80,13 +80,10 @@ public class MoveCommand implements Command {
                 return true;
             }
         }
-
         if (nextField.isTerrainPresent()) {
             Terrain t = (Terrain) nextField.getTerrainEntityHolder();
             return handleTerrainConstraints(playable, t, currentField, nextField);
         }
-
-
         // Handle movement to empty space
         if (!nextField.isPresent()) {
             moveUnit(currentField, nextField, playable, direction);
@@ -99,7 +96,7 @@ public class MoveCommand implements Command {
                 game.removeSoldier(playableId);
                 game.getTanks().get(playableId).sethasSoldier(false);
                 currentField.clearField();
-                playable.setLastFireTime(millis + playable.getAllowedDeployInterval());
+                game.getTanks().get(playableId).setLastEntryTime(millis);
                 EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
                 return false;
             }
@@ -141,24 +138,6 @@ public class MoveCommand implements Command {
         // Handle tank collisions
         else if (nextField.getEntity().isPlayable()) {
             playable.setDirection(direction);
-            return false;
-        }
-
-        // Soldier re-entry
-        else if (nextField.getEntity() instanceof Tank && playableType == 3) {
-            playable.setDirection(direction);
-            // Create and eject the soldier
-            Tank tank = new Tank(playableId, direction, playable.getIp());
-            game.addTank(playable.getIp(), tank);
-            game.removeSoldier(playableId);
-
-            // Place the soldier on the grid
-            playable.setLastEntryTime(millis + playable.getAllowedDeployInterval());
-            int oldPos = playable.getPosition();
-            currentField.clearField();
-            nextField.setFieldEntity(tank);
-            tank.setParent(nextField);
-            int newPos = tank.getPosition();
             return false;
         }
 
