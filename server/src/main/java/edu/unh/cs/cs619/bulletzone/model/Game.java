@@ -43,9 +43,9 @@ public final class Game {
         return id;
     }
 
-//    public BankAccount getBankAccount(long playerId) {
-//        return playerAccounts.computeIfAbsent(playerId, BankAccount::new);
-//    }
+    public BankAccount getBankAccount(long playerId) {
+        return playerAccounts.computeIfAbsent(playerId, BankAccount::new);
+    }
 
     @JsonIgnore
     public ArrayList<FieldHolder> getHolderGrid() {
@@ -75,7 +75,7 @@ public final class Game {
             tanks.put(tank.getId(), tank);
             playersIP.put(ip, tank.getId());
             playerCredits.put(tank.getId(), 1000.0); // Initialize credits for new tank
-//            playerAccounts.putIfAbsent(tank.getId(), new BankAccount(tank.getId()));
+            playerAccounts.putIfAbsent(tank.getId(), new BankAccount(tank.getId()));
         }
         EventBus.getDefault().post(new SpawnEvent(tank.getIntValue(), tank.getPosition()));
     }
@@ -85,18 +85,15 @@ public final class Game {
             soldiers.put(soldier.getId(), soldier);
             playersIPSoldiers.put(ip, soldier.getId());
             playerCredits.put(soldier.getId(), 1000.0); // Initialize credits for new tank
+            playerAccounts.putIfAbsent(soldier.getId(), new BankAccount(soldier.getId()));
         }
         EventBus.getDefault().post(new SpawnEvent(soldier.getIntValue(), soldier.getPosition()));
     }
 
-    public void addCredits(long tankId, double amount) {
-        playerCredits.compute(tankId, (key, oldValue) ->
-                (oldValue == null ? 0 : oldValue) + amount);
-    }
-
-    public void removeCredits(long tankId, double amount) {
-        playerCredits.compute(tankId, (key, oldValue) ->
-                (oldValue == null ? 0 : oldValue) - amount);
+    // Method to add credits to a player's bank account
+    public void modifyBalance(long playerId, double amount) {
+        BankAccount account = getBankAccount(playerId);
+        account.modifyBalance(amount);
     }
 
     public double getCredits(long tankId) {
@@ -175,6 +172,7 @@ public final class Game {
             builders.put(builder.getId(), builder);
             playersIPBuilders.put(ip, builder.getId());
             playerCredits.put(builder.getId(), 1000.0); // Initialize credits for new tank
+            playerAccounts.putIfAbsent(builder.getId(), new BankAccount(builder.getId()));
         }
         EventBus.getDefault().post(new SpawnEvent(builder.getIntValue(), builder.getPosition()));
     }
