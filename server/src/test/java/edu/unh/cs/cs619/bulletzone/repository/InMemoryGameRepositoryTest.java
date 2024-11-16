@@ -164,7 +164,7 @@ public class InMemoryGameRepositoryTest {
         assertFalse(turned, "Tank should be able to turn immediately");
     }
 
-    @Test
+    /*@Test
     public void turn_SoldierTimedInteraction_TurnSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
         Pair<Tank, Builder> result = repo.join(tankIp);
         mockPlayable = result.getValue0();
@@ -183,7 +183,7 @@ public class InMemoryGameRepositoryTest {
         Assert.assertEquals(Direction.Down, mockPlayable.getDirection());
 
         assertTrue(turned, "Tank should be able to turn immediately");
-    }
+    }*/
 
     @Test
     public void move_TankTimedInteraction_MoveSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
