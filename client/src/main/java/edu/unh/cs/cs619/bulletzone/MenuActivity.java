@@ -1,9 +1,9 @@
 package edu.unh.cs.cs619.bulletzone;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
 
 import org.androidannotations.annotations.AfterViews;
@@ -13,13 +13,15 @@ import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.NonConfigurationInstance;
 
-import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
+import java.util.ArrayList;
+
+import edu.unh.cs.cs619.bulletzone.events.Database.EventDatabaseHandler;
 import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
-import edu.unh.cs.cs619.bulletzone.ui.GridAdapter;
+import edu.unh.cs.cs619.bulletzone.util.FileHelper;
+import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
 /**
  * Made by Alec Rydeen
- *
  * Activity that acts as an intermediary between logging in and joining the game.
  * Takes the join game responsibility away from the ClientActivity, and moves it between here and
  * MenuController.
@@ -30,25 +32,22 @@ public class MenuActivity extends Activity {
 
     private static final String TAG = "MenuActivity";
 
-    @NonConfigurationInstance
-    @Bean
-    GridPollerTask gridPollTask;
-
-    @Bean
-    protected GridAdapter mGridAdapter;
-
-    @Bean
-    protected GameEventProcessor eventProcessor;
-
     private long userId = -1;
     private long tankId = -1;
 
     @Bean
     MenuController menuController;
 
+    private FileHelper fileHelper;
+
+    private ReplayData replayData = ReplayData.getReplayData();
+
+    PlayerData playerData = PlayerData.getPlayerData();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        fileHelper = new FileHelper(this);
         Log.e(TAG, "onCreate");
     }
 
@@ -58,7 +57,8 @@ public class MenuActivity extends Activity {
     @AfterViews
     protected void afterViewInjection() {
         Log.d(TAG, "afterViewInjection");
-        userId = getIntent().getLongExtra("USER_ID", -1);
+        userId = playerData.getUserId();
+//        replayData.setEventDatabaseHandler(databaseHandler);
     }
 
     /**
@@ -72,18 +72,27 @@ public class MenuActivity extends Activity {
             tankId = menuController.joinAsync();
             // Start the Client activity
             Intent intent = new Intent(this, ClientActivity_.class);
-            intent.putExtra("USER_ID", userId);
-            intent.putExtra("TANK_ID", tankId);
+            playerData.setTankId(tankId);
 //            Log.d("MenuActivity", "Starting ClientActivity_");
             startActivity(intent);
 //            Log.d("MenuActivity", "ClientActivity_ started");
-//            SystemClock.sleep(500); //Wait for poller to update initial board
-//            eventProcessor.setBoard(mGridAdapter.getBoard()); //Set initial board to eventprocessor
-//            eventProcessor.start(); //Subscribe to eventbus to start posting events
             finish();
         } catch (Exception e) {
 //            Log.e(TAG, "Error joining game", e);
         }
+    }
+
+    @Click(R.id.replayButton)
+    @Background
+    void replays() {
+        try {
+            Intent intent = new Intent(this, ReplayActivity_.class);
+            startActivity(intent);
+            finish();
+        } catch (Exception e) {
+
+        }
+
     }
 
     public void joinTest() {

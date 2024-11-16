@@ -1,16 +1,17 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
-import java.util.Optional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Optional;
 
 public class FieldHolder {
 
     private final Map<Direction, FieldHolder> neighbors = new HashMap<>();
-    private Optional<FieldEntity> entityHolder = Optional.empty();
+    private Optional<FieldEntity> playerEntityHolder = Optional.empty();
+    private Optional<FieldEntity> itemEntityHolder = Optional.empty();
+    private Optional<FieldEntity> terrainEntityHolder = Optional.empty();
     private final int position;
 
     public FieldHolder(int pos) {
@@ -29,22 +30,74 @@ public class FieldHolder {
     }
 
     public boolean isPresent() {
-        return entityHolder.isPresent();
+        return playerEntityHolder.isPresent();
+    }
+
+    public boolean isTerrainPresent() {
+        return terrainEntityHolder.isPresent();
+    }
+
+    public boolean isItemPresent() {
+        return itemEntityHolder.isPresent();
     }
 
     public FieldEntity getEntity() {
-        return entityHolder.get();
+        return playerEntityHolder.get();
+    }
+
+    public FieldEntity getItemEntity() {
+        return itemEntityHolder.get();
+    }
+
+    public FieldEntity getTerrainEntityHolder() {
+        return terrainEntityHolder.get();
     }
 
     public void setFieldEntity(FieldEntity entity) {
-        entityHolder = Optional.of(checkNotNull(entity,
-                "FieldEntity cannot be null."));
+        playerEntityHolder = Optional.of(checkNotNull(entity, "Field Entitity cannot be null"));}
+
+    public void setItemEntity(FieldEntity entity) {
+        itemEntityHolder = Optional.of(checkNotNull(entity, "Field Entitity cannot be null"));
+    }
+
+    public void setTerrainEntityHolder(FieldEntity entity) {
+        terrainEntityHolder = Optional.of(checkNotNull(entity, "Field Entitity cannot be null"));
     }
 
     public void clearField() {
-        if (entityHolder.isPresent()) {
-            entityHolder = Optional.empty();
+        if (playerEntityHolder.isPresent()) {
+            playerEntityHolder = Optional.empty();
         }
+    }
+
+    public void clearItem() {
+        if (itemEntityHolder.isPresent()) {
+            itemEntityHolder = Optional.empty();
+        }
+    }
+
+    public void clearTerrain() {
+        if (terrainEntityHolder.isPresent()) {
+            terrainEntityHolder = Optional.empty();
+        }
+    }
+
+    public void clearAll() {
+        if (playerEntityHolder.isPresent()) {
+            playerEntityHolder = Optional.empty();
+        }
+
+        if (itemEntityHolder.isPresent()) {
+            itemEntityHolder = Optional.empty();
+        }
+
+        if (terrainEntityHolder.isPresent()) {
+            terrainEntityHolder = Optional.empty();
+        }
+    }
+
+    public Map<Direction, FieldHolder> getNeighborsMap() {
+        return neighbors;
     }
 
 }

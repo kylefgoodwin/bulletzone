@@ -17,14 +17,24 @@ public class BoardCell {
         col = c;
         resourceID = R.drawable.blank;
     }
-    public Integer getResourceID() { return resourceID; }
+
+    public Integer getResourceID() {
+        return resourceID;
+    }
+
     public int getRotation() { return 0; }
+
     public int getRawValue() { return rawValue; }
 
     public String getCellType() {
         return "Empty";
     }
 
-
-    public String getCellInfo() { return "Location: (" + this.col + ", " + this.row + ")"; }
+    public String getCellInfo() {
+        String baseInfo = "Location: (" + this.col + ", " + this.row + ")";
+        if (rawValue >= 3000 && rawValue <= 3003 || rawValue >= 4000 && rawValue <= 4003) {
+            return baseInfo + " - " + getCellType();
+        }
+        return baseInfo;
+    }
 }

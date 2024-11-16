@@ -7,8 +7,11 @@ import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
  */
 public class GridUpdateEvent {
     public GridWrapper gw;
+    public GridWrapper tw;
+    public GridWrapper iw;
 
-    public GridUpdateEvent(GridWrapper gw) {
+    public GridUpdateEvent(GridWrapper gw, GridWrapper tw) {
         this.gw = gw;
+        this.tw = tw;
     }
 }

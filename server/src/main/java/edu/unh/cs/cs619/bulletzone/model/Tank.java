@@ -2,139 +2,57 @@ package edu.unh.cs.cs619.bulletzone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class Tank extends FieldEntity {
+import org.greenrobot.eventbus.EventBus;
 
+import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
+import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
+
+public class Tank extends Playable {
     private static final String TAG = "Tank";
 
-    private final long id;
-
-    private final String ip;
-
-    private long lastMoveTime;
-    private int allowedMoveInterval;
-
-    private long lastFireTime;
-    private int allowedFireInterval;
-
-    private int numberOfBullets;
-    private int allowedNumberOfBullets;
-
-    private int life;
-
-    private Direction direction;
-
     public Tank(long id, Direction direction, String ip) {
-        this.id = id;
-        this.direction = direction;
-        this.ip = ip;
+        super(id, direction, ip);
+        life = 100;
+        playableType = 1;
+
         numberOfBullets = 0;
+        allowedFireInterval = 1500;
         allowedNumberOfBullets = 2;
         lastFireTime = 0;
-        allowedFireInterval = 1500;
-        lastMoveTime = 0;
-        allowedMoveInterval = 500;
-    }
+        bulletDamage = 30;
 
-    @Override
-    public FieldEntity copy() {
-        return new Tank(id, direction, ip);
+        allowedTurnInterval = 0;
+        lastTurnTime = 0;
+
+        allowedMoveInterval = 500;
+        lastMoveTime = 0;
+        moveMultiplier = 1;  // Initialize move multiplier
+
+        lastEntryTime = 0;
+        allowedDeployInterval = 5000;
+
+        powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        hasSoldier = false;
     }
 
     @Override
     public void hit(int damage) {
-        life = life - damage;
-        System.out.println("Tank life: " + id + " : " + life);
-//		Log.d(TAG, "TankId: " + id + " hit -> life: " + life);
-
+        life -= damage;
         if (life <= 0) {
-//			Log.d(TAG, "Tank event");
-            //eventBus.post(Tank.this);
-            //eventBus.post(new Object());
+            //handle game over scenario
         }
-    }
-
-    public long getLastMoveTime() {
-        return lastMoveTime;
-    }
-
-    public void setLastMoveTime(long lastMoveTime) {
-        this.lastMoveTime = lastMoveTime;
-    }
-
-    public long getAllowedMoveInterval() {
-        return allowedMoveInterval;
-    }
-
-    public void setAllowedMoveInterval(int allowedMoveInterval) {
-        this.allowedMoveInterval = allowedMoveInterval;
-    }
-
-    public long getLastFireTime() {
-        return lastFireTime;
-    }
-
-    public void setLastFireTime(long lastFireTime) {
-        this.lastFireTime = lastFireTime;
-    }
-
-    public long getAllowedFireInterval() {
-        return allowedFireInterval;
-    }
-
-    public void setAllowedFireInterval(int allowedFireInterval) {
-        this.allowedFireInterval = allowedFireInterval;
-    }
-
-    public int getNumberOfBullets() {
-        return numberOfBullets;
-    }
-
-    public void setNumberOfBullets(int numberOfBullets) {
-        this.numberOfBullets = numberOfBullets;
-    }
-
-    public int getAllowedNumberOfBullets() {
-        return allowedNumberOfBullets;
-    }
-
-    public void setAllowedNumberOfBullets(int allowedNumberOfBullets) {
-        this.allowedNumberOfBullets = allowedNumberOfBullets;
-    }
-
-    public Direction getDirection() {
-        return direction;
-    }
-
-    public void setDirection(Direction direction) {
-        this.direction = direction;
+        System.out.println("Tank id: " + id + " Tank Life: " + life);
+        EventBus.getDefault().post(new HitEvent((int) id, 1));
     }
 
     @JsonIgnore
-    public long getId() {
-        return id;
-    }
-
     @Override
     public int getIntValue() {
-        return (int) (10000000 + 10000 * id + 10 * life + Direction
-                .toByte(direction));
+        return (int) (10000000 + 10000 * id + 10 * life + Direction.toByte(direction));
     }
 
     @Override
     public String toString() {
         return "T";
     }
-
-    public int getLife() {
-        return life;
-    }
-
-    public void setLife(int life) {
-        this.life = life;
-    }
-
-    public String getIp(){
-        return ip;
-    }
-
 }

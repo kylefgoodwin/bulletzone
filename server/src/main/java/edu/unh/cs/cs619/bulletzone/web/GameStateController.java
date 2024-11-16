@@ -36,12 +36,28 @@ class GameStateController {
         this.game = gameRepository.getGame();
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(method = RequestMethod.GET, value = "/playergrid", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public
     @ResponseBody
-    ResponseEntity<GridWrapper> grid() {
+    ResponseEntity<GridWrapper> playerGrid() {
         return new ResponseEntity<GridWrapper>(new GridWrapper(game.getGrid2D()), HttpStatus.OK);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/itemgrid", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public
+    @ResponseBody
+    ResponseEntity<GridWrapper> itemGrid() {
+        return new ResponseEntity<GridWrapper>(new GridWrapper(game.getItemGrid2D()), HttpStatus.OK);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/terraingrid", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public
+    @ResponseBody
+    ResponseEntity<GridWrapper> terrainGrid() {
+        return new ResponseEntity<GridWrapper>(new GridWrapper(game.getTerrainGrid2D()), HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/events/{timeSince}", produces = MediaType.APPLICATION_JSON_VALUE)

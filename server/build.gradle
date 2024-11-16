@@ -4,6 +4,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:3.2.1'
+
     }
 }
 
@@ -43,12 +44,15 @@ targetCompatibility = 17
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.google.guava:guava:24.1-jre'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation 'com.h2database:h2:1.4.194'
     implementation 'org.greenrobot:eventbus-java:3.3.1'
     extraLibs group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '3.2.1'
     extraLibs group: 'com.google.guava', name: 'guava', version: '24.1-jre'
     extraLibs group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.1.2'
+    implementation 'org.javatuples:javatuples:1.2'
+    implementation 'org.javatuples:javatuples:1.2'
 
     testImplementation 'junit:junit:4.+'
     testImplementation 'org.hamcrest:hamcrest-library:2.2'

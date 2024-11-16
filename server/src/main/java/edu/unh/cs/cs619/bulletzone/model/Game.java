@@ -1,28 +1,38 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.Optional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import org.apache.juli.logging.Log;
+import org.greenrobot.eventbus.EventBus;
+
+import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 public final class Game {
-    /**
-     * Field dimensions
-     */
     private static final int FIELD_DIM = 16;
     private final long id;
     private final ArrayList<FieldHolder> holderGrid = new ArrayList<>();
+    private final ArrayList<FieldHolder> itemHolderGrid = new ArrayList<>();
+    private final ArrayList<FieldHolder> terrainHolderGrid = new ArrayList<>();
 
     private final ConcurrentMap<Long, Tank> tanks = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Long> playersIP = new ConcurrentHashMap<>();
-//    private GameBoard gameBoard;
+    private final ConcurrentMap<Long, Builder> builders = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Long> playersIPBuilders = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, Soldier> soldiers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Long> playersIPSoldiers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, Double> playerCredits = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, BankAccount> playerAccounts = new ConcurrentHashMap<>();
+
+    private boolean isSoldierEjected = false;
 
     public Game() {
         this.id = 0;
@@ -33,17 +43,61 @@ public final class Game {
         return id;
     }
 
+    public BankAccount getBankAccount(long playerId) {
+        return playerAccounts.computeIfAbsent(playerId, BankAccount::new);
+    }
+
     @JsonIgnore
     public ArrayList<FieldHolder> getHolderGrid() {
         return holderGrid;
+    }
+
+    @JsonIgnore
+    public ArrayList<FieldHolder> getItemHolderGrid() {
+        return itemHolderGrid;
+    }
+
+    @JsonIgnore
+    public ArrayList<FieldHolder> getTerrainHolderGrid() {
+        return terrainHolderGrid;
+    }
+
+    public void setSoldierEjected(boolean isEjected) {
+        this.isSoldierEjected = isEjected;
+    }
+
+    public boolean getSolderEjected() {
+        return this.isSoldierEjected;
     }
 
     public void addTank(String ip, Tank tank) {
         synchronized (tanks) {
             tanks.put(tank.getId(), tank);
             playersIP.put(ip, tank.getId());
+            playerCredits.put(tank.getId(), 1000.0); // Initialize credits for new tank
+            playerAccounts.putIfAbsent(tank.getId(), new BankAccount(tank.getId()));
         }
         EventBus.getDefault().post(new SpawnEvent(tank.getIntValue(), tank.getPosition()));
+    }
+
+    public void addSoldier(String ip, Soldier soldier) {
+        synchronized (soldiers) {
+            soldiers.put(soldier.getId(), soldier);
+            playersIPSoldiers.put(ip, soldier.getId());
+            playerCredits.put(soldier.getId(), 1000.0); // Initialize credits for new tank
+            playerAccounts.putIfAbsent(soldier.getId(), new BankAccount(soldier.getId()));
+        }
+        EventBus.getDefault().post(new SpawnEvent(soldier.getIntValue(), soldier.getPosition()));
+    }
+
+    // Method to add credits to a player's bank account
+    public void modifyBalance(long playerId, double amount) {
+        BankAccount account = getBankAccount(playerId);
+        account.modifyBalance(amount);
+    }
+
+    public double getCredits(long tankId) {
+        return playerCredits.getOrDefault(tankId, 0.0);
     }
 
     public Tank getTank(Long tankId) {
@@ -52,6 +106,30 @@ public final class Game {
 
     public ConcurrentMap<Long, Tank> getTanks() {
         return tanks;
+    }
+
+    public Soldier getSoldier(long soldierId) {
+        return soldiers.get(soldierId);
+    }
+
+    public Soldier getSoldier(String ip) {
+        if (playersIPSoldiers.containsKey(ip)) {
+            return soldiers.get(playersIPSoldiers.get(ip));
+        }
+        return null;
+    }
+
+    public ConcurrentMap<Long, Soldier> getSoldiers() {
+        return soldiers;
+    }
+
+    public void removeSoldier(long soldierId) {
+        synchronized (soldiers) {
+            Soldier soldier = soldiers.remove(soldierId);
+            if (soldier != null) {
+                playersIPSoldiers.remove(soldier.getIp());
+            }
+        }
     }
 
     public List<Optional<FieldEntity>> getGrid() {
@@ -63,7 +141,6 @@ public final class Game {
                 if (holder.isPresent()) {
                     entity = holder.getEntity();
                     entity = entity.copy();
-
                     entities.add(Optional.of(entity));
                 } else {
                     entities.add(Optional.empty());
@@ -85,10 +162,51 @@ public final class Game {
             Tank t = tanks.remove(tankId);
             if (t != null) {
                 playersIP.remove(t.getIp());
+                playerCredits.remove(tankId);
             }
         }
     }
 
+    public void addBuilder(String ip, Builder builder) {
+        synchronized (builders) {
+            builders.put(builder.getId(), builder);
+            playersIPBuilders.put(ip, builder.getId());
+            playerCredits.put(builder.getId(), 1000.0); // Initialize credits for new tank
+            playerAccounts.putIfAbsent(builder.getId(), new BankAccount(builder.getId()));
+        }
+        EventBus.getDefault().post(new SpawnEvent(builder.getIntValue(), builder.getPosition()));
+    }
+
+    public void removeBuilder(long builderId){
+        synchronized (builders) {
+            Builder b = builders.remove(builderId);
+            if (b != null) {
+                playersIPBuilders.remove(b.getIp());
+            }
+        }
+    }
+
+    public Builder getBuilder(long builderId) {
+        return builders.get(builderId);
+    }
+
+    public Builder getBuilder(String ip){
+        if (playersIPBuilders.containsKey(ip)){
+            return builders.get(playersIPBuilders.get(ip));
+        }
+        return null;
+    }
+
+    public ConcurrentMap<Long, Builder> getBuilders() {
+        return builders;
+    }
+
+    /**
+     * Converts the 3 FieldHolder Grids into 1 2D int[][].
+     * For each cell in the int array, there are 3 values that can be iterated through in the second value
+     * The in each "tuple" its goes (playerData, itemData, terrainData)
+     * @return
+     */
     public int[][] getGrid2D() {
         int[][] grid = new int[FIELD_DIM][FIELD_DIM];
 
@@ -107,13 +225,46 @@ public final class Game {
         }
 
         return grid;
+
     }
 
-//    public GameBoard getGameBoard() {
-//        return gameBoard;
-//    }
-//
-//    public void setGameBoard(GameBoard gameBoard) {
-//        this.gameBoard = gameBoard;
-//    }
+    public int[][] getItemGrid2D() {
+        int[][] grid = new int[FIELD_DIM][FIELD_DIM];
+
+        synchronized (itemHolderGrid) {
+            FieldHolder holder;
+            for (int i = 0; i < FIELD_DIM; i++) {
+                for (int j = 0; j < FIELD_DIM; j++) {
+                    holder = holderGrid.get(i * FIELD_DIM + j);
+                    if (holder.isPresent()) {
+                        grid[i][j] = holder.getEntity().getIntValue();
+                    } else {
+                        grid[i][j] = 0;
+                    }
+                }
+            }
+        }
+
+        return grid;
+    }
+
+    public int[][] getTerrainGrid2D() {
+        int[][] grid = new int[FIELD_DIM][FIELD_DIM];
+
+        synchronized (holderGrid) {
+            FieldHolder holder;
+            for (int i = 0; i < FIELD_DIM; i++) {
+                for (int j = 0; j < FIELD_DIM; j++) {
+                    holder = holderGrid.get(i * FIELD_DIM + j);
+                    if (holder.isTerrainPresent()) {
+                        grid[i][j] = holder.getTerrainEntityHolder().getIntValue();
+                    } else {
+                        grid[i][j] = 0;
+                    }
+                }
+            }
+        }
+
+        return grid;
+    }
 }

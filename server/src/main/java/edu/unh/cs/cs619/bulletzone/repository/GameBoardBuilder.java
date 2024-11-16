@@ -4,12 +4,14 @@ import org.springframework.stereotype.Component;
 
 import java.awt.Point;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import edu.unh.cs.cs619.bulletzone.datalayer.terrain.TerrainType;
+import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.Game;
-//import edu.unh.cs.cs619.bulletzone.model.GameBoard;
+import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
-import jdk.jfr.Category;
 
 @Component()
 public class GameBoardBuilder {
@@ -20,55 +22,29 @@ public class GameBoardBuilder {
     private Game game = null;
     private TerrainType baseTerrain;
     private TerrainType[][] customTerrain;
-//    private GameBoard gameBoard;
+    private final Map<Integer, FieldEntity> entities = new HashMap<>();
 
     public GameBoardBuilder setDimensions(int width, int height) {
         this.width = width;
         this.height = height;
-//        gameBoard = new GameBoard(width, height);
-        customTerrain = new TerrainType[width][height];
         return this;
     }
 
     public void setupGame(Game game) {
-
-        // Placing walls on the game board, can be extracted to another method for cleaner code.
-        game.getHolderGrid().get(1).setFieldEntity(new Wall());
-        game.getHolderGrid().get(2).setFieldEntity(new Wall());
-        game.getHolderGrid().get(3).setFieldEntity(new Wall());
-
-        game.getHolderGrid().get(17).setFieldEntity(new Wall());
-        game.getHolderGrid().get(33).setFieldEntity(new Wall(1500, 33));
-        game.getHolderGrid().get(49).setFieldEntity(new Wall(1500, 49));
-        game.getHolderGrid().get(65).setFieldEntity(new Wall(1500, 65));
-
-        game.getHolderGrid().get(34).setFieldEntity(new Wall());
-        game.getHolderGrid().get(66).setFieldEntity(new Wall(1500, 66));
-
-        game.getHolderGrid().get(35).setFieldEntity(new Wall());
-        game.getHolderGrid().get(51).setFieldEntity(new Wall());
-        game.getHolderGrid().get(67).setFieldEntity(new Wall(1500, 67));
-
-        game.getHolderGrid().get(5).setFieldEntity(new Wall());
-        game.getHolderGrid().get(21).setFieldEntity(new Wall());
-        game.getHolderGrid().get(37).setFieldEntity(new Wall());
-        game.getHolderGrid().get(53).setFieldEntity(new Wall());
-        game.getHolderGrid().get(69).setFieldEntity(new Wall(1500, 69));
-
-        game.getHolderGrid().get(7).setFieldEntity(new Wall());
-        game.getHolderGrid().get(23).setFieldEntity(new Wall());
-        game.getHolderGrid().get(39).setFieldEntity(new Wall());
-        game.getHolderGrid().get(71).setFieldEntity(new Wall(1500, 71));
-
-        game.getHolderGrid().get(8).setFieldEntity(new Wall());
-        game.getHolderGrid().get(40).setFieldEntity(new Wall());
-        game.getHolderGrid().get(72).setFieldEntity(new Wall(1500, 72));
-
-        game.getHolderGrid().get(9).setFieldEntity(new Wall());
-        game.getHolderGrid().get(25).setFieldEntity(new Wall());
-        game.getHolderGrid().get(41).setFieldEntity(new Wall());
-        game.getHolderGrid().get(57).setFieldEntity(new Wall());
-        game.getHolderGrid().get(73).setFieldEntity(new Wall());
+        attachGame(game);
+        addWalls(List.of(1, 2, 3, 17, 34, 35, 51, 5, 21, 37, 53, 7, 23, 39, 8, 40, 9, 25, 41, 57, 73));
+        addWalls(List.of(33, 49, 65, 66, 67, 69, 71, 72), 1500);
+//        addTerrain(118, 2);
+//        addTerrain(121, 3);
+        addTerrains(List.of(115, 116, 117, 118, 130, 131, 132, 133), 1);
+        addTerrains(List.of(205, 206, 207, 208, 209, 220, 222, 223, 224), 3);
+        addTerrains(List.of(182, 183, 184, 187, 188, 189, 199, 200, 201, 202), 2);
+        addTerrains(List.of(76, 77, 78, 60, 61, 62, 44, 45, 46), 3);
+        build();
+    }
+    public GameBoardBuilder attachGame(Game game) {
+        this.game = game;
+        return this;
     }
 
     // Enables horizontal wrapping
@@ -94,15 +70,52 @@ public class GameBoardBuilder {
         return this;
     }
 
-//    public GameBoard getBoard() {
-//        GameBoard board = new GameBoard(width, height, wrapHorizontal, wrapVertical);
-//        for (int x = 0; x < width; x++) {
-//            for (int y = 0; y < height; y++) {
-//                TerrainType terrain = customTerrain[x][y] != null ? customTerrain[x][y] : baseTerrain;
-//                board.setTerrain(x, y, terrain);
-//            }
-//        }
-//        return board;
-//    }
+    public GameBoardBuilder addWall(int position) {
+        entities.put(position, new Wall());
+        return this;
+    }
+
+    public GameBoardBuilder addWall(int position, int health) {
+        entities.put(position, new Wall(health, position));
+        return this;
+    }
+
+    public GameBoardBuilder addTerrain(int position, int terrainType) {
+        entities.put(position, new Terrain(terrainType));
+        return this;
+    }
+
+    public GameBoardBuilder addWalls(List<Integer> positions) {
+        positions.forEach(position -> entities.put(position, new Wall()));
+        return this;
+    }
+
+    public GameBoardBuilder addWalls(List<Integer> positions, int health) {
+        positions.forEach(position -> entities.put(position, new Wall(health, position)));
+        return this;
+    }
+
+    public GameBoardBuilder addTerrains(List<Integer> positions, int terrainType) {
+        positions.forEach(position -> entities.put(position, new Terrain(terrainType)));
+        return this;
+    }
+
+    public void build(){
+        if (game == null){
+            throw new IllegalStateException("Add game before creating board");
+        }
+
+        for (int i = 0; i < width * height; i++) {
+                game.getHolderGrid().get(i).setTerrainEntityHolder(new Terrain());
+        }
+
+        entities.forEach((position, entity) -> {
+            if (entity.isWall()) {
+                game.getHolderGrid().get(position).setFieldEntity(entity);
+            } else if (entity.isTerrain()) {
+                game.getHolderGrid().get(position).setTerrainEntityHolder(entity);
+            }
+        });
+    }
 }
 

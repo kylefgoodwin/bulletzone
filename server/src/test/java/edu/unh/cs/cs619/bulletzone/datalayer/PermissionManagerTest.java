@@ -1,5 +1,10 @@
 package edu.unh.cs.cs619.bulletzone.datalayer;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -8,13 +13,8 @@ import java.util.Collection;
 import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
 import edu.unh.cs.cs619.bulletzone.datalayer.item.GameItem;
 import edu.unh.cs.cs619.bulletzone.datalayer.item.GameItemContainer;
-import edu.unh.cs.cs619.bulletzone.datalayer.itemType.ItemType;
 import edu.unh.cs.cs619.bulletzone.datalayer.permission.Permission;
 import edu.unh.cs.cs619.bulletzone.datalayer.user.GameUser;
-
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
 
 public class PermissionManagerTest {
 

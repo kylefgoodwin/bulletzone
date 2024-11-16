@@ -1,13 +1,12 @@
 package edu.unh.cs.cs619.bulletzone;
 
-import android.content.Context;
 import android.content.Intent;
-import android.os.SystemClock;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.AfterViews;
@@ -35,6 +34,8 @@ public class AuthenticateActivity extends AppCompatActivity {
 
     @Bean
     AuthenticationController controller;
+
+    PlayerData playerData = PlayerData.getPlayerData();
 
     long userID;
 
@@ -137,7 +138,7 @@ public class AuthenticateActivity extends AppCompatActivity {
 
         // Start the main game activity
         Intent intent = new Intent(this, MenuActivity_.class);
-        intent.putExtra("USER_ID", userId);
+        playerData.setUserId(userId);
         Log.d(TAG, "Starting MenuActivity_");
         startActivity(intent);
         Log.d(TAG, "MenuActivity_ started");

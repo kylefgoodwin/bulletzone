@@ -16,6 +16,11 @@ public class RemoveEvent extends GameEvent {
     }
 
     @Override
+    public void applyTo(int[][] board) {
+        board[position / 16][position % 16] = 0;
+    }
+
+    @Override
     public String toString() {
         return "Remove " + rawServerValue +
                 " at " + position +

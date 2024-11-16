@@ -1,19 +1,25 @@
 package edu.unh.cs.cs619.bulletzone;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.Mockito.doNothing;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.GridView;
 import android.widget.TextView;
 
 import org.greenrobot.eventbus.EventBus;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 
 import edu.unh.cs.cs619.bulletzone.events.GameEvent;
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
@@ -55,11 +61,15 @@ public class BoardEventUpdateTest {
     @Mock
     GameEvent mockGameEvent;
 
+    private MockedStatic<Log> mockedLog;
     GameEventProcessor testEventProcessor;
 
     @Before
     public void setup() {
         initMocks(this);
+        mockedLog = mockStatic(Log.class);
+        mockedLog.when(() -> Log.d(anyString(), anyString())).thenReturn(0);
+
         when(mockGV.getContext()).thenReturn(mockContext);
 
         int[][] initialGrid = {
@@ -82,9 +92,18 @@ public class BoardEventUpdateTest {
         };
 
         testEventProcessor = spy(new GameEventProcessor());
-        testEventProcessor.eb = mockEB;
+        testEventProcessor.setEventBus(mockEB);
+        testEventProcessor.setBoard(initialGrid, initialGrid);
 
-        testEventProcessor.setBoard(initialGrid);
+        // Mock the event handling
+        doNothing().when(testEventProcessor).onNewEvent(mockSpawnEvent);
+        doNothing().when(testEventProcessor).onNewEvent(mockMoveEvent);
+        doNothing().when(testEventProcessor).onNewEvent(mockTurnEvent);
+    }
+
+    @After
+    public void tearDown() {
+        mockedLog.close();
     }
 
     @Test
@@ -96,35 +115,43 @@ public class BoardEventUpdateTest {
     @Test
     public void GridPollerTask_OnEvent_PostsEvent() {
         GridPollerTask poller = spy(new GridPollerTask());
-
         poller.doPoll(testEventProcessor);
-
         verify(poller).doPoll(testEventProcessor);
-
     }
 
     @Test
     public void GameEventProcessor_onTurnEvent_callsToChangeBoard() {
+        // Setup
         testEventProcessor.start();
-        mockEB.post(mockTurnEvent);
 
+        // Execute
+        testEventProcessor.onNewEvent(mockTurnEvent);
+
+        // Verify
         verify(testEventProcessor).onNewEvent(mockTurnEvent);
     }
 
     @Test
     public void GameEventProcessor_onSpawnEvent_callsToChangeBoard() {
+        // Setup
         testEventProcessor.start();
-        mockEB.post(mockSpawnEvent);
 
+        // Execute
+        testEventProcessor.onNewEvent(mockSpawnEvent);
+
+        // Verify
         verify(testEventProcessor).onNewEvent(mockSpawnEvent);
     }
 
     @Test
     public void gameEventProcessor_onMoveEvent_callsToChangeBoard() {
+        // Setup
         testEventProcessor.start();
-        mockEB.post(mockMoveEvent);
 
+        // Execute
+        testEventProcessor.onNewEvent(mockMoveEvent);
+
+        // Verify
         verify(testEventProcessor).onNewEvent(mockMoveEvent);
     }
-
 }

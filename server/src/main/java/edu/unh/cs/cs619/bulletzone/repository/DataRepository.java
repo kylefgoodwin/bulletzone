@@ -1,8 +1,9 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
-import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
 import edu.unh.cs.cs619.bulletzone.datalayer.BulletZoneData;
 import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
 import edu.unh.cs.cs619.bulletzone.datalayer.user.GameUser;
@@ -121,4 +122,30 @@ public class DataRepository {
         return false;
     }
 
+    public boolean depositUserBalance(long userId, double amount) {
+        logger.debug("Deducting {} from user ID: {}", amount, userId);
+        // First get the user to verify they exist
+        GameUser user = bzdata.users.getUser((int)userId);
+        if (user == null) {
+            logger.error("User not found for ID: {}", userId);
+            return false;
+        }
+
+        // Find account associated with this user
+        for (BankAccount account : bzdata.accounts.getAccounts()) {
+            if (account.getOwner() != null && account.getOwner().getId() == userId) {
+                if (account.getBalance() >= amount) {
+                    account.modifyBalance(+amount);
+                    logger.debug("New balance for user {}: {}", userId, account.getBalance());
+                    return true;
+                } else {
+                    logger.error("Insufficient balance for user {}", userId);
+                    return false;
+                }
+            }
+        }
+
+        logger.error("No account found for user {}", userId);
+        return false;
+    }
 }

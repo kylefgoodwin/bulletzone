@@ -1,28 +1,15 @@
 package edu.unh.cs.cs619.bulletzone.controllers;
 
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import android.view.View;
-import android.widget.Button;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import edu.unh.cs.cs619.bulletzone.AuthenticateActivity;
-import edu.unh.cs.cs619.bulletzone.ClientActivity;
 import edu.unh.cs.cs619.bulletzone.MenuActivity;
 import edu.unh.cs.cs619.bulletzone.MenuController;
-import edu.unh.cs.cs619.bulletzone.R;
-import edu.unh.cs.cs619.bulletzone.TankEventController;
 
 /**
  * Made by Alec Rydeen
@@ -40,9 +27,7 @@ public class MenuControllerTest {
 
     @Before
     public void setUp() {
-
         menuActivity = new MenuActivity();
-
         menuActivity.setMenuController(menuControllerMock);
     }
 
@@ -51,5 +36,4 @@ public class MenuControllerTest {
         menuActivity.joinTest();
         verify(menuControllerMock).joinAsync();
     }
-
 }
