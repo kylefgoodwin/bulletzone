@@ -376,13 +376,13 @@ public class ClientActivity extends Activity {
     protected void onButtonDismantle() {
         if (improvementType >= 0 && improvementType < improvementSelections.size()) {
             if (improvementType == 0) {
-                tankEventController.dismantleAsync(playableId, playableType, playerData.setCurEntity("destructibleWall"));
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("destructibleWall"));
                 fetchAndUpdateBalance();
             } else if (improvementType == 1) {
-                tankEventController.dismantleAsync(playableId, playableType, playerData.setCurEntity("indestructibleWall"));
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("indestructibleWall"));
                 fetchAndUpdateBalance();
             } else if (improvementType == 2) {
-                tankEventController.dismantleAsync(playableId, playableType, playerData.setCurEntity("miningFacility"));
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds

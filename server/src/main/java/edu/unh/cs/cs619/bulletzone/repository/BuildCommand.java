@@ -4,7 +4,11 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
 import edu.unh.cs.cs619.bulletzone.model.Builder;
@@ -12,10 +16,7 @@ import edu.unh.cs.cs619.bulletzone.model.Direction;
 import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
-import edu.unh.cs.cs619.bulletzone.model.Improvement;
 import edu.unh.cs.cs619.bulletzone.model.MiningFacility;
-import edu.unh.cs.cs619.bulletzone.model.Playable;
-import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
@@ -25,7 +26,12 @@ public class BuildCommand implements Command {
     Game game;
     long builderId;
     String entity;
+    private int miningFacilityCount = 0;
     private static final int FIELD_DIM = 16;
+    private ScheduledFuture<?> creditTask;
+    private final ConcurrentHashMap<Long, Integer> facilityOwnerMap = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
 
     /**
      * Constructor for buildCommand called each time
@@ -141,6 +147,12 @@ public class BuildCommand implements Command {
                     double credits = -300.0;
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
+                    // Track the facility's owner
+                    facilityOwnerMap.merge(builderId, 1, Integer::sum);
+                    miningFacilityCount+=1;
+
+                    // Start adding credits for this MiningFacility
+                    startCreditTask(game, builderId);
                     EventBus.getDefault().post(new SpawnEvent(miningFacility.getIntValue(), nextIndex));
                     return true;
                 } else {
@@ -201,6 +213,7 @@ public class BuildCommand implements Command {
                     double credits = 300.0;
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
+                    stopCreditTask(builderId);
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                 } else if (entityInNextField.isIndestructibleWall()){
                     long millis = System.currentTimeMillis();
@@ -223,9 +236,35 @@ public class BuildCommand implements Command {
         return true;
     }
 
+    private void startCreditTask(Game game, long facilityId) {
+        if (creditTask == null || creditTask.isCancelled()) {
+            creditTask = scheduler.scheduleAtFixedRate(() -> {
+                Integer ownerId = facilityOwnerMap.get(facilityId);
+                if (ownerId != null && miningFacilityCount != 0) {
+                    // Add one credit per second to the owner's balance
+                    game.modifyBalance(ownerId, miningFacilityCount);
+                } else {
+                    // If conditions are not met, cancel the task
+                    stopCreditTask(builderId);
+                }
+            }, 1, 1, TimeUnit.SECONDS); // Run every second after an initial 1-second delay
+        }
+    }
+
+    public void stopCreditTask(long facilityId) {
+        // Stop task logic (optional if you track individual tasks)
+        if (creditTask != null && !creditTask.isCancelled()) {
+            creditTask.cancel(true); // Stop the task
+            creditTask = null; // Reset the task reference
+        }
+        facilityOwnerMap.remove(facilityId);
+        miningFacilityCount-=1;
+    }
+
     /**
-     * stub for join command
-     * @return null value now
+     * Unused, needed to override for Join command
+     *
+     * @return stub null value
      */
     @Override
     public Long executeJoin() {
