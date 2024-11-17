@@ -5,6 +5,7 @@ import static java.sql.Types.NULL;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -229,7 +230,9 @@ public class ClientActivity extends Activity {
         try {
             // Get initial board state through the GameEventProcessor
             Log.d(TAG, "Initializing game board");
-            gridPollTask.doPoll(eventProcessor);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                gridPollTask.doPoll(eventProcessor);
+            }
         } catch (Exception e) {
             Log.e(TAG, "Error initializing game board", e);
         }
@@ -310,7 +313,9 @@ public class ClientActivity extends Activity {
         Log.d(TAG, "afterInject");
         clientController.setErrorHandler(bzRestErrorhandler);
         eventProcessor.start();
-        gridPollTask.doPoll(eventProcessor);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            gridPollTask.doPoll(eventProcessor);
+        }
     }
 
     @ItemSelect({R.id.selectPlayable})

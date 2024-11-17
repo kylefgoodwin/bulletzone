@@ -29,7 +29,7 @@ public class BuildCommand implements Command {
     private int miningFacilityCount = 0;
     private static final int FIELD_DIM = 16;
     private ScheduledFuture<?> creditTask;
-    private final ConcurrentHashMap<Long, Integer> facilityOwnerMap = new ConcurrentHashMap<>();
+//    private final ConcurrentHashMap<Long, Integer> facilityOwnerMap = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
@@ -98,6 +98,7 @@ public class BuildCommand implements Command {
                 if (balance.getBalance() >= 80.0) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
                     while (builder.getLastBuildTime() - millis < built) {
                         System.out.println("Building...");
                         builder.setLastBuildTime(System.currentTimeMillis());
@@ -118,6 +119,7 @@ public class BuildCommand implements Command {
                 if (balance.getBalance() >= 150.0) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
                     while (builder.getLastBuildTime() - millis < built) {
                         System.out.println("Building...");
                         builder.setLastBuildTime(System.currentTimeMillis());
@@ -138,6 +140,7 @@ public class BuildCommand implements Command {
                 if (balance.getBalance() >= 300.0) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
                     while (builder.getLastBuildTime() - millis < built) {
                         System.out.println("Building...");
                         builder.setLastBuildTime(System.currentTimeMillis());
@@ -148,7 +151,6 @@ public class BuildCommand implements Command {
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     // Track the facility's owner
-                    facilityOwnerMap.merge(builderId, 1, Integer::sum);
                     miningFacilityCount+=1;
 
                     // Start adding credits for this MiningFacility
@@ -190,7 +192,11 @@ public class BuildCommand implements Command {
                 if (entityInNextField.isWall()) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startDismantling();
                     while (builder.getLastBuildTime() - millis < built) {
+                        if (!builder.isDismantling()) {
+                            return false;
+                        }
                         System.out.println("Dismantling wall...");
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
@@ -198,6 +204,7 @@ public class BuildCommand implements Command {
                     double credits = 80.0;
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
+                    stopCreditTask();
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                     return true;
                 }
@@ -205,7 +212,11 @@ public class BuildCommand implements Command {
                 if (entityInNextField.isMiningFacility()) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startDismantling();
                     while (builder.getLastBuildTime() - millis < built) {
+                        if (!builder.isDismantling()) {
+                            return false;
+                        }
                         System.out.println("Dismantling mining facility...");
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
@@ -213,12 +224,16 @@ public class BuildCommand implements Command {
                     double credits = 300.0;
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
-                    stopCreditTask(builderId);
+                    stopCreditTask();
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                 } else if (entityInNextField.isIndestructibleWall()){
+                    builder.startDismantling();
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     while (builder.getLastBuildTime() - millis < built) {
+                        if (!builder.isDismantling()) {
+                            return false;
+                        }
                         System.out.println("Dismantling indestructible wall...");
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
@@ -226,6 +241,7 @@ public class BuildCommand implements Command {
                     double credits = 150.0;
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
+                    stopCreditTask();
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                 }
 
@@ -237,27 +253,24 @@ public class BuildCommand implements Command {
     }
 
     private void startCreditTask(Game game, long facilityId) {
-        if (creditTask == null || creditTask.isCancelled()) {
-            creditTask = scheduler.scheduleAtFixedRate(() -> {
-                Integer ownerId = facilityOwnerMap.get(facilityId);
-                if (ownerId != null && miningFacilityCount != 0) {
-                    // Add one credit per second to the owner's balance
-                    game.modifyBalance(ownerId, miningFacilityCount);
-                } else {
-                    // If conditions are not met, cancel the task
-                    stopCreditTask(builderId);
-                }
-            }, 1, 1, TimeUnit.SECONDS); // Run every second after an initial 1-second delay
-        }
+        creditTask = scheduler.scheduleAtFixedRate(() -> {
+            if (miningFacilityCount != 0) {
+                // Add one credit per second to the owner's balance
+                game.modifyBalance(facilityId, miningFacilityCount);
+            } else {
+                // If conditions are not met, cancel the task
+                stopCreditTask();
+            }
+        }, 1, 1, TimeUnit.SECONDS); // Run every second after an initial 1-second delay
+
     }
 
-    public void stopCreditTask(long facilityId) {
+    public void stopCreditTask() {
         // Stop task logic (optional if you track individual tasks)
-        if (creditTask != null && !creditTask.isCancelled()) {
+        if (creditTask != null && !creditTask.isCancelled() && miningFacilityCount == 0) {
             creditTask.cancel(true); // Stop the task
             creditTask = null; // Reset the task reference
         }
-        facilityOwnerMap.remove(facilityId);
         miningFacilityCount--;
     }
 

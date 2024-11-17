@@ -58,6 +58,33 @@ public abstract class Playable extends FieldEntity {
         this.ip = ip;
     }
 
+    private boolean isBuilding = false;
+    private boolean isDismantling = false;
+
+    public boolean isBuilding() {
+        return isBuilding;
+    }
+
+    public boolean isDismantling() {
+        return isDismantling;
+    }
+
+    public void startBuilding() {
+        isBuilding = true;
+    }
+
+    public void stopBuilding() {
+        isBuilding = false;
+    }
+
+    public void startDismantling() {
+        isDismantling = true;
+    }
+
+    public void stopDismantling() {
+        isDismantling = false;
+    }
+
     public FieldEntity copy() {
         return new Tank(id, direction, ip);
     }

@@ -90,6 +90,6 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     @Get("/ping")
     String ping();
 
-    @Get("/{playableId}/isFacilityActive")
-    BooleanWrapper isFacilityActive(@Path long playableId);
+//    @Get("/{playableId}/isFacilityActive")
+//    BooleanWrapper isFacilityActive(@Path long playableId);
 }
