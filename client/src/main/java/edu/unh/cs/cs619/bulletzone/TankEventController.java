@@ -3,6 +3,7 @@ package edu.unh.cs.cs619.bulletzone;
 import android.util.Log;
 
 import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.rest.spring.annotations.RestService;
 import org.greenrobot.eventbus.EventBus;
@@ -30,9 +31,12 @@ public class TankEventController {
     private final ConcurrentHashMap<Long, Boolean> activeMiningFacilities = new ConcurrentHashMap<>();
 
     private int lastPressedButtonId = -1;
+
+    @Bean
     ClientController clientController;
     PlayerData playerData;
     boolean isMining;
+    double miningFacilityCount = 0;
     private static final String TAG = "TankEventController";
 
     public TankEventController() {}
@@ -70,32 +74,27 @@ public class TankEventController {
     @Background
     public void buildAsync(long userId, long playableId, int playableType, String entity) {
         if (Objects.equals(entity, "destructibleWall")) {
-            if (restClient.getBalance(userId) >= 80.0) {
+            Log.d(TAG, "Balance (destructibleWall)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 80.0 ) {
                 restClient.build(playableId, playableType, entity);
-                processTransaction(userId, -80.0, "Destructible Wall");
             }
         } else if (Objects.equals(entity, "indestructibleWall")) {
-            if (restClient.getBalance(userId) >= 150.0) {
+            Log.d(TAG, "Balance (indestructibleWall)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 150.0 ) {
                 restClient.build(playableId, playableType, entity);
-                processTransaction(userId, -150.0, "Indestructible Wall");
             }
         } else if (Objects.equals(entity, "miningFacility")) {
-            if (restClient.getBalance(userId) >= 300.0) {
+            Log.d(TAG, "Balance (miningFacility)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 300.0 ) {
                 restClient.build(playableId, playableType, entity);
-                processTransaction(userId, -300.0, "Mining Facility");
-
-                // Start generating credits for the owning player
-                boolean miningStarted = startMiningFacility(userId, playableId);
-                if (!miningStarted) {
-                    Log.e(TAG, "Mining facility " + playableId + " was dismantled or failed to start");
-                }
-                startMiningFacility(userId, playableId);
             }
+            miningFacilityCount++;
+
         }
     }
-
-    private void processTransaction(long userId, double amount, String entity) {
-        Log.d(TAG, "Processing build on " + entity + ", amount: " + amount);
+    @Background
+    public void addCredits(long userId, double amount) {
+        Log.d(TAG, "Processing build, amount: " + amount);
 
         BooleanWrapper result = restClient.depositBalance(userId, amount);
         if (result != null && result.isResult()) {
@@ -105,27 +104,64 @@ public class TankEventController {
         }
     }
 
+    @Background
+    public void removeCredits(long userId, double amount, String entity) {
+        Log.d(TAG, "Processing build, amount: " + amount);
+        if (Objects.equals(entity, "destructibleWall")) {
+            Log.d(TAG, "Balance (destructibleWall)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 300.0 ) {
+                BooleanWrapper result = restClient.deductBalance(userId, amount);
+                if (result != null && result.isResult()) {
+                    Log.d(TAG, "Transaction successful: " + amount + " credits");
+                } else {
+                    Log.e(TAG, "Transaction failed: " + amount + " credits");
+                }
+            }
+        } else if (Objects.equals(entity, "indestructibleWall")) {
+            Log.d(TAG, "Balance (indestructibleWall)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 300.0 ) {
+                BooleanWrapper result = restClient.deductBalance(userId, amount);
+                if (result != null && result.isResult()) {
+                    Log.d(TAG, "Transaction successful: " + amount + " credits");
+                } else {
+                    Log.e(TAG, "Transaction failed: " + amount + " credits");
+                }
+            }
+        } else if (Objects.equals(entity, "miningFacility")) {
+            Log.d(TAG, "Balance (miningFacility)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 300.0 ) {
+                BooleanWrapper result = restClient.deductBalance(userId, amount);
+                if (result != null && result.isResult()) {
+                    Log.d(TAG, "Transaction successful: " + amount + " credits");
+                } else {
+                    Log.e(TAG, "Transaction failed: " + amount + " credits");
+                }
+            }
 
-    public boolean startMiningFacility(long userId, long playableId) {
+        }
+
+
+    }
+
+    @Background
+    public void startMiningFacility(long userId, long playableId) {
         // Mark the mining facility as active
         activeMiningFacilities.put(playableId, true);
 
         try {
-            while (Boolean.TRUE.equals(activeMiningFacilities.get(playableId))) {
+            while (miningFacilityCount != 0) {
                 // Add credits to the user's battlefield cache
-                BooleanWrapper result = restClient.depositBalance(userId, 1.0);
+                BooleanWrapper result = restClient.depositBalance(userId, miningFacilityCount);
                 if (result != null && result.isResult()) {
-                    Log.d(TAG, "Mining credits: " + 1.0 + " credits");
+                    Log.d(TAG, "Mining credits: " + miningFacilityCount + " credits");
                 } else {
-                    Log.e(TAG, "Transaction failed: " + 1.0 + " credits");
+                    Log.e(TAG, "Transaction failed: " + miningFacilityCount + " credits");
                 }
                 Log.d(TAG, "Added 1 credit to user " + userId + " from mining facility " + playableId);
                 Thread.sleep(1000); // Simulate 1 second
             }
-            return false; // Mining stopped
         } catch (InterruptedException e) {
             Log.e(TAG, "Mining facility " + playableId + " interrupted", e);
-            return false; // Mining stopped due to interruption
         }
     }
 
@@ -142,46 +178,13 @@ public class TankEventController {
         if (Objects.equals(entity, "destructibleWall")) {
             restClient.build(playableId, playableType, entity);
             // Remove credits to user's account
-            double amount = 80.0;
-            PlayerData playerData = PlayerData.getPlayerData();
-            Log.d(TAG, "Processing build on Destructible Wall, amount: " + amount);
-
-            BooleanWrapper result = restClient.depositBalance(playerData.getUserId(), amount);
-            if (result != null && result.isResult()) {
-                boolean miningStarted = startMiningFacility(userId, playableId);
-                if (!miningStarted) {
-                    Log.e(TAG, "Mining facility " + playableId + " was dismantled or failed to start");
-                }
-                Log.d(TAG, "Successfully withdrew " + amount + " credits");
-            } else {
-                Log.e(TAG, "Failed to withdraw credits");
-            }
         } else if (Objects.equals(entity, "indestructibleWall")) {
             restClient.build(playableId, playableType, entity);
-            // Remove credits to user's account
-            double amount = 150.0;
-            PlayerData playerData = PlayerData.getPlayerData();
-            Log.d(TAG, "Processing build on Indestructible Wall, amount: " + amount);
-
-            BooleanWrapper result = restClient.depositBalance(playerData.getUserId(), amount);
-            if (result != null && result.isResult()) {
-                Log.d(TAG, "Successfully withdrew " + amount + " credits");
-            } else {
-                Log.e(TAG, "Failed to withdraw credits");
-            }
         } else if (Objects.equals(entity, "miningFacility")) {
-            if (Boolean.TRUE.equals(activeMiningFacilities.get(playableId))) {
+            if (miningFacilityCount != 0) {
                 activeMiningFacilities.remove(playableId); // Stop mining for this facility
                 restClient.build(playableId, playableType, entity);
-
-                double refundAmount = 300.0;
-                BooleanWrapper result = restClient.depositBalance(userId, refundAmount);
-
-                if (result != null && result.isResult()) {
-                    Log.d(TAG, "Successfully refunded " + refundAmount + " credits to user " + userId);
-                } else {
-                    Log.e(TAG, "Failed to refund credits to user " + userId);
-                }
+                miningFacilityCount--;
             } else {
                 Log.e(TAG, "Mining facility " + playableId + " is not active or not owned by user " + userId);
             }

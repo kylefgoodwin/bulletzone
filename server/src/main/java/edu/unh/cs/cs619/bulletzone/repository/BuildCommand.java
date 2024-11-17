@@ -108,6 +108,7 @@ public class BuildCommand implements Command {
                     double credits = -80.0;
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
                     EventBus.getDefault().post(new SpawnEvent(destructibleWall.getIntValue(), nextIndex));
                     return true;
                 } else {
@@ -129,6 +130,7 @@ public class BuildCommand implements Command {
                     double credits = -150.0;
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
                     EventBus.getDefault().post(new SpawnEvent(indestructibleWall.getIntValue(), nextIndex));
                     return true;
                 } else {
@@ -155,6 +157,7 @@ public class BuildCommand implements Command {
 
                     // Start adding credits for this MiningFacility
                     startCreditTask(game, builderId);
+                    builder.stopBuilding();
                     EventBus.getDefault().post(new SpawnEvent(miningFacility.getIntValue(), nextIndex));
                     return true;
                 } else {
@@ -205,6 +208,7 @@ public class BuildCommand implements Command {
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     stopCreditTask();
+                    builder.stopDismantling();
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                     return true;
                 }
@@ -225,6 +229,7 @@ public class BuildCommand implements Command {
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     stopCreditTask();
+                    builder.stopDismantling();
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                 } else if (entityInNextField.isIndestructibleWall()){
                     builder.startDismantling();
@@ -242,6 +247,7 @@ public class BuildCommand implements Command {
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     stopCreditTask();
+                    builder.stopDismantling();
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                 }
 

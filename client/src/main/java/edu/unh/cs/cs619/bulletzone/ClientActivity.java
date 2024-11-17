@@ -316,6 +316,7 @@ public class ClientActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             gridPollTask.doPoll(eventProcessor);
         }
+        tankEventController.startMiningFacility(userId, playableId);
     }
 
     @ItemSelect({R.id.selectPlayable})
@@ -362,12 +363,18 @@ public class ClientActivity extends Activity {
         if (improvementType >= 0 && improvementType < improvementSelections.size()) {
             if (improvementType == 0) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("destructibleWall"));
+
+                tankEventController.removeCredits(userId, 80.0, playerData.setCurEntity("destructibleWall"));
                 fetchAndUpdateBalance();
             } else if (improvementType == 1) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("indestructibleWall"));
+
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("indestructibleWall"));
                 fetchAndUpdateBalance();
             } else if (improvementType == 2) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
+                tankEventController.removeCredits(userId, 300.0, playerData.setCurEntity("miningFacility"));
+                tankEventController.startMiningFacility(userId, playableId);
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds
@@ -382,12 +389,15 @@ public class ClientActivity extends Activity {
         if (improvementType >= 0 && improvementType < improvementSelections.size()) {
             if (improvementType == 0) {
                 tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("destructibleWall"));
+                tankEventController.addCredits(userId, 80.0);
                 fetchAndUpdateBalance();
             } else if (improvementType == 1) {
                 tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("indestructibleWall"));
+                tankEventController.addCredits(userId, 150.0);
                 fetchAndUpdateBalance();
             } else if (improvementType == 2) {
                 tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
+                tankEventController.addCredits(userId, 300.0);
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds
