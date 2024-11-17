@@ -534,7 +534,7 @@ public class ClientActivity extends Activity {
     public void onHitEvent(HitEvent event) throws InterruptedException {
 //        Log.d("onHitEvent", "Hit");
         if (event.getPlayableId() == playableId) {
-            clientController.getLifeAsync((int) playableId);
+            clientController.getLifeAsync((int) playableId, playableType);
             sleep(100);
 //            Log.d("onHitEvent", "tank life: " + playerData.getTankLife());
             tankHealthBar.setProgress(playerData.getTankLife());

@@ -106,13 +106,13 @@ public class BuildCommand implements Command {
                     Wall destructibleWall = new Wall(1500, nextIndex);
                     game.getHolderGrid().get(nextIndex).setFieldEntity(destructibleWall);
                     double credits = -80.0;
-                    balance.modifyBalance(credits);
+//                    balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopBuilding();
                     EventBus.getDefault().post(new SpawnEvent(destructibleWall.getIntValue(), nextIndex));
                     return true;
                 } else {
-                    System.out.println("You don't have enough credits, building blocked.");
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
                     return false;
                 }
             } else if (Objects.equals(entity, "indestructibleWall")) {
@@ -128,13 +128,13 @@ public class BuildCommand implements Command {
                     Wall indestructibleWall = new Wall();
                     game.getHolderGrid().get(nextIndex).setFieldEntity(indestructibleWall);
                     double credits = -150.0;
-                    balance.modifyBalance(credits);
+//                    balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopBuilding();
                     EventBus.getDefault().post(new SpawnEvent(indestructibleWall.getIntValue(), nextIndex));
                     return true;
                 } else {
-                    System.out.println("You don't have enough credits, building blocked.");
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
                     return false;
                 }
             } else if (Objects.equals(entity, "miningFacility")) {
@@ -150,7 +150,7 @@ public class BuildCommand implements Command {
                     MiningFacility miningFacility = new MiningFacility(920, nextIndex);
                     game.getHolderGrid().get(nextIndex).setFieldEntity(miningFacility);
                     double credits = -300.0;
-                    balance.modifyBalance(credits);
+//                    balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     // Track the facility's owner
                     miningFacilityCount+=1;
@@ -161,7 +161,7 @@ public class BuildCommand implements Command {
                     EventBus.getDefault().post(new SpawnEvent(miningFacility.getIntValue(), nextIndex));
                     return true;
                 } else {
-                    System.out.println("You don't have enough credits, building blocked.");
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
                     return false;
                 }
 
