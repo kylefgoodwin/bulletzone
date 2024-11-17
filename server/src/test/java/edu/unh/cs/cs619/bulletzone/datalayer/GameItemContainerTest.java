@@ -1,14 +1,15 @@
 package edu.unh.cs.cs619.bulletzone.datalayer;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.unh.cs.cs619.bulletzone.datalayer.item.GameItem;
 import edu.unh.cs.cs619.bulletzone.datalayer.item.GameItemContainer;
 import edu.unh.cs.cs619.bulletzone.datalayer.itemType.ItemProperty;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
 
 public class GameItemContainerTest {
 

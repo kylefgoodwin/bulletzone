@@ -46,6 +46,11 @@ public abstract class FieldEntity {
         return getIntValue() >= 10000000;
     }
 
+    public boolean isMiningFacility(){return getIntValue() == 920;}
+
+    public boolean isIndestructibleWall(){return getIntValue() == Integer.MAX_VALUE;}
+}
+
     /*public static final void registerEventBusListener(Object listener) {
         checkNotNull(listener);
         eventBus.register(listener);
@@ -55,4 +60,4 @@ public abstract class FieldEntity {
         checkNotNull(listener);
         eventBus.unregister(listener);
     }*/
-}
+

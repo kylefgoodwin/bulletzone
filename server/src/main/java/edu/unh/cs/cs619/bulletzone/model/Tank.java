@@ -13,11 +13,13 @@ public class Tank extends Playable {
     public Tank(long id, Direction direction, String ip) {
         super(id, direction, ip);
         life = 100;
+        playableType = 1;
 
         numberOfBullets = 0;
         allowedFireInterval = 1500;
         allowedNumberOfBullets = 2;
         lastFireTime = 0;
+        bulletDamage = 30;
 
         allowedTurnInterval = 0;
         lastTurnTime = 0;
@@ -26,7 +28,11 @@ public class Tank extends Playable {
         lastMoveTime = 0;
         moveMultiplier = 1;  // Initialize move multiplier
 
+        lastEntryTime = 0;
+        allowedDeployInterval = 5000;
+
         powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        hasSoldier = false;
     }
 
     @Override

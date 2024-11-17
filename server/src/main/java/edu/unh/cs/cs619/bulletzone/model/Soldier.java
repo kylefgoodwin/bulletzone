@@ -6,6 +6,10 @@ package edu.unh.cs.cs619.bulletzone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.greenrobot.eventbus.EventBus;
+
+import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
+
 public class Soldier extends Playable {
 
     private static final String TAG = "Soldier";
@@ -15,11 +19,13 @@ public class Soldier extends Playable {
     public Soldier(long id, Direction direction, String ip) {
         super(id, direction, ip);
         life = 25;  // Soldiers start with 25 life points
+        playableType = 3;
 
         numberOfBullets = 0;
         allowedFireInterval = 250;  // Minimum 250 ms between shots
         allowedNumberOfBullets = 6; // Soldiers can fire up to 6 bullets
         lastFireTime = 0;
+        bulletDamage = 5;
 
         allowedMoveInterval = 1000; // Soldiers can move no faster than once per second
         lastMoveTime = 0;
@@ -27,6 +33,9 @@ public class Soldier extends Playable {
 
         allowedTurnInterval = 0; // Soldiers can turn as fast as they want
         lastTurnTime = 0;
+
+        lastEntryTime = 0;
+        allowedDeployInterval = 5000;
 
         recentlyEnteredTank = false;
         powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
@@ -49,6 +58,7 @@ public class Soldier extends Playable {
             System.out.println("Soldier has been eliminated.");
             // Handle game over scenario
         }
+        EventBus.getDefault().post(new HitEvent((int) id, 3));
     }
 
     // Method to handle re-entering a tank
@@ -75,7 +85,7 @@ public class Soldier extends Playable {
 
     @Override
     public int getIntValue() {
-        return (int) (20000000 + 10000 * id + 10 * life + Direction.toByte(direction));
+        return (int) (30000000 + 10000 * id + 10 * life + Direction.toByte(direction));
     }
 
     @Override

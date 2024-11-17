@@ -22,7 +22,9 @@
     <string name="facility">facility</string>
     <string name="units">Units</string>
     <string name="materials">Materials</string>
-    <string name="build_or_dismantle">Build or Dismantle</string>
+    <string name="build">Build</string>
+    <string name="dismantle">Dismantle</string>
     <string name="factory">Factory</string>
+    <string name="ejectsoldier">Eject Soldier</string>
 
 </resources>

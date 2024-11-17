@@ -18,14 +18,19 @@ public class Builder extends Playable {
     public Builder(long id, Direction direction, String ip) {
         super(id, direction, ip);
         life = 80; // Builders start with 80 life points
+        playableType = 2;
 
         numberOfBullets = 0;
         allowedFireInterval = 1000;  // Minimum 1 second between shots
         allowedNumberOfBullets = 3; // Builders can fire up to 3 bullets
         lastFireTime = 0;
+        bulletDamage = 10;
 
         allowedTurnInterval = 300; // 300ms between turns
         lastTurnTime = 0;
+
+        lastBuildTime = 0;
+        allowBuildInterval = 2000;
 
         allowedMoveInterval = 1000; // Builders can move no faster than once per second
         lastMoveTime = 0;
@@ -46,7 +51,7 @@ public class Builder extends Playable {
             //handle game over scenario
         }
         System.out.println("Builder id: " + id + " Builder Life: " + life);
-        EventBus.getDefault().post(new HitEvent((int) id, 1));
+        EventBus.getDefault().post(new HitEvent((int) id, 2));
     }
 
     @JsonIgnore

@@ -6,9 +6,7 @@ import org.androidannotations.rest.spring.annotations.Path;
 import org.androidannotations.rest.spring.annotations.Post;
 import org.androidannotations.rest.spring.annotations.Put;
 import org.androidannotations.rest.spring.annotations.Rest;
-import org.androidannotations.rest.spring.annotations.RestService.*;
 import org.androidannotations.rest.spring.api.RestClientErrorHandling;
-import org.androidannotations.rest.spring.api.RestClientHeaders.*;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestClientException;
@@ -18,7 +16,6 @@ import edu.unh.cs.cs619.bulletzone.util.GameEventCollectionWrapper;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
 import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
-import edu.unh.cs.cs619.bulletzone.util.ResultWrapper;
 
 /** "http://stman1.cs.unh.edu:6191/games"
  * "http://10.0.0.145:6191/games"
@@ -28,7 +25,7 @@ import edu.unh.cs.cs619.bulletzone.util.ResultWrapper;
 
 @Rest(rootUrl = "http://stman1.cs.unh.edu:61902/games",
 //@Rest(rootUrl = "http://stman1.cs.unh.edu:6192/games",
-//@Rest(rootUrl = "http://stman1.cs.unh.edu:61912/games",
+//@Rest(rootUrl = "http://stman1.cs.unh.edu:61902/games",
         converters = {StringHttpMessageConverter.class, MappingJackson2HttpMessageConverter.class}
         // TODO: disable intercepting and logging
         // , interceptors = { HttpLoggerInterceptor.class }
@@ -49,7 +46,7 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     GridWrapper terrainGrid();
 
     @Get("/events/{sinceTime}")
-    GameEventCollectionWrapper events(@Path("sinceTime") long sinceTime);
+    GameEventCollectionWrapper events(@Path long sinceTime);
 
     @Put("/account/register/{username}/{password}")
     BooleanWrapper register(@Path String username, @Path String password);
@@ -66,6 +63,12 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     @Put("/{playableId}/{playableType}/fire/1")
     BooleanWrapper fire(@Path long playableId, @Path int playableType);
 
+    @Put("/{playableId}/{playableType}/build/{entity}")
+    BooleanWrapper build(@Path("playableId") long playableId, @Path("playableType") int playableType, @Path("entity") String entity);
+
+    @Put("/{playableId}/eject/0")
+    BooleanWrapper ejectSoldier(@Path("playableId") long playableId);
+
     @Delete("/{playableId}/leave")
     BooleanWrapper leave(@Path long playableId);
 
@@ -78,9 +81,12 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     @Put("/account/balance/{userId}/deposit/{amount}")
     BooleanWrapper depositBalance(@Path("userId") long userId, @Path("amount") double amount);
 
-    @Put("/{playableId}/eject")
+    @Put("/{playableId}/ejectPowerUp")
     BooleanWrapper ejectPowerUp(@Path long playableId);
 
     @Get("/{playableId}/{playableType}/life")
     IntWrapper getLife(@Path int playableId, @Path int playableType);
+
+    @Get("/ping")
+    String ping();
 }

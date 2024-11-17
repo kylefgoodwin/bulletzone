@@ -1,13 +1,10 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Optional;
 
 public class FieldHolder {
 

@@ -10,6 +10,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.HashMap;
@@ -20,12 +24,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 
+import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.Bullet;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.IllegalTransitionException;
 import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
+import edu.unh.cs.cs619.bulletzone.model.Soldier;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
@@ -36,75 +42,342 @@ public class InMemoryGameRepositoryTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
     @InjectMocks
-    InMemoryGameRepository repo;
-    private InMemoryGameRepository gameRepository;
+    private InMemoryGameRepository repo;
     @Mock
-    private Constraints constraints;
+    private MoveCommand moveCommand;
+
+    @Mock
+    private TurnCommand turnCommand;
+
+    @Mock
+    private BuildCommand buildCommand;
+
+    @Mock
+    private FireCommand fireCommand;
+
+    @Mock
+    private EjectSoldierCommand deployCommand;
 
     @Mock
     private Game mockGame;
     @Mock
+    private Playable mockPlayable;
+
+    @Mock
     private Tank mockTank;
 
-    private final long mockMillis = 500;
-    private final int[] bulletDelay = {500, 1000, 1500};
+    @Mock
+    private Soldier mockSoldier;
+
+    @Mock
+    private FieldHolder mockFieldHolder;
+
     private final long tankId = 1L;
-    private final String tankIp = "192.168.1.1";
+    private final String tankIp = "";
 
     @Before
     public void setUp() throws Exception {
-        constraints = mock(Constraints.class);
-        gameRepository = new InMemoryGameRepository(constraints, new GameBoardBuilder());
+        repo = new InMemoryGameRepository(fireCommand, new GameBoardBuilder());
         mockGame = mock(Game.class);
-        mockTank = mock(Tank.class);
-        Map<Long, Tank> tanks = new HashMap<>();
-        tanks.put(tankId, mockTank);
-//        when(mockGame.getTanks()).thenReturn(tanks);
-        gameRepository.create();
+
+        // Set up the mock game grid to simulate empty positions
+        ArrayList<FieldHolder> mockHolderGrid = new ArrayList<>(Collections.nCopies(16 * 16, mock(FieldHolder.class)));
+        when(mockGame.getHolderGrid()).thenReturn(mockHolderGrid);
+
+        // Set up mocks for Game methods
+        when(mockGame.getTank(tankIp)).thenReturn(null);
+        when(mockGame.getBuilder(tankIp)).thenReturn(null);
+
+        // Mock behavior of `isPresent` to indicate empty field holders for placement
+        when(mockFieldHolder.isPresent()).thenReturn(false);
+
+        repo.create(); // Initialize the game inside repository
     }
 
     @Test
     public void testJoin() throws Exception {
-        Playable tank = repo.join("").getValue0();
+        // Execute join operation
+        Pair<Tank, Builder> result = repo.join(tankIp);
+
+        // Verify that the result is not null and both Tank and Builder are returned
+        Assert.assertNotNull(result);
+        Tank tank = result.getValue0();
+        Builder builder = result.getValue1();
+
         Assert.assertNotNull(tank);
-        Assert.assertTrue(tank.getId() >= 0);
-        Assert.assertNotNull(tank.getDirection());
-        Assert.assertTrue(tank.getDirection() == Direction.Up);
+        Assert.assertNotNull(builder);
+
+        // Verify initial properties of Tank and Builder
+        Assert.assertEquals(tankIp, tank.getIp());
+        Assert.assertEquals(Direction.Up, tank.getDirection());
+        Assert.assertEquals(Direction.Up, builder.getDirection());
         Assert.assertNotNull(tank.getParent());
+        Assert.assertNotNull(builder.getParent());
+
+        // Verify that addTank and addBuilder are called on the mockGame
+//        verify(mockGame).addTank(tankIp, tank);
+//        verify(mockGame).addBuilder(tankIp, builder);
     }
-    /*
+
+
     @Test
-    public void testTurn() throws Exception {
-        Tank tank = repo.join("");
-        Assert.assertNotNull(tank);
-        Assert.assertTrue(tank.getId() >= 0);
-        Assert.assertNotNull(tank.getDirection());
-        Assert.assertTrue(tank.getDirection() == Direction.Up);
-        Assert.assertNotNull(tank.getParent());
+    public void turn_TankTimedInteraction_TurnSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue0();
+        mockPlayable.setAllowedMoveInterval(0);
+        mockPlayable.setLastMoveTime(System.currentTimeMillis());
 
-        Assert.assertTrue(repo.turn(tank.getId(), Direction.Right));
-        Assert.assertTrue(tank.getDirection() == Direction.Right);
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
 
-        thrown.expect(TankDoesNotExistException.class);
-        thrown.expectMessage("Tank '1000' does not exist");
-        repo.turn(1000, Direction.Right);
-    } */
+        boolean turned = repo.turn(mockPlayable.getId(), 1, Direction.fromByte((byte) 2));
+        Assert.assertEquals(Direction.Right, mockPlayable.getDirection());
 
+        assertTrue(turned, "Tank should be able to turn immediately");
+    }
+
+    @Test
+    public void turn_BuilderTimedInteraction_TurnSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue1();
+        mockPlayable.setAllowedTurnInterval(300);
+        mockPlayable.setLastTurnTime(System.currentTimeMillis());
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean turned = repo.turn(mockPlayable.getId(), 2, Direction.fromByte((byte) 2));
+        Assert.assertEquals(Direction.Right, mockPlayable.getDirection());
+
+        assertTrue(turned, "Tank should be able to turn immediately");
+    }
+
+    @Test
+    public void turn_BuilderTimedInteraction_TurnFails() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue1();
+        mockPlayable.setAllowedTurnInterval(300);
+        mockPlayable.setLastTurnTime(System.currentTimeMillis() + 300);
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean turned = repo.turn(mockPlayable.getId(), 2, Direction.fromByte((byte) 2));
+
+        assertFalse(turned, "Tank should be able to turn immediately");
+    }
 
     /*@Test
-    public void turn_VehicleFacingUpTurnRight_TurnSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
-        Tank tank = repo.join("turningVehicle");
+    public void turn_SoldierTimedInteraction_TurnSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue0();
+        mockSoldier = deployCommand.joinSoldier();
+        boolean deployed = repo.ejectSoldier(mockPlayable.getId());
+        Assert.assertEquals(Direction.Up, mockSoldier.getDirection());
+        Assert.assertEquals(mockSoldier.getPlayableType(), 3);
 
-        Assert.assertEquals(Direction.Up, tank.getDirection());
+        assertTrue(deployed, "Tank should be able to turn immediately");
+        mockSoldier.setAllowedTurnInterval(0);
+        mockSoldier.setLastTurnTime(System.currentTimeMillis());
 
-        repo.turn(tank.getId(), Direction.fromByte((byte) 2));
-        Assert.assertEquals(Direction.Right, tank.getDirection());
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
 
-        thrown.expect(TankDoesNotExistException.class);
-        thrown.expectMessage("Tank '1000' does not exist");
-        repo.turn(1000, Direction.Right);
+        boolean turned = repo.turn(mockPlayable.getId(), 3, Direction.fromByte((byte) 4));
+        Assert.assertEquals(Direction.Down, mockPlayable.getDirection());
+
+        assertTrue(turned, "Tank should be able to turn immediately");
+    }*/
+
+    @Test
+    public void move_TankTimedInteraction_MoveSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue0();
+        mockPlayable.setAllowedMoveInterval(500);
+        mockPlayable.setLastMoveTime(System.currentTimeMillis());
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean moved = repo.move(mockPlayable.getId(), 1, Direction.fromByte((byte) 4));
+        Assert.assertEquals(Direction.Down, mockPlayable.getDirection());
+
+        assertTrue(moved, "Tank should be able to turn immediately");
     }
 
+    @Test
+    public void move_TankTimedInteraction_MoveFails() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue0();
+        mockPlayable.setAllowedMoveInterval(500);
+        mockPlayable.setLastMoveTime(System.currentTimeMillis() + 500);
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean moved = repo.move(mockPlayable.getId(), 1, Direction.fromByte((byte) 4));
+
+        assertFalse(moved, "Tank should be able to turn immediately");
+    }
+
+    @Test
+    public void move_BuilderTimedInteraction_MoveSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue1();
+        mockPlayable.setAllowedMoveInterval(1000);
+        mockPlayable.setLastMoveTime(System.currentTimeMillis());
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean moved = repo.move(mockPlayable.getId(), 2, Direction.fromByte((byte) 4));
+        Assert.assertEquals(Direction.Down, mockPlayable.getDirection());
+
+        assertTrue(moved, "Tank should be able to turn immediately");
+    }
+
+    @Test
+    public void move_BuilderTimedInteraction_MoveFails() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue1();
+        mockPlayable.setAllowedMoveInterval(1000);
+        mockPlayable.setLastMoveTime(System.currentTimeMillis() + 1000);
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean moved = repo.move(mockPlayable.getId(), 2, Direction.fromByte((byte) 4));
+
+        assertFalse(moved, "Tank should be able to turn immediately");
+    }
+
+    @Test
+    public void move_SoldierTimedInteraction_MoveSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue0();
+        boolean deployed = repo.ejectSoldier(mockPlayable.getId());
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+        Assert.assertEquals(mockPlayable.getPlayableType(), 3);
+
+        assertTrue(deployed, "Tank should be able to turn immediately");
+        mockPlayable.setAllowedMoveInterval(1000);
+        mockPlayable.setLastMoveTime(System.currentTimeMillis());
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean moved = repo.move(mockPlayable.getId(), 3, Direction.fromByte((byte) 4));
+        Assert.assertEquals(Direction.Down, mockPlayable.getDirection());
+
+        assertTrue(moved, "Tank should be able to turn immediately");
+    }
+
+    @Test
+    public void move_SoldierTimedInteraction_MoveFails() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue0();
+        boolean deployed = repo.ejectSoldier(mockPlayable.getId());
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+        Assert.assertEquals(mockPlayable.getPlayableType(), 3);
+
+        assertTrue(deployed, "Tank should be able to turn immediately");
+        mockPlayable.setAllowedMoveInterval(1000);
+        mockPlayable.setLastMoveTime(System.currentTimeMillis() + 1000);
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean moved = repo.move(mockPlayable.getId(), 3, Direction.fromByte((byte) 4));
+
+        assertFalse(moved, "Tank should be able to turn immediately");
+    }
+
+    @Test
+    public void fire_TankTimedInteraction_FireSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue0();
+        mockPlayable.setAllowedFireInterval(1500);
+        mockPlayable.setLastFireTime(System.currentTimeMillis());
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean fired = repo.fire(mockPlayable.getId(), 1, 2);
+
+        assertTrue(fired, "Tank should be able to fire immediately");
+    }
+
+    @Test
+    public void fire_TankTimedInteraction_FireFails() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue0();
+        mockPlayable.setAllowedFireInterval(1500);
+        mockPlayable.setLastFireTime(System.currentTimeMillis() + 1500);
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean fired = repo.fire(mockPlayable.getId(), 1, 2);
+
+        assertFalse(fired, "Tank should be able to fire immediately");
+    }
+
+    @Test
+    public void fire_BuilderTimedInteraction_FireSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue1();
+        mockPlayable.setAllowedFireInterval(1000);
+        mockPlayable.setLastFireTime(System.currentTimeMillis());
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean fired = repo.fire(mockPlayable.getId(), 2, 1);
+
+        assertTrue(fired, "Tank should be able to fire immediately");
+    }
+
+    @Test
+    public void fire_BuilderTimedInteraction_FireFails() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue1();
+        mockPlayable.setAllowedFireInterval(1000);
+        mockPlayable.setLastFireTime(System.currentTimeMillis() + 1000);
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean fired = repo.fire(mockPlayable.getId(), 2, 1);
+
+        assertFalse(fired, "Tank should be able to fire immediately");
+    }
+
+    @Test
+    public void fire_SoldierTimedInteraction_FireSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue0();
+        boolean deployed = repo.ejectSoldier(mockPlayable.getId());
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+        Assert.assertEquals(mockPlayable.getPlayableType(), 3);
+
+        assertTrue(deployed, "Tank should be able to turn immediately");
+        mockPlayable.setAllowedFireInterval(250);
+        mockPlayable.setLastFireTime(System.currentTimeMillis());
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean fired = repo.fire(mockPlayable.getId(), 3, 0);
+        Assert.assertEquals(Direction.Down, mockPlayable.getDirection());
+
+        assertTrue(fired, "Tank should be able to turn immediately");
+    }
+
+    @Test
+    public void fire_SoldierTimedInteraction_FireFails() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
+        Pair<Tank, Builder> result = repo.join(tankIp);
+        mockPlayable = result.getValue0();
+        boolean deployed = repo.ejectSoldier(mockPlayable.getId());
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+        Assert.assertEquals(mockPlayable.getPlayableType(), 3);
+
+        assertTrue(deployed, "Tank should be able to turn immediately");
+        mockPlayable.setAllowedFireInterval(250);
+        mockPlayable.setLastFireTime(System.currentTimeMillis() + 250);
+
+        Assert.assertEquals(Direction.Up, mockPlayable.getDirection());
+
+        boolean fired = repo.fire(mockPlayable.getId(), 3, 0);
+        Assert.assertEquals(Direction.Down, mockPlayable.getDirection());
+
+        assertFalse(fired, "Tank should be able to turn immediately");
+    }
+/*
     @Test
     public void turn_VehicleFacingUpTurnLeft_TurnSucceeds() throws IllegalTransitionException, TankDoesNotExistException, LimitExceededException {
         Tank tank = repo.join("turningVehicle");

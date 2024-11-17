@@ -8,8 +8,10 @@ public class BoardCellFactory {
      * Returns the built cell to the SimulationBoard
      */
     public BoardCell makeCell(int val, int row, int col) {
-        if (val >= 30000000) {
+        if (val >= 40000000) {
             return new BoardCell(val, row, col);
+        } else if (val >= 30000000 && val < 40000000) {
+            return new TurnableSoldier(val, row, col);
         } else if (val >= 20000000 && val < 30000000){
             return new TurnableBuilder(val, row, col);
         } else if (val >= 10000000 && val < 20000000) {
@@ -24,6 +26,8 @@ public class BoardCellFactory {
             return new BoardCell(val, row, col);
         } else if (val < 2000 && val >= 1000) {
             return new Wall(val, row, col);
+        } else if (val == 920){
+            return new MiningFacility(val, row, col);
         } else {
             return new BoardCell(val, row, col);
         }

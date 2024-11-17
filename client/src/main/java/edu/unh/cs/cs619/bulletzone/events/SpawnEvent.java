@@ -2,11 +2,15 @@ package edu.unh.cs.cs619.bulletzone.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class SpawnEvent extends GameEvent {
+import java.io.Serializable;
+
+public class SpawnEvent extends GameEvent implements Serializable {
     @JsonProperty
     private int rawServerValue;
     @JsonProperty
     private int position;
+
+    private static final long serialVersionUID = 1L;
 
     public SpawnEvent() {}
 

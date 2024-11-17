@@ -1,9 +1,12 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
+import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
 import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
 import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
@@ -11,9 +14,12 @@ import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.Improvement;
 import edu.unh.cs.cs619.bulletzone.model.MiningFacility;
+import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
+import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
+import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 public class BuildCommand implements Command {
     Game game;
@@ -55,6 +61,8 @@ public class BuildCommand implements Command {
         boolean isVisible = currentField.isPresent()
                 && (currentField.getEntity() == builder);
         FieldHolder nextField = currentField.getNeighbor(direction);
+        int built = builder.getAllowBuildInterval();
+        BankAccount balance = game.getBankAccount(builderId);
         if (!nextField.isPresent()) { //nothing there, can build
             // If the next field is empty move the user
             int fieldIndex = currentField.getPosition();
@@ -81,20 +89,70 @@ public class BuildCommand implements Command {
             int currentIndex = currentField.getPosition();
             int currentValue = currentField.getEntity().getIntValue();
             if (Objects.equals(entity, "destructibleWall")) {
-                // //////////INSERT EVENT LOGIC HERE ///////////////
-                game.getHolderGrid().get(nextIndex).setFieldEntity(new Wall(1500, nextIndex));
-                return true;
+                if (balance.getBalance() >= 80.0) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Wall destructibleWall = new Wall(1500, nextIndex);
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(destructibleWall);
+                    double credits = -80.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    EventBus.getDefault().post(new SpawnEvent(destructibleWall.getIntValue(), nextIndex));
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits, building blocked.");
+                    return false;
+                }
             } else if (Objects.equals(entity, "indestructibleWall")) {
-                // //////////INSERT EVENT LOGIC HERE ///////////////
-                game.getHolderGrid().get(nextIndex).setFieldEntity(new Wall());
-                return true;
+
+                if (balance.getBalance() >= 150.0) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Wall indestructibleWall = new Wall();
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(indestructibleWall);
+                    double credits = -150.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    EventBus.getDefault().post(new SpawnEvent(indestructibleWall.getIntValue(), nextIndex));
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits, building blocked.");
+                    return false;
+                }
             } else if (Objects.equals(entity, "miningFacility")) {
-                // //////////INSERT EVENT LOGIC HERE ///////////////
-                game.getHolderGrid().get(nextIndex).setFieldEntity(new MiningFacility(920, nextIndex));
-                return true;
+
+                if (balance.getBalance() >= 300.0) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    MiningFacility miningFacility = new MiningFacility(920, nextIndex);
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(miningFacility);
+                    double credits = -300.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    EventBus.getDefault().post(new SpawnEvent(miningFacility.getIntValue(), nextIndex));
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits, building blocked.");
+                    return false;
+                }
+
             }
         } else {
             int fieldIndex = currentField.getPosition();
+            int nextIndex = nextField.getPosition();
+
             int row = fieldIndex / FIELD_DIM;
             int col = fieldIndex % FIELD_DIM;
 
@@ -116,15 +174,48 @@ public class BuildCommand implements Command {
             }
             FieldEntity entityInNextField = nextField.getEntity();
 
-            if (entityInNextField instanceof Wall || entityInNextField instanceof MiningFacility) {
-                if (entityInNextField instanceof Wall) {
-                    System.out.println("Dismantling wall...");
-                    nextField.setFieldEntity(null);
+            if (entityInNextField.isWall() || entityInNextField.isMiningFacility() || entityInNextField.isIndestructibleWall()) {
+                if (entityInNextField.isWall()) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Dismantling wall...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    nextField.clearField();
+                    double credits = 80.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
                     return true;
                 }
                 // If it's an indestructible wall or mining facility, dismantle it if the rules allow
-                System.out.println("Dismantling mining facility...");
-                nextField.setFieldEntity(null);
+                if (entityInNextField.isMiningFacility()) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Dismantling mining facility...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    nextField.clearField();
+                    double credits = 300.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                } else if (entityInNextField.isIndestructibleWall()){
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Dismantling indestructible wall...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    nextField.clearField();
+                    double credits = 150.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                }
+
                 return true;
             }
         }

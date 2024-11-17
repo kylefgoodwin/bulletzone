@@ -1,5 +1,6 @@
 package edu.unh.cs.cs619.bulletzone.controllers;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -43,42 +44,42 @@ public class TankEventControllerTest {
         when(buttonLeftMock.getId()).thenReturn(R.id.buttonLeft);
     }
 
-/*    @Test
+    @Test
     public void testMoveAsyncUp() {
         clientActivity.moveTest(buttonUpMock);
-        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonUp), anyLong(), eq((byte) 0));
+        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonUp), anyLong(), anyInt(), eq((byte) 0));
     }
 
     @Test
     public void testMoveAsyncRight() {
         clientActivity.moveTest(buttonRightMock);
-        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonRight), anyLong(), eq((byte) 2));
+        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonRight), anyLong(), anyInt(), eq((byte) 2));
     }
 
     @Test
     public void testMoveAsyncDown() {
         clientActivity.moveTest(buttonDownMock);
-        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonDown), anyLong(), eq((byte) 4));
+        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonDown), anyLong(), anyInt(), eq((byte) 4));
     }
 
     @Test
     public void testMoveAsyncLeft() {
         clientActivity.moveTest(buttonLeftMock);
-        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonLeft), anyLong(), eq((byte) 6));
+        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonLeft), anyLong(), anyInt(), eq((byte) 6));
     }
 
     @Test
     public void testFireAsync() {
         clientActivity.fireTest();
-        verify(tankEventControllerMock).fire(anyLong());
+        verify(tankEventControllerMock).fire(anyLong(), anyInt());
     }
 
     @Test
     public void testTurnAsync() {
         clientActivity.moveTest(buttonUpMock);
-        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonUp), anyLong(), eq((byte) 0));
+        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonUp), anyLong(), anyInt(), eq((byte) 0));
 
         clientActivity.moveTest(buttonRightMock);
-        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonRight), anyLong(), eq((byte) 2));
-    }*/
+        verify(tankEventControllerMock).turnOrMove(eq(R.id.buttonRight), anyLong(), anyInt(), eq((byte) 2));
+    }
 }
