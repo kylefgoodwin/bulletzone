@@ -105,7 +105,7 @@ public class TankEventController {
         }
     }
 
-    @Background
+
     public boolean startMiningFacility(long userId, long playableId) {
         // Mark the mining facility as active
         activeMiningFacilities.put(playableId, true);

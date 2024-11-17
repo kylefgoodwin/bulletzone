@@ -258,7 +258,7 @@ public class BuildCommand implements Command {
             creditTask = null; // Reset the task reference
         }
         facilityOwnerMap.remove(facilityId);
-        miningFacilityCount-=1;
+        miningFacilityCount--;
     }
 
     /**
