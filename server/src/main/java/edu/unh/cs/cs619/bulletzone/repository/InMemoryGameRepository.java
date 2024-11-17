@@ -259,7 +259,7 @@ public class InMemoryGameRepository implements GameRepository {
             //Log.i(TAG, "Cannot find user with id: " + tankId);
             Direction direction = playable.getDirection();
             FieldHolder parent = playable.getParent();
-            if (!fireCommand.canFire(playable, millis, bulletType, bulletDelay)) {
+            if (!fireCommand.canFire(playable, millis, bulletType)) {
                 return false;
             }
             playable.setNumberOfBullets(playable.getNumberOfBullets() + 1);

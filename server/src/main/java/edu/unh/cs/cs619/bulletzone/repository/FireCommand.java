@@ -29,7 +29,7 @@ public class FireCommand {
     long millis;
     private static final int FIELD_DIM = 16;
 
-    public boolean canFire(Playable playable, long currentTimeMillis, int bulletType, int[] bulletDelay) {
+    public boolean canFire(Playable playable, long currentTimeMillis, int bulletType) {
         if (currentTimeMillis < playable.getLastFireTime()) {
             return false;
         }
