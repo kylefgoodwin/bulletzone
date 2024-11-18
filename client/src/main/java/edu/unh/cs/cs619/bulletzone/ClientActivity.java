@@ -5,6 +5,7 @@ import static java.sql.Types.NULL;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -229,7 +230,9 @@ public class ClientActivity extends Activity {
         try {
             // Get initial board state through the GameEventProcessor
             Log.d(TAG, "Initializing game board");
-            gridPollTask.doPoll(eventProcessor);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                gridPollTask.doPoll(eventProcessor);
+            }
         } catch (Exception e) {
             Log.e(TAG, "Error initializing game board", e);
         }
@@ -310,7 +313,10 @@ public class ClientActivity extends Activity {
         Log.d(TAG, "afterInject");
         clientController.setErrorHandler(bzRestErrorhandler);
         eventProcessor.start();
-        gridPollTask.doPoll(eventProcessor);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            gridPollTask.doPoll(eventProcessor);
+        }
+        tankEventController.startMiningFacility(userId, playableId);
     }
 
     @ItemSelect({R.id.selectPlayable})
@@ -357,12 +363,18 @@ public class ClientActivity extends Activity {
         if (improvementType >= 0 && improvementType < improvementSelections.size()) {
             if (improvementType == 0) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("destructibleWall"));
+
+                tankEventController.removeCredits(userId, 80.0, playerData.setCurEntity("destructibleWall"));
                 fetchAndUpdateBalance();
             } else if (improvementType == 1) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("indestructibleWall"));
+
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("indestructibleWall"));
                 fetchAndUpdateBalance();
             } else if (improvementType == 2) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
+                tankEventController.removeCredits(userId, 300.0, playerData.setCurEntity("miningFacility"));
+                tankEventController.startMiningFacility(userId, playableId);
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds
@@ -376,13 +388,16 @@ public class ClientActivity extends Activity {
     protected void onButtonDismantle() {
         if (improvementType >= 0 && improvementType < improvementSelections.size()) {
             if (improvementType == 0) {
-                tankEventController.dismantleAsync(playableId, playableType, playerData.setCurEntity("destructibleWall"));
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("destructibleWall"));
+                tankEventController.addCredits(userId, 80.0);
                 fetchAndUpdateBalance();
             } else if (improvementType == 1) {
-                tankEventController.dismantleAsync(playableId, playableType, playerData.setCurEntity("indestructibleWall"));
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("indestructibleWall"));
+                tankEventController.addCredits(userId, 150.0);
                 fetchAndUpdateBalance();
             } else if (improvementType == 2) {
-                tankEventController.dismantleAsync(playableId, playableType, playerData.setCurEntity("miningFacility"));
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
+                tankEventController.addCredits(userId, 300.0);
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds
@@ -519,7 +534,7 @@ public class ClientActivity extends Activity {
     public void onHitEvent(HitEvent event) throws InterruptedException {
 //        Log.d("onHitEvent", "Hit");
         if (event.getPlayableId() == playableId) {
-            clientController.getLifeAsync((int) playableId);
+            clientController.getLifeAsync((int) playableId, playableType);
             sleep(100);
 //            Log.d("onHitEvent", "tank life: " + playerData.getTankLife());
             tankHealthBar.setProgress(playerData.getTankLife());

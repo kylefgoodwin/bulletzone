@@ -23,9 +23,9 @@ import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
  * Created by simon on 10/1/14.
  */
 
-@Rest(rootUrl = "http://stman1.cs.unh.edu:61902/games",
+//@Rest(rootUrl = "http://192.168.40.65:8080/games",
 //@Rest(rootUrl = "http://stman1.cs.unh.edu:6192/games",
-//@Rest(rootUrl = "http://stman1.cs.unh.edu:61902/games",
+@Rest(rootUrl = "http://stman1.cs.unh.edu:61902/games",
         converters = {StringHttpMessageConverter.class, MappingJackson2HttpMessageConverter.class}
         // TODO: disable intercepting and logging
         // , interceptors = { HttpLoggerInterceptor.class }
@@ -75,8 +75,8 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     @Get("/account/balance/{userId}")
     Double getBalance(@Path("userId") long userId) throws RestClientException;
 
-//    @Put("/account/balance/{userId}/deduct/{amount}")
-//    BooleanWrapper deductBalance(@Path("userId") long userId, @Path("amount") double amount);
+    @Put("/account/balance/{userId}/deduct/{amount}")
+    BooleanWrapper deductBalance(@Path("userId") long userId, @Path("amount") double amount);
 
     @Put("/account/balance/{userId}/deposit/{amount}")
     BooleanWrapper depositBalance(@Path("userId") long userId, @Path("amount") double amount);
@@ -89,4 +89,7 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
 
     @Get("/ping")
     String ping();
+
+//    @Get("/{playableId}/isFacilityActive")
+//    BooleanWrapper isFacilityActive(@Path long playableId);
 }

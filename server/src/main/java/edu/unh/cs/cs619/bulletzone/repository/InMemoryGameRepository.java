@@ -146,6 +146,14 @@ public class InMemoryGameRepository implements GameRepository {
 
             if (playable == null && playableType == 2) {
                 playable = game.getBuilders().get(playableId);
+                if (playable.isBuilding()) {
+                    System.out.println("Builder cannot turn while building.");
+                    return false;
+                }
+                if (playable.isDismantling()) {
+                    System.out.println("Aborting dismantling due to turning.");
+                    playable.stopDismantling();
+                }
             }
 
             if (playable == null && playableType == 3) {
@@ -188,6 +196,14 @@ public class InMemoryGameRepository implements GameRepository {
 
             if (playable == null && playableType == 2) {
                 playable = game.getBuilders().get(playableId);
+                if (playable.isBuilding()) {
+                    System.out.println("Builder cannot turn while building.");
+                    return false;
+                }
+                if (playable.isDismantling()) {
+                    System.out.println("Aborting dismantling due to turning.");
+                    playable.stopDismantling();
+                }
             }
 
             if (playable == null && playableType == 3) {
@@ -243,7 +259,7 @@ public class InMemoryGameRepository implements GameRepository {
             //Log.i(TAG, "Cannot find user with id: " + tankId);
             Direction direction = playable.getDirection();
             FieldHolder parent = playable.getParent();
-            if (!fireCommand.canFire(playable, millis, bulletType, bulletDelay)) {
+            if (!fireCommand.canFire(playable, millis, bulletType)) {
                 return false;
             }
             playable.setNumberOfBullets(playable.getNumberOfBullets() + 1);
