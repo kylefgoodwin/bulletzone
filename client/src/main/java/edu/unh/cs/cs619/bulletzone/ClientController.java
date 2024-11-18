@@ -47,19 +47,20 @@ public class ClientController {
     }
 
     @Background
-    public void getLifeAsync(int playableId) {
-        int newLifeBuilder = restClient.getLife(playableId, 2).getResult();
-        int newLifeTank = restClient.getLife(playableId, 1).getResult();
-        int newLifeSoldier = restClient.getLife(playableId, 3).getResult();
-
-//        Log.d("getLifeAsync", "Tank Life from Server: " + newLifeTank);
-
-        PlayerData.getPlayerData().setTankLife(newLifeTank);
-        PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
-
-        if (newLifeSoldier >= 0) {
+    public void getLifeAsync(int playableId, int playableType) {
+        if (playableType == 1) {
+            int newLifeTank = restClient.getLife(playableId, playableType).getResult();
+            PlayerData.getPlayerData().setTankLife(newLifeTank);
+        } else if (playableType == 2) {
+            int newLifeBuilder = restClient.getLife(playableId, playableType).getResult();
+            PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
+        } else if (playableType == 3) {
+            int newLifeSoldier = restClient.getLife(playableId, playableType).getResult();
             PlayerData.getPlayerData().setSoldierLife(newLifeSoldier);
         }
+
+
+//        Log.d("getLifeAsync", "Tank Life from Server: " + newLifeTank);
 
 //        Log.d("LifeCheck", "Builder Life: " + PlayerData.getPlayerData().getBuilderLife() + "\n");
 //        Log.d("LifeCheck", "Goblin Life: " + PlayerData.getPlayerData().getTankLife() + "\n");
