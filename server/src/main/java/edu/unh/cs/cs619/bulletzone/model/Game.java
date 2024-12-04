@@ -1,20 +1,16 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import org.greenrobot.eventbus.EventBus;
-
+import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
+import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import org.apache.juli.logging.Log;
-import org.greenrobot.eventbus.EventBus;
-
-import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
-import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 public final class Game {
     private static final int FIELD_DIM = 16;
@@ -23,12 +19,8 @@ public final class Game {
     private final ArrayList<FieldHolder> itemHolderGrid = new ArrayList<>();
     private final ArrayList<FieldHolder> terrainHolderGrid = new ArrayList<>();
 
-    private final ConcurrentMap<Long, Tank> tanks = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, Long> playersIP = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Long, Builder> builders = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, Long> playersIPBuilders = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Long, Soldier> soldiers = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, Long> playersIPSoldiers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Long> playersIP = new ConcurrentHashMap<>(); // Maps IP to Player ID
+    private final ConcurrentMap<Long, Playable[]> playables = new ConcurrentHashMap<>(); // Stores playables by player ID
     private final ConcurrentMap<Long, Double> playerCredits = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, BankAccount> playerAccounts = new ConcurrentHashMap<>();
 
@@ -66,81 +58,190 @@ public final class Game {
         this.isSoldierEjected = isEjected;
     }
 
-    public boolean getSolderEjected() {
+    public boolean getSoldierEjected() {
         return this.isSoldierEjected;
     }
 
-    public void addTank(String ip, Tank tank) {
-        synchronized (tanks) {
-            tanks.put(tank.getId(), tank);
-            playersIP.put(ip, tank.getId());
-            playerCredits.put(tank.getId(), 1000.0); // Initialize credits for new tank
-            playerAccounts.putIfAbsent(tank.getId(), new BankAccount(tank.getId()));
+    public void addPlayable(long playerId, Playable playable, String ip) {
+        synchronized (playables) {
+            Playable[] playablesArray = playables.computeIfAbsent(playerId, k -> new Playable[4]);
+            int type = playable.getPlayableType();
+            if (type >= 1 && type < playablesArray.length) {
+                playablesArray[type] = playable;
+            }
+
+            // Update the playables map with the new array of playables
+            playables.put(playerId, playablesArray);
+
+            // Update the playersIP map with the player ID under the corresponding IP
+            playersIP.put(ip, playerId);
         }
+    }
+
+    public void addTank(String ip, Tank tank) {
+        addPlayable(tank.getId(), tank, ip);
+        playerCredits.put(tank.getId(), 1000.0); // Initialize credits for new tank
+        playerAccounts.putIfAbsent(tank.getId(), new BankAccount(tank.getId()));
         EventBus.getDefault().post(new SpawnEvent(tank.getIntValue(), tank.getPosition()));
     }
 
     public void addSoldier(String ip, Soldier soldier) {
-        synchronized (soldiers) {
-            soldiers.put(soldier.getId(), soldier);
-            playersIPSoldiers.put(ip, soldier.getId());
-            playerCredits.put(soldier.getId(), 1000.0); // Initialize credits for new tank
-            playerAccounts.putIfAbsent(soldier.getId(), new BankAccount(soldier.getId()));
-        }
+        addPlayable(soldier.getId(), soldier, ip);
+        playerCredits.put(soldier.getId(), 1000.0); // Initialize credits for new soldier
+        playerAccounts.putIfAbsent(soldier.getId(), new BankAccount(soldier.getId()));
         EventBus.getDefault().post(new SpawnEvent(soldier.getIntValue(), soldier.getPosition()));
     }
 
-    // Method to add credits to a player's bank account
+    public void addBuilder(String ip, Builder builder) {
+        addPlayable(builder.getId(), builder, ip);
+        playerCredits.put(builder.getId(), 1000.0); // Initialize credits for new builder
+        playerAccounts.putIfAbsent(builder.getId(), new BankAccount(builder.getId()));
+        EventBus.getDefault().post(new SpawnEvent(builder.getIntValue(), builder.getPosition()));
+    }
+
+    // Method to modify a player's bank account balance
     public void modifyBalance(long playerId, double amount) {
         BankAccount account = getBankAccount(playerId);
         account.modifyBalance(amount);
     }
 
-    public double getCredits(long tankId) {
-        return playerCredits.getOrDefault(tankId, 0.0);
+    public double getCredits(long playerId) {
+        return playerCredits.getOrDefault(playerId, 0.0);
     }
 
-    public Tank getTank(Long tankId) {
-        return tanks.get(tankId);
+    // Method to get the playable (tank, builder, or soldier) by player ID and type
+    public Playable getPlayable(long playerId, int playableType) {
+        Playable[] playablesArray = playables.get(playerId);
+        if (playablesArray != null && playableType >= 1 && playableType < playablesArray.length) {
+            return playablesArray[playableType];
+        }
+        return null; // Return null if not found
     }
 
-    public ConcurrentMap<Long, Tank> getTanks() {
-        return tanks;
-    }
-
-    public Soldier getSoldier(long soldierId) {
-        return soldiers.get(soldierId);
-    }
-
-    public Soldier getSoldier(String ip) {
-        if (playersIPSoldiers.containsKey(ip)) {
-            return soldiers.get(playersIPSoldiers.get(ip));
+    // Method to get a playable by IP
+    public Playable getPlayable(String ip, int playableType) {
+        Long playerId = playersIP.get(ip);
+        if (playerId != null) {
+            return getPlayable(playerId, playableType);
         }
         return null;
     }
 
-    public ConcurrentMap<Long, Soldier> getSoldiers() {
-        return soldiers;
-    }
-
-    public void removeSoldier(long soldierId) {
-        synchronized (soldiers) {
-            Soldier soldier = soldiers.remove(soldierId);
-            if (soldier != null) {
-                playersIPSoldiers.remove(soldier.getIp());
+    // Remove a playable by player ID and type
+    public void removePlayable(long playerId, int playableType) {
+        synchronized (playables) {
+            Playable[] playablesArray = playables.get(playerId);
+            if (playablesArray != null && playableType >= 1 && playableType < playablesArray.length) {
+                playablesArray[playableType] = null; // Remove the playable
+                playables.put(playerId, playablesArray);
             }
         }
     }
 
+    // Remove a player from the IP list
+    public void removePlayerFromIP(String ip) {
+        Long playerId = playersIP.remove(ip);
+        if (playerId != null) {
+            removePlayable(playerId, 1); // Example: remove the tank (type 1)
+            removePlayable(playerId, 2); // Example: remove the builder (type 2)
+            removePlayable(playerId, 3); // Example: remove the soldier (type 3)
+        }
+    }
+
+    // Method to get tank by ID
+    public Tank getTank(long tankId) {
+        Playable[] playablesArray = playables.get(tankId);
+        return (Tank) (playablesArray != null ? playablesArray[1] : null);
+    }
+
+    // Method to get tank by IP
+    public Tank getTank(String ip) {
+        Long playerId = playersIP.get(ip);
+        return playerId != null ? getTank(playerId) : null;
+    }
+
+    public Map<Long, Tank> getTanks() {
+        Map<Long, Tank> allTanks = new HashMap<>();
+
+        // Iterate over each player ID in the playables map
+        for (Long playerId : playables.keySet()) {
+            Playable[] playablesArray = playables.get(playerId);
+            if (playablesArray != null) {
+                // Check if the playable at index 1 is a Tank
+                Playable playable = playablesArray[1];
+                if (playable != null && playable.getPlayableType() == 1) {
+                    allTanks.put(playerId, (Tank) playable); // Add the player ID and the tank to the map
+                }
+            }
+        }
+
+        return allTanks; // Return the map of player IDs to tanks
+    }
+
+    public Map<Long, Builder> getBuilders() {
+        Map<Long, Builder> allBuilders = new HashMap<>();
+
+        // Iterate over each player ID in the playables map
+        for (Long playerId : playables.keySet()) {
+            Playable[] playablesArray = playables.get(playerId);
+            if (playablesArray != null) {
+                // Check if the playable at index 2 is a Builder
+                Playable playable = playablesArray[2];
+                if (playable != null && playable.getPlayableType() == 2) {
+                    allBuilders.put(playerId, (Builder) playable); // Add the player ID and the builder to the map
+                }
+            }
+        }
+
+        return allBuilders; // Return the map of player IDs to builders
+    }
+
+    public Map<Long, Soldier> getSoldiers() {
+        Map<Long, Soldier> allSoldiers = new HashMap<>();
+
+        // Iterate over each player ID in the playables map
+        for (Long playerId : playables.keySet()) {
+            Playable[] playablesArray = playables.get(playerId);
+            if (playablesArray != null) {
+                // Check if the playable at index 3 is a Soldier
+                Playable playable = playablesArray[3];
+                if (playable != null && playable.getPlayableType() == 3) {
+                    allSoldiers.put(playerId, (Soldier) playable); // Add the player ID and the soldier to the map
+                }
+            }
+        }
+
+        return allSoldiers; // Return the map of player IDs to soldiers
+    }
+
+
+    public ConcurrentMap<Long, Playable[]> getPlayables() {
+        return playables;
+    }
+
+    // Method to remove a tank by ID
+    public void removeTank(long tankId) {
+        removePlayable(tankId, 1); // Remove tank (type 1)
+    }
+
+    // Method to remove a soldier by ID
+    public void removeSoldier(long soldierId) {
+        removePlayable(soldierId, 3); // Remove soldier (type 3)
+    }
+
+    // Method to remove a builder by ID
+    public void removeBuilder(long builderId) {
+        removePlayable(builderId, 2); // Remove builder (type 2)
+    }
+
+    // Method to get the grid of the game
     public List<Optional<FieldEntity>> getGrid() {
         synchronized (holderGrid) {
             List<Optional<FieldEntity>> entities = new ArrayList<>();
-
             FieldEntity entity;
             for (FieldHolder holder : holderGrid) {
                 if (holder.isPresent()) {
-                    entity = holder.getEntity();
-                    entity = entity.copy();
+                    entity = holder.getEntity().copy();
                     entities.add(Optional.of(entity));
                 } else {
                     entities.add(Optional.empty());
@@ -150,66 +251,9 @@ public final class Game {
         }
     }
 
-    public Tank getTank(String ip){
-        if (playersIP.containsKey(ip)){
-            return tanks.get(playersIP.get(ip));
-        }
-        return null;
-    }
-
-    public void removeTank(long tankId){
-        synchronized (tanks) {
-            Tank t = tanks.remove(tankId);
-            if (t != null) {
-                playersIP.remove(t.getIp());
-                playerCredits.remove(tankId);
-            }
-        }
-    }
-
-    public void addBuilder(String ip, Builder builder) {
-        synchronized (builders) {
-            builders.put(builder.getId(), builder);
-            playersIPBuilders.put(ip, builder.getId());
-            playerCredits.put(builder.getId(), 1000.0); // Initialize credits for new tank
-            playerAccounts.putIfAbsent(builder.getId(), new BankAccount(builder.getId()));
-        }
-        EventBus.getDefault().post(new SpawnEvent(builder.getIntValue(), builder.getPosition()));
-    }
-
-    public void removeBuilder(long builderId){
-        synchronized (builders) {
-            Builder b = builders.remove(builderId);
-            if (b != null) {
-                playersIPBuilders.remove(b.getIp());
-            }
-        }
-    }
-
-    public Builder getBuilder(long builderId) {
-        return builders.get(builderId);
-    }
-
-    public Builder getBuilder(String ip){
-        if (playersIPBuilders.containsKey(ip)){
-            return builders.get(playersIPBuilders.get(ip));
-        }
-        return null;
-    }
-
-    public ConcurrentMap<Long, Builder> getBuilders() {
-        return builders;
-    }
-
-    /**
-     * Converts the 3 FieldHolder Grids into 1 2D int[][].
-     * For each cell in the int array, there are 3 values that can be iterated through in the second value
-     * The in each "tuple" its goes (playerData, itemData, terrainData)
-     * @return
-     */
+    // Converts the 3 FieldHolder Grids into 1 2D int[][]
     public int[][] getGrid2D() {
         int[][] grid = new int[FIELD_DIM][FIELD_DIM];
-
         synchronized (holderGrid) {
             FieldHolder holder;
             for (int i = 0; i < FIELD_DIM; i++) {
@@ -223,19 +267,17 @@ public final class Game {
                 }
             }
         }
-
         return grid;
-
     }
 
+    // Other methods for item and terrain grid (similar structure)
     public int[][] getItemGrid2D() {
         int[][] grid = new int[FIELD_DIM][FIELD_DIM];
-
         synchronized (itemHolderGrid) {
             FieldHolder holder;
             for (int i = 0; i < FIELD_DIM; i++) {
                 for (int j = 0; j < FIELD_DIM; j++) {
-                    holder = holderGrid.get(i * FIELD_DIM + j);
+                    holder = itemHolderGrid.get(i * FIELD_DIM + j);
                     if (holder.isPresent()) {
                         grid[i][j] = holder.getEntity().getIntValue();
                     } else {
@@ -244,18 +286,16 @@ public final class Game {
                 }
             }
         }
-
         return grid;
     }
 
     public int[][] getTerrainGrid2D() {
         int[][] grid = new int[FIELD_DIM][FIELD_DIM];
-
-        synchronized (holderGrid) {
+        synchronized (terrainHolderGrid) {
             FieldHolder holder;
             for (int i = 0; i < FIELD_DIM; i++) {
                 for (int j = 0; j < FIELD_DIM; j++) {
-                    holder = holderGrid.get(i * FIELD_DIM + j);
+                    holder = terrainHolderGrid.get(i * FIELD_DIM + j);
                     if (holder.isTerrainPresent()) {
                         grid[i][j] = holder.getTerrainEntityHolder().getIntValue();
                     } else {
@@ -264,7 +304,6 @@ public final class Game {
                 }
             }
         }
-
         return grid;
     }
 }

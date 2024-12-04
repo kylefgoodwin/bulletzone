@@ -40,6 +40,17 @@ public class Builder extends Playable {
     }
 
     @Override
+    public boolean handleTerrainConstraints(Terrain terrain, long millis) {
+        if (terrain.isRocky() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 1.5))) {
+            return false;
+        }
+        if (terrain.isForest()) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public FieldEntity copy(){
         return new Builder(id, direction, ip);
     }

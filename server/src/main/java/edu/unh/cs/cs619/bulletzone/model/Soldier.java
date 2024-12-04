@@ -41,6 +41,14 @@ public class Soldier extends Playable {
         powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
     }
 
+    @Override
+    public boolean handleTerrainConstraints(Terrain terrain, long millis) {
+        if (terrain.isForest() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 1.25))) {
+            return false;
+        }
+        return true;
+    }
+
     // Copy method for Soldier
     @Override
     public FieldEntity copy() {

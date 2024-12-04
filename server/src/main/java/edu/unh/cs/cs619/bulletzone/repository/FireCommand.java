@@ -57,14 +57,7 @@ public class FireCommand {
     public void handleRemovingPlayable(FieldHolder currentField, Playable playable, int playableType, Game game){
         playable.getParent().clearField();
         playable.setParent(new FieldHolder(currentField.getPosition()));
-        if (playableType == 1){
-            game.removeTank(playable.getId());
-        } else if (playableType == 2){
-            game.removeBuilder(playable.getId());
-        } else if (playableType == 3){
-            game.removeSoldier(playable.getId());
-            game.getTanks().get(playable.getId()).sethasSoldier(false);
-        }
+        game.removePlayable(playable.getId(), playableType);
     }
 
     public void moveBulletAndHandleCollision(Game game, Bullet bullet, Playable playable, int playableType, int[] trackActiveBullets, TimerTask timerTask) {
