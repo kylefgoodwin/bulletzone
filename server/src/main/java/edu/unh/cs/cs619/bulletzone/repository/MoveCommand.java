@@ -18,6 +18,7 @@ import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
+import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TerrainUpdateEvent;
@@ -80,10 +81,6 @@ public class MoveCommand implements Command {
                 return true;
             }
         }
-        if (nextField.isTerrainPresent()) {
-            Terrain t = (Terrain) nextField.getTerrainEntityHolder();
-            return handleTerrainConstraints(playable, t, currentField, nextField);
-        }
         // Handle movement to empty space
         if (!nextField.isPresent()) {
             moveUnit(currentField, nextField, playable, direction, false);
@@ -92,7 +89,7 @@ public class MoveCommand implements Command {
         } // Soldier re-entry
         else if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
             System.out.println("Re-entry");
-            if(game.getTanks().get((playableId)).getPosition() == nextField.getPosition()){
+            if (game.getTanks().get((playableId)).getPosition() == nextField.getPosition()) {
                 game.removeSoldier(playableId);
                 game.getTanks().get(playableId).sethasSoldier(false);
                 currentField.clearField();
@@ -113,34 +110,34 @@ public class MoveCommand implements Command {
                 Terrain terrain = (Terrain) nextField.getTerrainEntityHolder();
                 if (playableType == 1) { // Tank
                     if (terrain.isHilly()) {
-                        moveDelay = (long)(moveDelay * 1.5);
+                        moveDelay = (long) (moveDelay * 1.5);
                     } else if (terrain.isForest()) {
                         moveDelay = moveDelay * 2;
                     }
                 } else if (playableType == 2) { // Builder
                     if (terrain.isRocky()) {
-                        moveDelay = (long)(moveDelay * 1.5);
+                        moveDelay = (long) (moveDelay * 1.5);
                     }
                     if (terrain.isForest()) {
                         return false;
                     }
                 } else if (playableType == 3) { // Soldier
                     if (terrain.isForest()) {
-                        moveDelay = (long)(moveDelay * 1.25);
+                        moveDelay = (long) (moveDelay * 1.25);
                     }
                 }
             }
 
             // Handle empty space movement
             if (!nextField.isPresent()) {
-                moveUnit(currentField, nextField, playable, direction);
+                moveUnit(currentField, nextField, playable, direction, false);
                 playable.setLastMoveTime(millis + moveDelay);
                 return true;
             }
 
             // Soldier re-entry
             if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
-                if(game.getTanks().get((playableId)).getPosition() == nextField.getPosition()){
+                if (game.getTanks().get((playableId)).getPosition() == nextField.getPosition()) {
                     game.removeSoldier(playableId);
                     game.getTanks().get(playableId).sethasSoldier(false);
                     currentField.clearField();
@@ -174,54 +171,53 @@ public class MoveCommand implements Command {
                 return true;
             }
 
-        // Handle wall collisions
-        else if (nextField.getEntity().isWall()) {
-            playable.setDirection(direction);
+            // Handle wall collisions
+            else if (nextField.getEntity().isWall()) {
+                playable.setDirection(direction);
 
-            // Ram/Hit mechanic
-            Wall wall = (Wall) nextField.getEntity();
-            int wallLife = wall.getLife();
-            int playableLife = playable.getLife();
-            if (wall.getIntValue() != 1000) {
-                if (playableType == 1) {
-                    // tank
-                    wall.hit((int) Math.ceil(playableLife * 0.1));
-                    playable.hit((int) Math.floor(wallLife * 0.16));
-                } else if (playableType == 2) {
-                    // builder
-                    wall.hit((int) Math.ceil(playableLife * 0.3));
-                    playable.hit((int) Math.floor(wallLife * 0.04));
-                } else if (playableType == 3) {
-                    // soldier
-                    wall.hit((int) Math.ceil(playableLife * 0.4));
-                    playable.hit((int) Math.floor(wallLife * 0.08));
-                } // TODO: Add ship when available
+                // Ram/Hit mechanic
+                Wall wall = (Wall) nextField.getEntity();
+                int wallLife = wall.getLife();
+                int playableLife = playable.getLife();
+                if (wall.getIntValue() != 1000) {
+                    if (playableType == 1) {
+                        // tank
+                        wall.hit((int) Math.ceil(playableLife * 0.1));
+                        playable.hit((int) Math.floor(wallLife * 0.16));
+                    } else if (playableType == 2) {
+                        // builder
+                        wall.hit((int) Math.ceil(playableLife * 0.3));
+                        playable.hit((int) Math.floor(wallLife * 0.04));
+                    } else if (playableType == 3) {
+                        // soldier
+                        wall.hit((int) Math.ceil(playableLife * 0.4));
+                        playable.hit((int) Math.floor(wallLife * 0.08));
+                    } // TODO: Add ship when available
 
-                if (wall.getLife() <= 0) {
-                    game.getHolderGrid().get(wall.getPos()).clearField();
+                    if (wall.getLife() <= 0) {
+                        game.getHolderGrid().get(wall.getPos()).clearField();
+                    }
+
+                    if (playable.getLife() <= 0) {
+                        handleRemovingPlayable(currentField);
+                    }
                 }
 
-                if (playable.getLife() <= 0) {
-                    handleRemovingPlayable(currentField);
-                }
+                return false;
             }
-
-            return false;
+            // Handle tank collisions
+            else if (nextField.getEntity().isPlayable()) {
+                playable.setDirection(direction);
+                // TODO: Add ram mechanic here as well for playable collisions
+                return false;
+            }
         }
-        // Handle tank collisions
-        else if (nextField.getEntity().isPlayable()) {
-            playable.setDirection(direction);
-            // TODO: Add ram mechanic here as well for playable collisions
-            return false;
-        }
-
         return false;
     }
 
-    private boolean handleTerrainConstraints(Playable playable, Terrain t, FieldHolder currentField, FieldHolder nextField){
-        System.out.println("Is terrain");
+    private boolean handleTerrainConstraints (Playable playable, Terrain t, FieldHolder
+    currentField, FieldHolder nextField){
         boolean hiddenMove = false;
-    private boolean handleTerrainConstraints(Playable playable, Terrain t, FieldHolder currentField, FieldHolder nextField) {
         // Always emit terrain event
         TerrainUpdateEvent event = new TerrainUpdateEvent(
                 playableType,
@@ -262,29 +258,30 @@ public class MoveCommand implements Command {
         playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
 
         // If we pass timing checks, move the unit
-        moveUnit(currentField, nextField, playable, direction);
+        moveUnit(currentField, nextField, playable, direction, false);
 
         // Set appropriate delay based on terrain type
         long delay = playable.getAllowedMoveInterval();
         if (playableType == 1) { // Tank
             if (t.isHilly()) {
-                delay = (long)(delay * 1.5);
+                delay = (long) (delay * 1.5);
             } else if (t.isForest()) {
                 delay = delay * 2;
             }
         } else if (playableType == 2) { // Builder
             if (t.isRocky()) {
-                delay = (long)(delay * 1.5);
+                delay = (long) (delay * 1.5);
             }
         } else if (playableType == 3) { // Soldier
             if (t.isForest()) {
-                delay = (long)(delay * 1.25);
+                delay = (long) (delay * 1.25);
             }
         }
 
         playable.setLastMoveTime(millis + delay);
         return true;
     }
+
 
 
     /**
