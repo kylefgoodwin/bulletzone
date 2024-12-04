@@ -24,6 +24,13 @@ import edu.unh.cs.cs619.bulletzone.events.ReplayEventProcessor;
 import edu.unh.cs.cs619.bulletzone.rest.GridReplayTask;
 import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
+/**
+ * Made by Alec Rydeen
+ *
+ * Activity to act as the actual replay instance, where the replay is shown
+ * Has options to play and pause the replay, as well as to adjust
+ * the speed at which the replay is shown
+ */
 @EActivity(R.layout.activity_replay_instance)
 public class ReplayInstanceActivity extends Activity {
 
@@ -64,7 +71,7 @@ public class ReplayInstanceActivity extends Activity {
         SystemClock.sleep(500);
         simBoardView.replayAttach(replayGridView, replaytGridView);
         speedMenu.setAdapter(new ArrayAdapter<>(
-                this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,speedSelections
+                this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, speedSelections
         ));
     }
 

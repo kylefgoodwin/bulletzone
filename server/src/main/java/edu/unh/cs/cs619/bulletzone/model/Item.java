@@ -4,11 +4,17 @@ import java.util.Random;
 
 public class Item extends FieldEntity {
     private static final String TAG = "Item";
-    private final int type; // 1 = Thingamajig, 2 = AntiGrav, 3 = FusionReactor
-    private static final Random random = new Random();
+    public static final int THINGAMAJIG = 1;
+    public static final int ANTI_GRAV = 2;
+    public static final int FUSION_REACTOR = 3;
+    public static final int DEFLECTOR_SHIELD = 4;
+    public static final int REPAIR_KIT = 5;
+    private final int type;
+    private final long creationTime;
 
     public Item(int type) {
         this.type = type;
+        this.creationTime = System.currentTimeMillis();
     }
 
     @Override
@@ -16,39 +22,28 @@ public class Item extends FieldEntity {
         return 3000 + type;
     }
 
+    public int getType() {
+        return type;
+    }
+
     @Override
     public FieldEntity copy() {
         return new Item(type);
     }
 
-    @Override
-    public String toString() {
-        return "I";
-    }
-
-    public int getType() {
-        return type;
-    }
-
     public double getCredits() {
-        if (type == 1) { // Thingamajig
-            return 100 + random.nextInt(901);
-        }
-        return 0;
-    }
-
-    public boolean isAntiGrav() {
-        return type == 2;
-    }
-
-    public boolean isFusionReactor() {
-        return type == 3;
-    }
-
-    @Override
-    public void hit(int damage) {
-        if (parent != null) {
-            parent.clearField();
+        switch (type) {
+            case THINGAMAJIG: return 100 + new Random().nextInt(901);
+            case ANTI_GRAV: return 300;
+            case FUSION_REACTOR: return 400;
+            case DEFLECTOR_SHIELD: return 300;
+            case REPAIR_KIT: return 200;
+            default: return 0;
         }
     }
+
+    public boolean isAntiGrav() { return type == ANTI_GRAV; }
+    public boolean isFusionReactor() { return type == FUSION_REACTOR; }
+    public boolean isDeflectorShield() { return type == DEFLECTOR_SHIELD; }
+    public boolean isRepairKit() { return type == REPAIR_KIT; }
 }

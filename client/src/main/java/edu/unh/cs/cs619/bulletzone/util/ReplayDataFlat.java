@@ -5,6 +5,12 @@ import java.util.ArrayList;
 
 import edu.unh.cs.cs619.bulletzone.events.GameEvent;
 
+/**
+ * Made by Alec Rydeen
+ *
+ * Flat version of the replays, used for storage when writing to file. Must be loaded into the
+ * singleton instance to be used.
+ */
 public class ReplayDataFlat implements Serializable {
 
     private static final long serialVersionUID = 1L;

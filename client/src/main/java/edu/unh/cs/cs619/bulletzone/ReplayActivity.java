@@ -6,8 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import androidx.annotation.VisibleForTesting;
-
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 
@@ -18,6 +16,13 @@ import edu.unh.cs.cs619.bulletzone.util.FileHelper;
 import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 import edu.unh.cs.cs619.bulletzone.util.ReplayDataFlat;
 
+/**
+ * Made by Alec Rydeen
+ *
+ * Activity to act as the menu between multiple different replay options.
+ * Able to pick between the 5 most recent replays, including the last played game.
+ * Also has button to clear the replay data
+ */
 @EActivity(R.layout.activity_replay)
 public class ReplayActivity extends Activity {
 

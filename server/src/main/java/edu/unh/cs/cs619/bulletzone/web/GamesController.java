@@ -54,10 +54,14 @@ class GamesController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     ResponseEntity<LongWrapper> join(HttpServletRequest request) {
-        Tank tank;
+        Pair<Tank, Builder> ret;
+        Playable tank;
+        Playable builder;
         try {
-            tank = gameRepository.join(request.getRemoteAddr());
-            log.info("Player joined: tankId={} IP={}", tank.getId(), request.getRemoteAddr());
+            ret = gameRepository.join(request.getRemoteAddr());
+            tank = ret.getValue0();
+            builder = ret.getValue1();
+            log.info("Player joined: Id={} IP={}", tank.getId(), request.getRemoteAddr());
 
             return new ResponseEntity<LongWrapper>(
                     new LongWrapper(tank.getId()),
@@ -160,6 +164,16 @@ class GamesController {
             throws TankDoesNotExistException {
         return new ResponseEntity<BooleanWrapper>(
                 new BooleanWrapper(gameRepository.ejectPowerUp(playableId)),
+                HttpStatus.OK
+        );
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/repair", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    ResponseEntity<BooleanWrapper> repairPlayable(@PathVariable long playableId)
+            throws TankDoesNotExistException {
+        return new ResponseEntity<BooleanWrapper>(
+                new BooleanWrapper(gameRepository.repair(playableId)),
                 HttpStatus.OK
         );
     }

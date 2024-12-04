@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import edu.unh.cs.cs619.bulletzone.ClientController;
+import edu.unh.cs.cs619.bulletzone.PlayerData;
 import edu.unh.cs.cs619.bulletzone.events.GameEvent;
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
 import edu.unh.cs.cs619.bulletzone.events.UpdateBoardEvent;
@@ -36,12 +37,13 @@ public class GridPollerTask {
     ClientController clientController;
 
     ReplayData replayData = ReplayData.getReplayData();
+    PlayerData playerData = PlayerData.getPlayerData();
 
     private long previousTimeStamp = -1;
+    private long lastUpdateTime = System.currentTimeMillis();
     private GameEventProcessor currentProcessor = null;
     private boolean isRunning = true;
 
-    // Custom class to track items with their positions
     private static class ItemLocation {
         final int itemType;
         final int x;
@@ -68,7 +70,7 @@ public class GridPollerTask {
 
         @Override
         public String toString() {
-            return String.format("Item %d at (%d,%d)", itemType, x, y);
+            return String.format("Item %d at (%d,%d)", itemType - 3000, x, y);
         }
     }
 
@@ -87,7 +89,6 @@ public class GridPollerTask {
             GridWrapper grid = restClient.playerGrid();
             GridWrapper tGrid = restClient.terrainGrid();
             replayData.setInitialGrids(grid, tGrid);
-//            Log.d(TAG, replayData.toString());
             onGridUpdate(grid, tGrid);
             previousTimeStamp = grid.getTimeStamp();
 
@@ -99,11 +100,19 @@ public class GridPollerTask {
                     Set<ItemLocation> currentItems = new HashSet<>();
                     int[][] boardState = grid.getGrid();
 
+                    // Update tank stats periodically (every 1 second)
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastUpdateTime >= 1000) {
+                        updatePlayerStats(boardState);
+                        lastUpdateTime = currentTime;
+                    }
+
                     // Scan board for items and track their locations
                     for (int i = 0; i < boardState.length; i++) {
                         for (int j = 0; j < boardState[i].length; j++) {
                             int value = boardState[i][j];
-                            if (value >= 3000 && value <= 3003) {
+                            // Store actual board values (3001-3005)
+                            if (value >= 3001 && value <= 3005) {
                                 currentItems.add(new ItemLocation(value, i, j));
                             }
                         }
@@ -111,19 +120,18 @@ public class GridPollerTask {
 
                     // Check for disappeared items (picked up)
                     for (ItemLocation item : itemsPresent) {
-                        if (!currentItems.contains(item) &&
-                                item.itemType >= 3000 &&
-                                item.itemType <= 3003) {
-
-                            // Check if this exact item (type and location) was processed
+                        if (!currentItems.contains(item)) {
                             if (!processedItemPickups.contains(item)) {
+                                // Convert to 1-5 range for handling
+                                int itemType = item.itemType - 3000;
                                 Log.d(TAG, String.format("Item pickup detected: type %d at position (%d,%d)",
-                                        (item.itemType - 3000), item.x, item.y));
+                                        itemType, item.x, item.y));
 
-                                clientController.handleItemPickup(item.itemType - 3000);
-                                processedItemPickups.add(item);
+                                if (itemType >= 1 && itemType <= 5) {
+                                    clientController.handleItemPickup(itemType);
+                                    processedItemPickups.add(item);
+                                }
 
-                                // Clean up old processed items that are no longer on the board
                                 processedItemPickups.removeIf(processed ->
                                         !itemsPresent.contains(processed) &&
                                                 !processed.equals(item));
@@ -164,9 +172,59 @@ public class GridPollerTask {
         }
     }
 
+    private void updatePlayerStats(int[][] boardState) {
+        try {
+            // Find our tank based on raw server value pattern (10xxxxxx where x is tank ID)
+            int tankId = -1;
+            for (int i = 0; i < boardState.length && tankId == -1; i++) {
+                for (int j = 0; j < boardState[i].length; j++) {
+                    int value = boardState[i][j];
+                    if (value >= 10000000 && value < 20000000) {
+                        tankId = (value - 10000000) / 10000;
+                        break;
+                    }
+                }
+            }
+
+            if (tankId != -1) {
+                playerData.setTankId(tankId);
+                int oldLife = playerData.getTankLife();
+
+                // Check if repair kit should heal
+                if (playerData.getRepairKitCount() > 0) {
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime < playerData.getRepairKitExpiration()) {
+                        // If health isn't full, send request to server to get updated health
+                        if (oldLife < 100) {
+                            clientController.getLifeAsync(tankId, 1);
+                            Log.d(TAG, "Repair kit active, requesting health update. Current health: " + oldLife);
+                        }
+                    } else {
+                        // Repair kit expired
+                        playerData.decrementPowerUps(5);
+                        Log.d(TAG, "Repair kit expired and removed");
+                    }
+                } else {
+                    // Normal health update when no repair kit
+                    clientController.getLifeAsync(tankId, 1);
+                }
+
+                // Update builder and soldier health as needed
+                if (playerData.getBuilderNumber() > 0) {
+                    clientController.getLifeAsync(tankId, 2);
+                }
+
+                if (playerData.getSoldierEjected()) {
+                    clientController.getLifeAsync(tankId, 3);
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating player stats: " + e.getMessage());
+        }
+    }
+
     public void stop() {
         Log.d(TAG, "Stopping GridPollerTask");
-//        Log.d(TAG, replayData.toString());
         isRunning = false;
         currentProcessor = null;
         processedItemPickups.clear();

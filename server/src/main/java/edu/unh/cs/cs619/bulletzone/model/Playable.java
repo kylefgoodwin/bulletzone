@@ -8,8 +8,6 @@ package edu.unh.cs.cs619.bulletzone.model;
 
 import org.greenrobot.eventbus.EventBus;
 
-import javax.management.ListenerNotFoundException;
-
 import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
@@ -21,6 +19,7 @@ public abstract class Playable extends FieldEntity {
 
 
     protected final long id;
+    protected int userId;
 
     protected final String ip;
 
@@ -57,19 +56,57 @@ public abstract class Playable extends FieldEntity {
         this.ip = ip;
     }
 
+    private boolean isBuilding = false;
+    private boolean isDismantling = false;
+
+    public boolean isBuilding() {
+        return isBuilding;
+    }
+
+    public boolean isDismantling() {
+        return isDismantling;
+    }
+
+    public void startBuilding() {
+        isBuilding = true;
+    }
+
+    public void stopBuilding() {
+        isBuilding = false;
+    }
+
+    public void startDismantling() {
+        isDismantling = true;
+    }
+
+    public void stopDismantling() {
+        isDismantling = false;
+    }
+
     public FieldEntity copy() {
         return new Tank(id, direction, ip);
     }
 
+    @Override
     public void hit(int damage) {
-        life -= damage;
-//        System.out.println("Life: " + life + "\n");
+        int finalDamage = powerUpManager.processDamage(damage);
+        life -= finalDamage;
         if (life <= 0) {
-            //handle game over scenario
+            // handle game over
         }
+        EventBus.getDefault().post(new HitEvent(
+                (int) id,
+                playableType,
+                powerUpManager.getShieldHealth(),
+                finalDamage
+        ));
     }
 
     //Getters
+    public int getUserId() {
+        return userId;
+    }
+
     public long getLastTurnTime() {
         return lastTurnTime;
     }
@@ -267,26 +304,48 @@ public abstract class Playable extends FieldEntity {
 
     public boolean tryEjectPowerUp(FieldHolder currentField) {
         if (!hasPowerUps()) {
+            System.out.println("No power-ups to eject");
             return false;
         }
 
-        Direction[] directions = {Direction.Up, Direction.Right, Direction.Down, Direction.Left};
+        System.out.println("Attempting to eject power-up");
+        Item powerUp = powerUpManager.ejectLastPowerUp();
 
+        if (powerUp == null) {
+            // Power-up was consumed (like repair kit)
+            System.out.println("Power-up was consumed on ejection");
+            return true;
+        }
+
+        // Try to place in an adjacent cell
+        Direction[] directions = {Direction.Up, Direction.Right, Direction.Down, Direction.Left};
         for (Direction dir : directions) {
             FieldHolder neighbor = currentField.getNeighbor(dir);
-            if (!neighbor.isPresent()) {
-                Item powerUp = ejectPowerUp();
-                if (powerUp != null) {
-                    neighbor.setFieldEntity(powerUp);
-                    powerUp.setParent(neighbor);
-                    EventBus.getDefault().post(new SpawnEvent(powerUp.getIntValue(), neighbor.getPosition()));
-                    return true;
-                }
+            if (neighbor != null && !neighbor.isPresent()) {
+                neighbor.setFieldEntity(powerUp);
+                powerUp.setParent(neighbor);
+                System.out.println("Power-up ejected to board position: " + neighbor.getPosition());
+                EventBus.getDefault().post(new SpawnEvent(powerUp.getIntValue(), neighbor.getPosition()));
+                return true;
             }
         }
 
-        // If no empty square found, just destroy the power-up
-        ejectPowerUp();
+        // No empty space found - destroy power-up
+        System.out.println("No space to eject power-up - destroying it");
         return true;
+    }
+
+    /**
+     * Updates the state of the playable entity.
+     * Called periodically to handle time-based effects and states.
+     */
+    public void update() {
+        long currentTime = System.currentTimeMillis();
+
+        // Update power-up effects if powerUpManager exists
+        if (powerUpManager != null) {
+            powerUpManager.update();
+            updateIntervals();
+        }
     }
 }

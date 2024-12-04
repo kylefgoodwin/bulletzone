@@ -1,6 +1,7 @@
 package edu.unh.cs.cs619.bulletzone;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.util.Log;
 
 import org.androidannotations.annotations.Background;
@@ -15,7 +16,6 @@ import java.util.Random;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
 import edu.unh.cs.cs619.bulletzone.rest.BulletZoneRestClient;
-import edu.unh.cs.cs619.bulletzone.util.BooleanWrapper;
 import edu.unh.cs.cs619.bulletzone.util.FileHelper;
 import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 import edu.unh.cs.cs619.bulletzone.util.ReplayDataFlat;
@@ -28,7 +28,6 @@ public class ClientController {
     BulletZoneRestClient restClient;
 
     private ReplayData replayData = ReplayData.getReplayData();
-
     private final Random random = new Random();
 
     public ClientController() {}
@@ -47,22 +46,59 @@ public class ClientController {
     }
 
     @Background
-    public void getLifeAsync(int playableId) {
-        int newLifeBuilder = restClient.getLife(playableId, 2).getResult();
-        int newLifeTank = restClient.getLife(playableId, 1).getResult();
-        int newLifeSoldier = restClient.getLife(playableId, 3).getResult();
-
-//        Log.d("getLifeAsync", "Tank Life from Server: " + newLifeTank);
-
-        PlayerData.getPlayerData().setTankLife(newLifeTank);
-        PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
-
-        if (newLifeSoldier >= 0) {
-            PlayerData.getPlayerData().setSoldierLife(newLifeSoldier);
+    public void repairAsync(long playableId) {
+        try {
+            restClient.repairPlayable(playableId);
+            Log.d(TAG, "Repair request sent for tank: " + playableId);
+        } catch (Exception e) {
+            Log.e(TAG, "Error repairing tank: " + e.getMessage());
         }
+    }
 
-//        Log.d("LifeCheck", "Builder Life: " + PlayerData.getPlayerData().getBuilderLife() + "\n");
-//        Log.d("LifeCheck", "Goblin Life: " + PlayerData.getPlayerData().getTankLife() + "\n");
+    @Background
+    public void getLifeAsync(int playableId, int playableType) {
+        try {
+            if (playableType == 1) {
+                int oldLife = PlayerData.getPlayerData().getTankLife();
+
+                // Try to repair if repair kit is active and health isn't full
+                if (PlayerData.getPlayerData().isRepairKitActive() && oldLife < 100) {
+                    repairAsync(playableId);
+                    // Give server time to process repair
+                    SystemClock.sleep(50);
+                }
+
+                int newLifeTank = restClient.getLife(playableId, playableType).getResult();
+                Log.d(TAG, String.format("Tank life update - Old: %d, New: %d", oldLife, newLifeTank));
+                PlayerData.getPlayerData().setTankLife(newLifeTank);
+            } else if (playableType == 2) {
+                int oldLife = PlayerData.getPlayerData().getBuilderLife();
+
+                // Try to repair if repair kit is active and health isn't full
+                if (PlayerData.getPlayerData().isRepairKitActive() && oldLife < 80) {
+                    repairAsync(playableId);
+                    SystemClock.sleep(50);
+                }
+
+                int newLifeBuilder = restClient.getLife(playableId, playableType).getResult();
+                Log.d(TAG, String.format("Builder life update - Old: %d, New: %d", oldLife, newLifeBuilder));
+                PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
+            } else if (playableType == 3) {
+                int oldLife = PlayerData.getPlayerData().getSoldierLife();
+
+                // Try to repair if repair kit is active and health isn't full
+                if (PlayerData.getPlayerData().isRepairKitActive() && oldLife < 25) {
+                    repairAsync(playableId);
+                    SystemClock.sleep(50);
+                }
+
+                int newLifeSoldier = restClient.getLife(playableId, playableType).getResult();
+                Log.d(TAG, String.format("Soldier life update - Old: %d, New: %d", oldLife, newLifeSoldier));
+                PlayerData.getPlayerData().setSoldierLife(newLifeSoldier);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting life: " + e.getMessage());
+        }
     }
 
     public Double getBalance(long userId) {
@@ -77,49 +113,36 @@ public class ClientController {
     @Background
     public void handleItemPickup(int itemType) {
         Log.d(TAG, "Handling item pickup of type: " + itemType);
-        try {
-            switch (itemType - 1) { // Adjust for 0-based type
-                case 0: // Thingamajig (3001 - 3000)
-                    double amount = 100 + random.nextInt(901); // Random amount between 100 and 1000
-                    PlayerData playerData = PlayerData.getPlayerData();
-                    Log.d(TAG, "Processing Thingamajig pickup, amount: " + amount);
 
-                    BooleanWrapper result = restClient.depositBalance(playerData.getUserId(), amount);
-                    if (result != null && result.isResult()) {
-                        Log.d(TAG, "Successfully deposited " + amount + " credits");
-                        EventBus.getDefault().post(new ItemPickupEvent(1, amount));
-                    } else {
-                        Log.e(TAG, "Failed to deposit credits");
-                    }
-                    break;
-
-                case 1: // AntiGrav (3002 - 3000)
-                    Log.d(TAG, "Processing AntiGrav pickup");
-                    EventBus.getDefault().post(new ItemPickupEvent(2, 0));
-                    break;
-
-                case 2: // FusionReactor (3003 - 3000)
-                    Log.d(TAG, "Processing FusionReactor pickup");
-                    EventBus.getDefault().post(new ItemPickupEvent(3, 0));
-                    break;
-
-                default:
-                    Log.w(TAG, "Unknown item type: " + itemType);
-                    break;
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error handling item pickup", e);
+        switch (itemType) {
+            case 1: // Thingamajig
+                double amount = 100 + random.nextDouble() * 900; // Random 100-1000
+                EventBus.getDefault().post(new ItemPickupEvent(itemType, amount));
+                break;
+            case 2: // AntiGrav
+                EventBus.getDefault().post(new ItemPickupEvent(itemType, 300));
+                break;
+            case 3: // FusionReactor
+                EventBus.getDefault().post(new ItemPickupEvent(itemType, 400));
+                break;
+            case 4: // DeflectorShield
+                EventBus.getDefault().post(new ItemPickupEvent(itemType, 300));
+                break;
+            case 5: // RepairKit
+                EventBus.getDefault().post(new ItemPickupEvent(itemType, 200));
+                break;
+            default:
+                Log.w(TAG, "Unknown item type: " + itemType);
+                break;
         }
     }
 
     public void updateReplays(Context context) {
         FileHelper fileHelper = new FileHelper(context);
-
         List<ReplayDataFlat> replayDataList = new ArrayList<>();
 
         if (!fileHelper.replayFileExists("Replays")) {
-            fileHelper.saveReplayList(
-                    "Replays", List.of(replayData.turnToFlat()));
+            fileHelper.saveReplayList("Replays", List.of(replayData.turnToFlat()));
         } else {
             replayDataList = fileHelper.loadReplayList("Replays");
             if (replayDataList.size() == 5 || replayDataList.size() == 4) {

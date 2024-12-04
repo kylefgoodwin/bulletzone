@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="client">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-11-20T00:31:24.544965100Z">
+        <DropdownSelection timestamp="2024-12-03T15:22:15.706005700Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\HamSa\.android\avd\Nexus_9_API_33.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\ARose\.android\avd\Medium_Tablet_API_24.avd" />
             </handle>
           </Target>
         </DropdownSelection>

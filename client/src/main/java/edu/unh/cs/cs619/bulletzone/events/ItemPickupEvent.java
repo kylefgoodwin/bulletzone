@@ -21,15 +21,12 @@ public class ItemPickupEvent extends GameEvent implements Serializable {
 
     @Override
     void applyTo(int[][] board) {
-        int currentValue = board[position / 16][position % 16];
-
-        // If there's a goblin in this cell (check if value > 10000000)
-        if (currentValue > 10000000) {
-            // Preserve the goblin value
-            board[position / 16][position % 16] = currentValue;
-        } else {
-            // Otherwise just clear the item
-            board[position / 16][position % 16] = 0;
+        if (position >= 0 && position < board.length * board[0].length) {
+            int row = position / board[0].length;
+            int col = position % board[0].length;
+            if (board[row][col] >= 3001 && board[row][col] <= 3005) {
+                board[row][col] = 0;  // Clear the item
+            }
         }
     }
 

@@ -23,9 +23,7 @@ import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
-import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
-import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
 
 @Component
 public class InMemoryGameRepository implements GameRepository {
@@ -69,7 +67,7 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     @Override
-    public Tank join(String ip) {
+    public Pair<Tank, Builder> join(String ip) {
         synchronized (this.monitor) {
             Tank tank;
             Builder builder;
@@ -78,38 +76,35 @@ public class InMemoryGameRepository implements GameRepository {
             }
 
             if ((tank = game.getTank(ip)) != null && (builder = game.getBuilder(ip)) != null) {
-                return tank;
+                return Pair.with(tank, builder);
             }
 
             Long Id = this.idGenerator.getAndIncrement();
+
             tank = new Tank(Id, Direction.Up, ip);
             builder = new Builder(Id, Direction.Up, ip);
 
             Random random = new Random();
-            int x, y;
+            int x;
+            int y;
 
-            // Find a valid spawn position for the tank
-            while (true) {
+            // This may run for forever.. If there is no free space. XXX
+            for (; ; ) {
                 x = random.nextInt(FIELD_DIM);
                 y = random.nextInt(FIELD_DIM);
                 FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
-
-                // Check if this cell is empty and not surrounded by walls
-                if (!fieldElement.isPresent() && !isSurroundedByWalls(x, y)) {
+                if (!fieldElement.isPresent()) {
                     fieldElement.setFieldEntity(tank);
                     tank.setParent(fieldElement);
                     break;
                 }
             }
 
-            // Find a valid spawn position for the builder
-            while (true) {
+            for (; ; ) {
                 x = random.nextInt(FIELD_DIM);
                 y = random.nextInt(FIELD_DIM);
                 FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
-
-                // Check if this cell is empty and not surrounded by walls
-                if (!fieldElement.isPresent() && !isSurroundedByWalls(x, y)) {
+                if (!fieldElement.isPresent()) {
                     fieldElement.setFieldEntity(builder);
                     builder.setParent(fieldElement);
                     break;
@@ -118,34 +113,8 @@ public class InMemoryGameRepository implements GameRepository {
 
             game.addTank(ip, tank);
             game.addBuilder(ip, builder);
-            return tank;
+            return Pair.with(tank, builder);
         }
-    }
-
-    /**
-     * Checks if a given position is surrounded by indestructible walls.
-     */
-    private boolean isSurroundedByWalls(int x, int y) {
-        FieldHolder target = game.getHolderGrid().get(x * FIELD_DIM + y);
-
-        // Get neighbors in all four directions
-        FieldHolder right = game.getHolderGrid().get(x * FIELD_DIM + ((y + 1) % FIELD_DIM));
-        FieldHolder down = game.getHolderGrid().get(((x + 1) % FIELD_DIM) * FIELD_DIM + y);
-        FieldHolder left = game.getHolderGrid().get(x * FIELD_DIM + ((y - 1 + FIELD_DIM) % FIELD_DIM));
-        FieldHolder up = game.getHolderGrid().get(((x - 1 + FIELD_DIM) % FIELD_DIM) * FIELD_DIM + y);
-
-        // Check if all neighbors are indestructible walls
-        return isIndestructibleWall(right) && isIndestructibleWall(down) &&
-                isIndestructibleWall(left) && isIndestructibleWall(up);
-    }
-
-    /**
-     * Checks if a FieldHolder contains an indestructible wall.
-     */
-    private boolean isIndestructibleWall(FieldHolder fieldHolder) {
-        return fieldHolder.isTerrainPresent() &&
-                fieldHolder.getTerrainEntityHolder() instanceof Wall &&
-                ((Wall) fieldHolder.getTerrainEntityHolder()).getIntValue() == 0;
     }
 
     @Override
@@ -175,6 +144,14 @@ public class InMemoryGameRepository implements GameRepository {
 
             if (playable == null && playableType == 2) {
                 playable = game.getBuilders().get(playableId);
+                if (playable.isBuilding()) {
+                    System.out.println("Builder cannot turn while building.");
+                    return false;
+                }
+                if (playable.isDismantling()) {
+                    System.out.println("Aborting dismantling due to turning.");
+                    playable.stopDismantling();
+                }
             }
 
             if (playable == null && playableType == 3) {
@@ -217,6 +194,14 @@ public class InMemoryGameRepository implements GameRepository {
 
             if (playable == null && playableType == 2) {
                 playable = game.getBuilders().get(playableId);
+                if (playable.isBuilding()) {
+                    System.out.println("Builder cannot turn while building.");
+                    return false;
+                }
+                if (playable.isDismantling()) {
+                    System.out.println("Aborting dismantling due to turning.");
+                    playable.stopDismantling();
+                }
             }
 
             if (playable == null && playableType == 3) {
@@ -272,7 +257,7 @@ public class InMemoryGameRepository implements GameRepository {
             //Log.i(TAG, "Cannot find user with id: " + tankId);
             Direction direction = playable.getDirection();
             FieldHolder parent = playable.getParent();
-            if (!fireCommand.canFire(playable, millis, bulletType, bulletDelay)) {
+            if (!fireCommand.canFire(playable, millis, bulletType)) {
                 return false;
             }
             playable.setNumberOfBullets(playable.getNumberOfBullets() + 1);
@@ -351,7 +336,36 @@ public class InMemoryGameRepository implements GameRepository {
             this.game = new Game();
             createFieldHolderGrid(game);
             gameBoardBuilder.setupGame(game);
+            // Spawn test items immediately
+            spawnTestPowerUps();
             startItemSpawner();
+        }
+    }
+
+    private void spawnTestPowerUps() {
+        // Spawn Deflector Shield
+        spawnSpecificItem(4);  // Shield
+        spawnSpecificItem(5);  // Repair Kit
+    }
+
+    private void spawnSpecificItem(int itemType) {
+        for (int attempts = 0; attempts < 10; attempts++) {
+            int x = random.nextInt(FIELD_DIM);
+            int y = random.nextInt(FIELD_DIM);
+            FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
+            if (!fieldElement.isPresent()) {
+                Item item = new Item(itemType);
+                fieldElement.setFieldEntity(item);
+                item.setParent(fieldElement);
+
+                System.out.println("Successfully spawned test item!");
+                System.out.println("Item type: " + itemType);
+                System.out.println("Item value: " + item.getIntValue());
+                System.out.println("Position: [" + x + "," + y + "]");
+
+                EventBus.getDefault().post(new SpawnEvent(item.getIntValue(), fieldElement.getPosition()));
+                break;
+            }
         }
     }
 
@@ -393,7 +407,6 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     private void spawnRandomItem() {
-        // Add this debug print at the start
         System.out.println("Attempting to spawn random item...");
 
         for (int attempts = 0; attempts < 10; attempts++) {
@@ -401,15 +414,15 @@ public class InMemoryGameRepository implements GameRepository {
             int y = random.nextInt(FIELD_DIM);
             FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
             if (!fieldElement.isPresent()) {
-                // Weighted random selection
-                int itemType = random.nextInt(3) + 1; // 1=Thingamajig, 2=AntiGrav, 3=FusionReactor
-                Item item = new Item(itemType);
+                // Weighted random selection with equal chances for testing
+                int rand = random.nextInt(5) + 1;  // 1-5
+
+                Item item = new Item(rand);  // Create item with type 1-5
                 fieldElement.setFieldEntity(item);
                 item.setParent(fieldElement);
 
-                // Add these debug prints
                 System.out.println("Successfully spawned item!");
-                System.out.println("Item type: " + itemType);
+                System.out.println("Item type: " + rand);
                 System.out.println("Item value: " + item.getIntValue());
                 System.out.println("Position: [" + x + "," + y + "]");
 
@@ -438,14 +451,10 @@ public class InMemoryGameRepository implements GameRepository {
             if (playable == null) {
                 throw new TankDoesNotExistException(playableId);
             }
-            if (game.getSoldiers().containsKey(playableId)){
+            if (game.getSoldiers().get(playableId) != null){
                 return false;
             }
             long millis = System.currentTimeMillis();
-            System.out.println("Attempting to eject soldier w/ time cur:  " + System.currentTimeMillis() + "and calculated: " + playable.getLastEntryTime() + playable.getAllowedDeployInterval());
-            if (millis < playable.getLastEntryTime() + playable.getAllowedDeployInterval()) {
-                return false;
-            }
             EjectSoldierCommand ejectsoldier = new EjectSoldierCommand(playableId, game, playable.getDirection(), millis);
             return ejectsoldier.execute();
         }
@@ -473,22 +482,33 @@ public class InMemoryGameRepository implements GameRepository {
         } else if (playableType == 2){
             playable = game.getBuilders().get(playableId);
         } else {
-            playable = game.getSoldier(playableId);
-            if (playable == null) {
-                if (game.getSolderEjected()) {
-                    return 0;
-                } else {
-                    return -1;
-                }
-            }
+            //code to get soldier (do we want a soldier list too?
+            playable = null;
         }
         if (playable == null) {
             //Log.i(TAG, "Cannot find user with id: " + tankId);
             //return false;
-            return 0;
-//            throw new TankDoesNotExistException(playableId);
+            throw new TankDoesNotExistException(playableId);
         }
-
         return playable.getLife();
+    }
+
+    @Override
+    public boolean repair(long playableId) throws TankDoesNotExistException {
+        synchronized (this.monitor) {
+            Playable playable = game.getTanks().get(playableId);
+            if (playable == null) {
+                throw new TankDoesNotExistException(playableId);
+            }
+
+            // Only repair if health is not at maximum
+            int currentHealth = playable.getLife();
+            if (currentHealth < 100) {
+                playable.setLife(Math.min(100, currentHealth + 1));
+                return true;
+            }
+
+            return false;
+        }
     }
 }

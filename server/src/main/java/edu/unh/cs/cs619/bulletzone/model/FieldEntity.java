@@ -38,13 +38,18 @@ public abstract class FieldEntity {
         return getIntValue() >= 4000 && getIntValue() <= 4003;
     }
 
-    public boolean isItem(){
-        return getIntValue() >= 3001 && getIntValue() <= 3003;
+    public boolean isItem() {
+        int value = getIntValue();
+        return value >= 3001 && value <= 3005;  // Updated range to include all power-ups
     }
 
     public boolean isPlayable(){
         return getIntValue() >= 10000000;
     }
+
+    public boolean isMiningFacility(){return getIntValue() == 920;}
+
+    public boolean isIndestructibleWall(){return getIntValue() == Integer.MAX_VALUE;}
 }
 
     /*public static final void registerEventBusListener(Object listener) {

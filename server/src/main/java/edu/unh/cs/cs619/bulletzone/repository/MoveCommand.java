@@ -2,10 +2,12 @@ package edu.unh.cs.cs619.bulletzone.repository;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import org.apache.juli.logging.Log;
 import org.greenrobot.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
 import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
@@ -14,13 +16,11 @@ import edu.unh.cs.cs619.bulletzone.model.IllegalTransitionException;
 import edu.unh.cs.cs619.bulletzone.model.Item;
 import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
-import edu.unh.cs.cs619.bulletzone.model.Soldier;
-import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
-import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
+import edu.unh.cs.cs619.bulletzone.model.events.TerrainUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TurnEvent;
 
 public class MoveCommand implements Command {
@@ -33,51 +33,50 @@ public class MoveCommand implements Command {
     Playable playable;
     private static final int FIELD_DIM = 16;
 
-    /**
-     * Constructor for MoveCommand called each time
-     * move() is called in InGameMemoryRepository
-     *
-     * @param playable   playable to move
-     *
-     * @param direction direction for tank to move
-     */
     public MoveCommand(Playable playable, int playableType, Game game, Direction direction, long currentTimeMillis) {
         this.playable = playable;
         this.playableType = playableType;
         this.game = game;
         this.direction = direction;
         this.millis = currentTimeMillis;
+        this.playableId = playable.getId();
     }
 
-    /**
-     * Command to move a tank with tankId in given direction
-     *
-     * @return true if moved, false otherwise
-     * @throws TankDoesNotExistException  throws error if tank does not exist
-     * @throws IllegalTransitionException unsure, not thrown
-     * @throws LimitExceededException     unsure, not thrown
-     */
     @Override
     public boolean execute() throws TankDoesNotExistException, IllegalTransitionException, LimitExceededException {
+        // Check if enough time has passed since last move
         if (millis < playable.getLastMoveTime()) {
             return false;
         }
+
+        Direction currentDirection = playable.getDirection();
         FieldHolder currentField = playable.getParent();
         FieldHolder nextField = currentField.getNeighbor(direction);
         checkNotNull(currentField.getNeighbor(direction), "Neighbor is not available");
 
-        boolean isVisible = currentField.isPresent() && (currentField.getEntity() == playable);
+        // Calculate terrain effects first to emit event
+        boolean isTerrainField = nextField.isTerrainPresent();
+        Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
 
-        Direction currentDirection = playable.getDirection();
+        // Always emit terrain event
+        TerrainUpdateEvent event = new TerrainUpdateEvent(
+                playableType,
+                isTerrainField && t != null && t.isHilly(),
+                isTerrainField && t != null && t.isForest(),
+                isTerrainField && t != null && t.isRocky()
+        );
+        EventBus.getDefault().post(event);
 
-        // Handle turning
+        // Handle turning first
         if (currentDirection != direction) {
-            if ((currentDirection == Direction.Up && (direction == Direction.Left || direction == Direction.Right))
-                    || (currentDirection == Direction.Down && (direction == Direction.Left || direction == Direction.Right))
-                    || (currentDirection == Direction.Left && (direction == Direction.Up || direction == Direction.Down))
-                    || (currentDirection == Direction.Right && (direction == Direction.Up || direction == Direction.Down))) {
+            // For opposite and perpendicular directions
+            if ((currentDirection == Direction.Up && (direction == Direction.Down || direction == Direction.Left || direction == Direction.Right)) ||
+                    (currentDirection == Direction.Down && (direction == Direction.Up || direction == Direction.Left || direction == Direction.Right)) ||
+                    (currentDirection == Direction.Left && (direction == Direction.Right || direction == Direction.Up || direction == Direction.Down)) ||
+                    (currentDirection == Direction.Right && (direction == Direction.Left || direction == Direction.Up || direction == Direction.Down))) {
                 playable.setDirection(direction);
                 EventBus.getDefault().post(new TurnEvent(playable.getIntValue(), playable.getPosition()));
+                // Don't update lastMoveTime for rotations
                 return true;
             }
         }
@@ -104,33 +103,76 @@ public class MoveCommand implements Command {
             }
         }
 
-        // Handle item pickups
-        else if (nextField.getEntity().isItem()) {
-            Item item = (Item) nextField.getEntity();
-            log.debug("Playable {} picking up item type {}", playableId, item.getType());
+        // Only proceed with movement if we're facing the right direction
+        if (currentDirection == direction) {
+            // Calculate base movement delay
+            long moveDelay = playable.getAllowedMoveInterval();
 
-            // Capture item info before clearing
-            int itemValue = item.getIntValue();
-            int itemPos = nextField.getPosition();
+            // Apply terrain modifiers
+            if (nextField.isTerrainPresent()) {
+                Terrain terrain = (Terrain) nextField.getTerrainEntityHolder();
+                if (playableType == 1) { // Tank
+                    if (terrain.isHilly()) {
+                        moveDelay = (long)(moveDelay * 1.5);
+                    } else if (terrain.isForest()) {
+                        moveDelay = moveDelay * 2;
+                    }
+                } else if (playableType == 2) { // Builder
+                    if (terrain.isRocky()) {
+                        moveDelay = (long)(moveDelay * 1.5);
+                    }
+                    if (terrain.isForest()) {
+                        return false;
+                    }
+                } else if (playableType == 3) { // Soldier
+                    if (terrain.isForest()) {
+                        moveDelay = (long)(moveDelay * 1.25);
+                    }
+                }
+            }
 
-            // Process the item
-            handleItemPickup(item, playable);
+            // Handle empty space movement
+            if (!nextField.isPresent()) {
+                moveUnit(currentField, nextField, playable, direction);
+                playable.setLastMoveTime(millis + moveDelay);
+                return true;
+            }
 
-            // Move tank and clear item
-            nextField.clearField();
-            int oldPos = playable.getPosition();
-            currentField.clearField();
-            nextField.setFieldEntity(playable);
-            playable.setParent(nextField);
-            playable.setDirection(direction);
+            // Soldier re-entry
+            if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
+                if(game.getTanks().get((playableId)).getPosition() == nextField.getPosition()){
+                    game.removeSoldier(playableId);
+                    game.getTanks().get(playableId).sethasSoldier(false);
+                    currentField.clearField();
+                    game.getTanks().get(playableId).setLastEntryTime(millis);
+                    EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
+                    game.setSoldierEjected(false);
+                    return false;
+                }
+            }
 
-            // Post events in correct order
-            EventBus.getDefault().post(new RemoveEvent(itemValue, itemPos));
-            EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
+            // Handle item pickup
+            if (nextField.getEntity().isItem()) {
+                Item item = (Item) nextField.getEntity();
+                int itemValue = item.getIntValue();
+                int itemPos = nextField.getPosition();
 
-            playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
-            return true;
-        }
+                handleItemPickup(item, playable);
+
+                // Move to item location
+                nextField.clearField();
+                int oldPos = playable.getPosition();
+                currentField.clearField();
+                nextField.setFieldEntity(playable);
+                playable.setParent(nextField);
+                playable.setDirection(direction);
+
+                EventBus.getDefault().post(new RemoveEvent(itemValue, itemPos));
+                EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
+
+                playable.setLastMoveTime(millis + moveDelay);
+                return true;
+            }
 
         // Handle wall collisions
         else if (nextField.getEntity().isWall()) {
@@ -173,29 +215,39 @@ public class MoveCommand implements Command {
             return false;
         }
 
-        playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
         return false;
     }
 
     private boolean handleTerrainConstraints(Playable playable, Terrain t, FieldHolder currentField, FieldHolder nextField){
         System.out.println("Is terrain");
         boolean hiddenMove = false;
+    private boolean handleTerrainConstraints(Playable playable, Terrain t, FieldHolder currentField, FieldHolder nextField) {
+        // Always emit terrain event
+        TerrainUpdateEvent event = new TerrainUpdateEvent(
+                playableType,
+                t != null && t.isHilly(),
+                t != null && t.isForest(),
+                t != null && t.isRocky()
+        );
+        EventBus.getDefault().post(event);
+
+        // Check timing constraints for terrain types
         if (playableType == 1) { //tank
-            if(t.isHilly() && (millis < (playable.getLastMoveTime() + (playable.getAllowedMoveInterval()* 1.5)))){
+            if (t.isHilly() && (millis < playable.getLastMoveTime())) {
                 return false;
-            } else if (t.isForest() && (millis < (playable.getLastMoveTime() + (playable.getAllowedMoveInterval()* 2)))) {
+            } else if (t.isForest() && (millis < playable.getLastMoveTime())) {
                 System.out.println("Moving tank into forest");
                 return false;
             }
-        } else if (playableType == 2){//builder
-            if(t.isRocky() && (millis < (playable.getLastMoveTime() + (playable.getAllowedMoveInterval()* 1.5)))){
+        } else if (playableType == 2) { //builder
+            if (t.isRocky() && (millis < playable.getLastMoveTime())) {
                 return false;
             }
-            if(t.isForest()){
+            if (t.isForest()) {
                 return false;
             }
-        } else if (playableType == 3){ //soldier
-            if(t.isForest() && (millis < (playable.getLastMoveTime() + (playable.getAllowedMoveInterval()* 1.25)))){
+        } else if (playableType == 3) { //soldier
+            if (t.isForest() && (millis < playable.getLastMoveTime())) {
                 return false;
             }
 
@@ -208,6 +260,29 @@ public class MoveCommand implements Command {
         }
         moveUnit(currentField, nextField, playable, direction, hiddenMove);
         playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
+
+        // If we pass timing checks, move the unit
+        moveUnit(currentField, nextField, playable, direction);
+
+        // Set appropriate delay based on terrain type
+        long delay = playable.getAllowedMoveInterval();
+        if (playableType == 1) { // Tank
+            if (t.isHilly()) {
+                delay = (long)(delay * 1.5);
+            } else if (t.isForest()) {
+                delay = delay * 2;
+            }
+        } else if (playableType == 2) { // Builder
+            if (t.isRocky()) {
+                delay = (long)(delay * 1.5);
+            }
+        } else if (playableType == 3) { // Soldier
+            if (t.isForest()) {
+                delay = (long)(delay * 1.25);
+            }
+        }
+
+        playable.setLastMoveTime(millis + delay);
         return true;
     }
 
@@ -218,16 +293,30 @@ public class MoveCommand implements Command {
      * @param playable playable picking up the item
      */
     private void handleItemPickup(Item item, Playable playable) {
-        if (item.getType() == 1) { // Thingamajig
-            log.debug("Processing Thingamajig pickup for tank {}", playableId);
-            double credits = item.getCredits();
-            game.addCredits(playable.getId(), credits);
-        } else if (item.isAntiGrav()) {
-            log.debug("Processing AntiGrav pickup for tank {}", playableId);
-            playable.addPowerUp(item);
-        } else if (item.isFusionReactor()) {
-            log.debug("Processing FusionReactor pickup for tank {}", playableId);
-            playable.addPowerUp(item);
+        BankAccount balance = game.getBankAccount(playableId);
+        switch (item.getType()) {
+            case 1: // Thingamajig
+                log.debug("Processing Thingamajig pickup for tank {}", playableId);
+                double credits = item.getCredits();
+                balance.modifyBalance(credits);
+                game.modifyBalance(playableId, credits);
+                break;
+            case 2: // AntiGrav
+                log.debug("Processing AntiGrav pickup for tank {}", playableId);
+                playable.addPowerUp(item);
+                break;
+            case 3: // FusionReactor
+                log.debug("Processing FusionReactor pickup for tank {}", playableId);
+                playable.addPowerUp(item);
+                break;
+            case 4: // DeflectorShield
+                log.debug("Processing DeflectorShield pickup for tank {}", playableId);
+                playable.addPowerUp(item);
+                break;
+            case 5: // RepairKit
+                log.debug("Processing RepairKit pickup for tank {}", playableId);
+                playable.addPowerUp(item);
+                break;
         }
     }
 
@@ -267,11 +356,6 @@ public class MoveCommand implements Command {
         }
     }
 
-    /**
-     * Unused, needed to override for Join command
-     *
-     * @return stub null value
-     */
     @Override
     public Long executeJoin() {
         return null;

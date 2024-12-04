@@ -52,13 +52,17 @@ public class Soldier extends Playable {
     // Method to apply damage to the Soldier
     @Override
     public void hit(int damage) {
-        life -= damage;
-        System.out.println("Soldier life: " + id + " : " + life);
+        int finalDamage = powerUpManager.processDamage(damage);
+        life -= finalDamage;
         if (life <= 0) {
             System.out.println("Soldier has been eliminated.");
-            // Handle game over scenario
         }
-        EventBus.getDefault().post(new HitEvent((int) id, 3));
+        EventBus.getDefault().post(new HitEvent(
+                (int) id,
+                3,
+                powerUpManager.getShieldHealth(),
+                finalDamage
+        ));
     }
 
     // Method to handle re-entering a tank

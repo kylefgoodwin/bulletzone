@@ -6,6 +6,11 @@ import java.util.ArrayList;
 
 import edu.unh.cs.cs619.bulletzone.events.GameEvent;
 
+/**
+ * Made by Alec Rydeen
+ *
+ * Singleton object to store the necessary data to create a replay of the current game
+ */
 public class ReplayData {
 
     private static final String TAG = "ReplayData";
@@ -32,11 +37,19 @@ public class ReplayData {
         return replayData;
     }
 
+    /**
+     * Formats the current replay singleton to a flat form for storage.
+     * @return returns the flat version of the replay
+     */
     public ReplayDataFlat turnToFlat() {
         return new ReplayDataFlat(initialGrid, initialTerrainGrid, eventHistory, initialTimeStamp,
                 initialGridToSet, playerTankID);
     }
 
+    /**
+     * Loads the given flat replay data into the singleton to be used in a replay
+     * @param flatData flat data to be loaded
+     */
     public void loadReplay(ReplayDataFlat flatData) {
         this.initialGrid = flatData.getInitialGrid();
         this.initialTerrainGrid = flatData.getInitialTerrainGrid();

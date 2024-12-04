@@ -64,10 +64,10 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     BooleanWrapper fire(@Path long playableId, @Path int playableType);
 
     @Put("/{playableId}/{playableType}/build/{entity}")
-    BooleanWrapper build(@Path long playableId, @Path int playableType, @Path String entity);
+    BooleanWrapper build(@Path("playableId") long playableId, @Path("playableType") int playableType, @Path("entity") String entity);
 
     @Put("/{playableId}/eject/0")
-    BooleanWrapper ejectSoldier(@Path long playableId);
+    BooleanWrapper ejectSoldier(@Path("playableId") long playableId);
 
     @Delete("/{playableId}/leave")
     BooleanWrapper leave(@Path long playableId);
@@ -75,8 +75,8 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
     @Get("/account/balance/{userId}")
     Double getBalance(@Path("userId") long userId) throws RestClientException;
 
-//    @Put("/account/balance/{userId}/deduct/{amount}")
-//    BooleanWrapper deductBalance(@Path("userId") long userId, @Path("amount") double amount);
+    @Put("/account/balance/{userId}/deduct/{amount}")
+    BooleanWrapper deductBalance(@Path("userId") long userId, @Path("amount") double amount);
 
     @Put("/account/balance/{userId}/deposit/{amount}")
     BooleanWrapper depositBalance(@Path("userId") long userId, @Path("amount") double amount);
@@ -89,4 +89,10 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
 
     @Get("/ping")
     String ping();
+
+    @Put("/{playableId}/repair")
+    BooleanWrapper repairPlayable(@Path long playableId);
+
+//    @Get("/{playableId}/isFacilityActive")
+//    BooleanWrapper isFacilityActive(@Path long playableId);
 }
