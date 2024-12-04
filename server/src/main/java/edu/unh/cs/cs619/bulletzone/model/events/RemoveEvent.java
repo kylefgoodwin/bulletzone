@@ -8,6 +8,9 @@ public class RemoveEvent extends GameEvent {
     @JsonProperty
     private int position;
 
+    @JsonProperty
+    private int tankID;
+
     public RemoveEvent() {}
 
     public RemoveEvent(int rawServerValue, int pos) {
@@ -25,6 +28,10 @@ public class RemoveEvent extends GameEvent {
         return "Remove " + rawServerValue +
                 " at " + position +
                 super.toString();
+    }
+
+    public void setTankID(int tankID) {
+        this.tankID = tankID;
     }
 
 }

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 
+import edu.unh.cs.cs619.bulletzone.PlayerData;
+
 public class MoveEvent extends GameEvent implements Serializable {
     @JsonProperty
     private int rawServerValue;
@@ -14,14 +16,19 @@ public class MoveEvent extends GameEvent implements Serializable {
     @JsonProperty
     private int newPosition;
 
+    @JsonProperty
+    private int tankID;
+
     private static final long serialVersionUID = 1L;
 
     public MoveEvent() {}
 
     @Override
     void applyTo(int[][] board) {
-        board[oldPosition / 16][oldPosition % 16] = 0;
-        board[newPosition / 16][newPosition % 16] = rawServerValue;
+        if (PlayerData.getPlayerData().getTankId() == tankID) {
+            board[oldPosition / 16][oldPosition % 16] = 0;
+            board[newPosition / 16][newPosition % 16] = rawServerValue;
+        }
     }
 
     @Override

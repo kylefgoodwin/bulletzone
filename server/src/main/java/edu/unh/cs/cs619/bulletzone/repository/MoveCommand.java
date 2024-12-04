@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
+import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.IllegalTransitionException;
@@ -17,6 +18,7 @@ import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
+import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TerrainUpdateEvent;
@@ -80,6 +82,25 @@ public class MoveCommand implements Command {
                 return true;
             }
         }
+        // Handle movement to empty space
+        if (!nextField.isPresent()) {
+            moveUnit(currentField, nextField, playable, direction, false);
+            playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
+            return true;
+        } // Soldier re-entry
+        else if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
+            System.out.println("Re-entry");
+            if (game.getTanks().get((playableId)).getPosition() == nextField.getPosition()) {
+                game.removeSoldier(playableId);
+                game.getTanks().get(playableId).sethasSoldier(false);
+                currentField.clearField();
+                game.getTanks().get(playableId).setLastEntryTime(millis);
+                EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
+                game.setSoldierEjected(false);
+                // This would be the place to update the health bar of the soldier to full while in tank
+                return false;
+            }
+        }
 
         // Only proceed with movement if we're facing the right direction
         if (currentDirection == direction) {
@@ -91,34 +112,34 @@ public class MoveCommand implements Command {
                 Terrain terrain = (Terrain) nextField.getTerrainEntityHolder();
                 if (playableType == 1) { // Tank
                     if (terrain.isHilly()) {
-                        moveDelay = (long)(moveDelay * 1.5);
+                        moveDelay = (long) (moveDelay * 1.5);
                     } else if (terrain.isForest()) {
                         moveDelay = moveDelay * 2;
                     }
                 } else if (playableType == 2) { // Builder
                     if (terrain.isRocky()) {
-                        moveDelay = (long)(moveDelay * 1.5);
+                        moveDelay = (long) (moveDelay * 1.5);
                     }
                     if (terrain.isForest()) {
                         return false;
                     }
                 } else if (playableType == 3) { // Soldier
                     if (terrain.isForest()) {
-                        moveDelay = (long)(moveDelay * 1.25);
+                        moveDelay = (long) (moveDelay * 1.25);
                     }
                 }
             }
 
             // Handle empty space movement
             if (!nextField.isPresent()) {
-                moveUnit(currentField, nextField, playable, direction);
+                moveUnit(currentField, nextField, playable, direction, false);
                 playable.setLastMoveTime(millis + moveDelay);
                 return true;
             }
 
             // Soldier re-entry
             if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
-                if(game.getTanks().get((playableId)).getPosition() == nextField.getPosition()){
+                if (game.getTanks().get((playableId)).getPosition() == nextField.getPosition()) {
                     game.removeSoldier(playableId);
                     game.getTanks().get(playableId).sethasSoldier(false);
                     currentField.clearField();
@@ -152,13 +173,70 @@ public class MoveCommand implements Command {
                 return true;
             }
 
-            // Handle collisions
-            if (nextField.getEntity().isWall() || nextField.getEntity().isPlayable()) {
+            // Handle wall collisions
+            else if (nextField.getEntity().isWall() || nextField.getEntity().isPlayable()) {
+                playable.setDirection(direction);
+
+                // Ram/Hit mechanic
+                Wall wall = (Wall) nextField.getEntity();
+                int wallLife = wall.getLife();
+                int playableLife = playable.getLife();
+                if (wall.getIntValue() != 1000) {
+                    if (playableType == 1) {
+                        // tank
+                        wall.hit((int) Math.ceil(playableLife * 0.1));
+                        playable.hit((int) Math.floor(wallLife * 0.16));
+                    } else if (playableType == 2) {
+                        // builder
+                        wall.hit((int) Math.ceil(playableLife * 0.3));
+                        playable.hit((int) Math.floor(wallLife * 0.04));
+                    } else if (playableType == 3) {
+                        // soldier
+                        wall.hit((int) Math.ceil(playableLife * 0.4));
+                        playable.hit((int) Math.floor(wallLife * 0.08));
+                    } // TODO: Add ship when available
+
+                    if (wall.getLife() <= 0) {
+                        game.getHolderGrid().get(wall.getPos()).clearField();
+                    }
+
+                    if (playable.getLife() <= 0) {
+                        handleRemovingPlayable(currentField);
+                    }
+                }
+
+                return false;
+            }
+            // Handle tank collisions
+            else if (nextField.getEntity().isPlayable()) { // This is broken perhaps, perhaps not?
+                playable.setDirection(direction);
+                Playable otherPlay = (Playable) nextField.getEntity();
+                int otherLife = otherPlay.getLife();
+                int playableLife = playable.getLife();
+
+                if (playableType == 1) {
+                    otherPlay.hit((int) Math.ceil(playableLife * 0.1));
+                    playable.hit((int) Math.floor(otherLife * 0.16));
+                } else if (playableType == 2) {
+                    otherPlay.hit((int) Math.ceil(playableLife * 0.3));
+                    playable.hit((int) Math.floor(otherLife * 0.04));
+                } else if (playableType == 3) {
+                    otherPlay.hit((int) Math.ceil(playableLife * 0.4));
+                    playable.hit((int) Math.floor(otherLife * 0.08));
+                }
+
+//                if (otherPlay.getLife() <= 0) {
+//                    game.getHolderGrid().get(otherPlay.getPosition()).clearField();
+//                }
+
+                if (playable.getLife() <= 0) {
+                    handleRemovingPlayable(currentField);
+                }
+
                 return false;
             }
         }
-
-        return false;
+        return false; // Not sure what to return here
     }
 
     public boolean uIUpdates(Direction direction) {
@@ -209,7 +287,9 @@ public class MoveCommand implements Command {
         return false;
     }
 
-    private boolean handleTerrainConstraints(Playable playable, Terrain t, FieldHolder currentField, FieldHolder nextField) {
+    private boolean handleTerrainConstraints (Playable playable, Terrain t, FieldHolder
+    currentField, FieldHolder nextField){
+        boolean hiddenMove = false;
         // Always emit terrain event
         TerrainUpdateEvent event = new TerrainUpdateEvent(
                 playableType,
@@ -238,26 +318,35 @@ public class MoveCommand implements Command {
             if (t.isForest() && (millis < playable.getLastMoveTime())) {
                 return false;
             }
+
+            // Create remove event and change tankID to whomever I do NOT want to remove
+            RemoveEvent remove = new RemoveEvent(playable.getIntValue(), playable.getPosition());
+            remove.setTankID((int) playableId);
+            EventBus.getDefault().post(remove);
+
+            hiddenMove = true;
         }
+        moveUnit(currentField, nextField, playable, direction, hiddenMove);
+        playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
 
         // If we pass timing checks, move the unit
-        moveUnit(currentField, nextField, playable, direction);
+        moveUnit(currentField, nextField, playable, direction, false);
 
         // Set appropriate delay based on terrain type
         long delay = playable.getAllowedMoveInterval();
         if (playableType == 1) { // Tank
             if (t.isHilly()) {
-                delay = (long)(delay * 1.5);
+                delay = (long) (delay * 1.5);
             } else if (t.isForest()) {
                 delay = delay * 2;
             }
         } else if (playableType == 2) { // Builder
             if (t.isRocky()) {
-                delay = (long)(delay * 1.5);
+                delay = (long) (delay * 1.5);
             }
         } else if (playableType == 3) { // Soldier
             if (t.isForest()) {
-                delay = (long)(delay * 1.25);
+                delay = (long) (delay * 1.25);
             }
         }
 
@@ -265,6 +354,13 @@ public class MoveCommand implements Command {
         return true;
     }
 
+
+
+    /**
+     * Handle pickup of items
+     * @param item Item being picked up
+     * @param playable playable picking up the item
+     */
     private void handleItemPickup(Item item, Playable playable) {
         BankAccount balance = game.getBankAccount(playableId);
         switch (item.getType()) {
@@ -293,15 +389,43 @@ public class MoveCommand implements Command {
         }
     }
 
-    private void moveUnit(FieldHolder currentField, FieldHolder nextField, Playable playable, Direction direction) {
+    /**
+     * Move unit from one field to another
+     * @param currentField Current position
+     * @param nextField Target position
+     * @param playable playable to move
+     * @param direction Direction of movement
+     */
+    private void moveUnit(FieldHolder currentField, FieldHolder nextField, Playable playable, Direction direction, boolean hiddenMove) {
         int oldPos = playable.getPosition();
         currentField.clearField();
         nextField.setFieldEntity(playable);
         playable.setParent(nextField);
         playable.setDirection(direction);
+
+        if (hiddenMove) {
+            MoveEvent move = new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition());
+            move.setTankID((int) playableId);
+            EventBus.getDefault().post(move);
+        } else {
+            EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
+        }
         EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
         EventBus.getDefault().post(new UIUpdateEvent(uIUpdates(Direction.Up), uIUpdates(Direction.Down),
                 uIUpdates(Direction.Left), uIUpdates(Direction.Right)));
+    }
+
+    public void handleRemovingPlayable(FieldHolder currentField){
+        playable.getParent().clearField();
+        playable.setParent(new FieldHolder(currentField.getPosition()));
+        if (playableType == 1){
+            game.removeTank(playable.getId());
+        } else if (playableType == 2){
+            game.removeBuilder(playable.getId());
+        } else if (playableType == 3){
+            game.removeSoldier(playable.getId());
+            game.getTanks().get(playable.getId()).sethasSoldier(false);
+        }
     }
 
     @Override
