@@ -4,6 +4,7 @@ import static java.lang.Thread.sleep;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -165,6 +166,8 @@ public class ClientActivity extends Activity {
 
     FileHelper fileHelper;
 
+    MediaPlayer mediaPlayer;
+
     private long playableId = -1;
     private int playableType = 1;
     private int improvementType = 0;
@@ -212,6 +215,10 @@ public class ClientActivity extends Activity {
         shakeDriver = new ClientActivityShakeDriver(this, () -> onButtonFire());
         processedItemEvents = new HashSet<>();
         processedEventIds = new HashSet<>();
+
+        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.goblin_march_song);
+        mediaPlayer.start();
+        mediaPlayer.setLooping(true);
     }
 
     @Override
@@ -223,6 +230,8 @@ public class ClientActivity extends Activity {
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this);
         }
+
+        mediaPlayer.stop();
 
         clientController.updateReplays(getApplicationContext());
 
