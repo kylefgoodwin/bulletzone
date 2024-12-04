@@ -21,6 +21,7 @@ import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TerrainUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TurnEvent;
+import edu.unh.cs.cs619.bulletzone.model.events.UIUpdateEvent;
 
 public class MoveCommand implements Command {
     private static final Logger log = LoggerFactory.getLogger(MoveCommand.class);
@@ -160,6 +161,54 @@ public class MoveCommand implements Command {
         return false;
     }
 
+    public boolean uIUpdates(Direction direction) {
+
+        Direction currentDirection = direction;
+        FieldHolder currentField = playable.getParent();
+        FieldHolder nextField = currentField.getNeighbor(direction);
+        checkNotNull(currentField.getNeighbor(direction), "Neighbor is not available");
+
+        // Handle turning first
+        if (currentDirection != direction) {
+            // For opposite and perpendicular directions
+            if ((currentDirection == Direction.Up && (direction == Direction.Down || direction == Direction.Left || direction == Direction.Right)) ||
+                    (currentDirection == Direction.Down && (direction == Direction.Up || direction == Direction.Left || direction == Direction.Right)) ||
+                    (currentDirection == Direction.Left && (direction == Direction.Right || direction == Direction.Up || direction == Direction.Down)) ||
+                    (currentDirection == Direction.Right && (direction == Direction.Left || direction == Direction.Up || direction == Direction.Down))) {
+                // Don't update lastMoveTime for rotations
+                return true;
+            }
+        }
+
+        // Only proceed with movement if we're facing the right direction
+        if (currentDirection == direction) {
+            // Calculate base movement delay
+
+            // Handle empty space movement
+            if (!nextField.isPresent()) {
+                return true;
+            }
+
+            // Soldier re-entry
+            if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
+                if(game.getTanks().get((playableId)).getPosition() == nextField.getPosition()){
+                    return true;
+                }
+            }
+
+            // Handle item pickup
+            if (nextField.getEntity().isItem()) {
+                return true;
+            }
+
+            // Handle collisions
+            if (nextField.getEntity().isWall() || nextField.getEntity().isPlayable()) {
+                return false;
+            }
+        }
+        return false;
+    }
+
     private boolean handleTerrainConstraints(Playable playable, Terrain t, FieldHolder currentField, FieldHolder nextField) {
         // Always emit terrain event
         TerrainUpdateEvent event = new TerrainUpdateEvent(
@@ -251,6 +300,8 @@ public class MoveCommand implements Command {
         playable.setParent(nextField);
         playable.setDirection(direction);
         EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
+        EventBus.getDefault().post(new UIUpdateEvent(uIUpdates(Direction.Up), uIUpdates(Direction.Down),
+                uIUpdates(Direction.Left), uIUpdates(Direction.Right)));
     }
 
     @Override

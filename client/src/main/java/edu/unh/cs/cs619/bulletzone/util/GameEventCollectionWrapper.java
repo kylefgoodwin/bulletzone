@@ -14,6 +14,7 @@ import edu.unh.cs.cs619.bulletzone.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.events.SpawnEvent;
 import edu.unh.cs.cs619.bulletzone.events.TerrainUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.events.TurnEvent;
+import edu.unh.cs.cs619.bulletzone.events.UIUpdateEvent;
 
 public class GameEventCollectionWrapper {
     @JsonTypeInfo(
@@ -28,7 +29,8 @@ public class GameEventCollectionWrapper {
             @JsonSubTypes.Type(value = RemoveEvent.class, name = "remove"),
             @JsonSubTypes.Type(value = SpawnEvent.class, name = "spawn"),
             @JsonSubTypes.Type(value = TurnEvent.class, name = "turn"),
-            @JsonSubTypes.Type(value = TerrainUpdateEvent.class, name = "terrain")
+            @JsonSubTypes.Type(value = TerrainUpdateEvent.class, name = "terrain"),
+            @JsonSubTypes.Type(value = UIUpdateEvent.class, name = "UI")
     })
     private Collection<GameEvent> events;
 

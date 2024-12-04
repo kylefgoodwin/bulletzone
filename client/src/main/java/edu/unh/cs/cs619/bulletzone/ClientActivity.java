@@ -48,6 +48,7 @@ import edu.unh.cs.cs619.bulletzone.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
 import edu.unh.cs.cs619.bulletzone.events.TerrainUpdateEvent;
+import edu.unh.cs.cs619.bulletzone.events.UIUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
 import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
 import edu.unh.cs.cs619.bulletzone.util.ClientActivityShakeDriver;
@@ -120,6 +121,18 @@ public class ClientActivity extends Activity {
     protected Button buttonEjectSoldier;
 
     @ViewById
+    protected Button buttonUp;
+
+    @ViewById
+    protected Button buttonDown;
+
+    @ViewById
+    protected Button buttonLeft;
+
+    @ViewById
+    protected Button buttonRight;
+
+    @ViewById
     protected ProgressView shieldHealthBar;
 
     @ViewById
@@ -156,6 +169,7 @@ public class ClientActivity extends Activity {
     private int playableType = 1;
     private int improvementType = 0;
     private long userId = -1;
+
     private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier"));
     private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility"));
     private long lastEventTimestamp = 0;
@@ -166,6 +180,8 @@ public class ClientActivity extends Activity {
     private Runnable repairKitUpdateRunnable;
     private Handler repairKitHealingHandler = new Handler(Looper.getMainLooper());
     private Runnable repairKitHealingRunnable;
+
+
 
     // For testing purposes only
     @VisibleForTesting
@@ -575,6 +591,7 @@ public class ClientActivity extends Activity {
         @Click(R.id.buttonEjectSoldier)
     protected void onButtonEjectSoldier() {
         clientController.ejectSoldierAsync(playableId);
+        buttonEjectSoldier.setEnabled(false);
 //        playerData.setSoldierEjected(true);
     }
 
@@ -937,6 +954,15 @@ public class ClientActivity extends Activity {
                 handleRepairKitHealing(); // Start the healing process
                 break;
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void updateUIOnMove(UIUpdateEvent event) {
+        Log.d(TAG, "Updating UI based on most recent move: " + event.toString());
+        buttonUp.setEnabled(event.getCanMoveUp());
+        buttonDown.setEnabled(event.getCanMoveDown());
+        buttonLeft.setEnabled(event.getCanMoveLeft());
+        buttonRight.setEnabled(event.getCanMoveRight());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

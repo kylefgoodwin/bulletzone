@@ -4,9 +4,12 @@ import android.util.Log;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
+import java.io.Serializable;
+
 @JsonTypeName("terrain")
-public class TerrainUpdateEvent extends GameEvent {
+public class TerrainUpdateEvent extends GameEvent implements Serializable {
     private static final String TAG = "TerrainUpdateEvent";
+    private static final long serialVersionUID = 1L;
 
     @JsonProperty("type")
     private int playableType;
