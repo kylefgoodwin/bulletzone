@@ -279,10 +279,14 @@ public class MoveCommand implements Command {
                 return true;
             }
 
-            // Handle collisions
-            if (nextField.getEntity().isWall() || nextField.getEntity().isPlayable()) {
+            if (nextField.getEntity().isIndestructibleWall()) {
                 return false;
+            } else if (nextField.getEntity().isWall() || nextField.getEntity().isPlayable() ||
+                        nextField.getEntity().isMiningFacility()) {
+                    return true;
             }
+
+
         }
         return false;
     }
@@ -410,7 +414,6 @@ public class MoveCommand implements Command {
         } else {
             EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
         }
-        EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
         EventBus.getDefault().post(new UIUpdateEvent(uIUpdates(Direction.Up), uIUpdates(Direction.Down),
                 uIUpdates(Direction.Left), uIUpdates(Direction.Right)));
     }
