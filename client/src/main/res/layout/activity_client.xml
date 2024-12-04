@@ -16,6 +16,7 @@
         android:id="@+id/LinearLayoutDisplay"
         android:layout_width="509dp"
         android:layout_height="match_parent"
+        android:background="#95C462"
         android:orientation="vertical"
         android:padding="8dp">
 
@@ -43,7 +44,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
-            android:background="#F5F5F5"
+            android:background="#BED9A1"
             android:orientation="vertical"
             android:padding="8dp">
 
@@ -146,13 +147,14 @@
         <!-- GridView for the game board -->
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:background="#95C462">
 
             <GridView
                 android:id="@+id/tGridView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#FFFFFF"
+                android:background="#95C462"
                 android:numColumns="16"
                 tools:listitem="@layout/field_item" />
 

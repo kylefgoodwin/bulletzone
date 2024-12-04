@@ -49,7 +49,7 @@ public abstract class FieldEntity {
 
     public boolean isMiningFacility(){return getIntValue() == 920;}
 
-    public boolean isIndestructibleWall(){return getIntValue() == Integer.MAX_VALUE;}
+    public boolean isIndestructibleWall(){return getIntValue() == 1000;}
 }
 
     /*public static final void registerEventBusListener(Object listener) {
