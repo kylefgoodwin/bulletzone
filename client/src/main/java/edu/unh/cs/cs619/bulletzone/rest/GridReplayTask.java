@@ -15,6 +15,12 @@ import edu.unh.cs.cs619.bulletzone.events.UpdateBoardEvent;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
 import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
+/**
+ * Made by Alec Rydeen
+ *
+ * Class to emulate the running of a game, to replay the game in a replay instance.
+ * Uses data from the ReplayData singleton to simulate events being passed at intervals.
+ */
 @EBean
 public class GridReplayTask {
     private static final String TAG = "GridReplayTask";
@@ -30,6 +36,10 @@ public class GridReplayTask {
 
     private EventBus eventBus = EventBus.getDefault();
 
+    /**
+     * Function to set the initial grids, event processor, and set the initial board.
+     * @param eventProcessor the event processor to be used.
+     */
     public void startReplay(ReplayEventProcessor eventProcessor) {
         currentProcessor = eventProcessor;
 
@@ -59,6 +69,10 @@ public class GridReplayTask {
         speed = value;
     }
 
+    /**
+     * The function to emulate the use of doPoll, gets the events from replayData, and waits
+     * for an amount of milliseconds to simulate time passing between events
+     */
     @Background(id = "grid_replay_task")
     public void doReplay() {
         try {

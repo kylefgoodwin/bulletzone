@@ -187,21 +187,21 @@ public class GridAdapter extends BaseAdapter {
                  if (playerCell.getCellType().equals("Tank")) {
                     int tankIdTest = (playerCell.getRawValue() / 10000) - 1000;
                     if (tankIdTest == this.tankId) {
-                        imageView.setImageResource(R.drawable.trans_goblin);
+                        imageView.setImageResource(R.drawable.goblin_rider_player);
                     } else { // Else set it to what it should be
                         imageView.setImageResource(playerCell.getResourceID());
                     }
                 } else if (playerCell.getCellType().equals("Builder")) {
                     int builderIdTest = (playerCell.getRawValue() / 10000) - 1000;
                     if (builderIdTest == this.tankId) {
-                        imageView.setImageResource(R.drawable.trans_builder_player);
+                        imageView.setImageResource(R.drawable.goblin_builder_player);
                     } else {
                         imageView.setImageResource(playerCell.getResourceID());
                     }
                 } else if (playerCell.getCellType().equals("Soldier")) {
                      int soldierIdTest = (playerCell.getRawValue() / 10000) - 1000;
                      if (soldierIdTest == this.tankId) {
-                         imageView.setImageResource(R.drawable.soldier_player);
+                         imageView.setImageResource(R.drawable.goblin_soldier_player);
                      } else {
                          imageView.setImageResource(playerCell.getResourceID());
                      }
