@@ -95,6 +95,51 @@
                 android:textStyle="italic"
                 android:layout_marginTop="4dp"/>
 
+            <!-- Shield and Repair Kit Status -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp">
+
+                <!-- Shield Health Bar -->
+                <com.skydoves.progressview.ProgressView
+                    android:id="@+id/shieldHealthBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="25dp"
+                    app:progressView_colorBackground="@color/blue"
+                    app:progressView_colorProgress="@color/light_blue"
+                    app:progressView_labelColorInner="@color/black"
+                    app:progressView_labelColorOuter="@color/blue"
+                    app:progressView_labelSize="16sp"
+                    app:progressView_labelSpace="10dp"
+                    app:progressView_labelText="Shield: 50/50"
+                    app:progressView_labelTypeface="bold"
+                    app:progressView_max="50"
+                    app:progressView_padding="1dp"
+                    app:progressView_progress="50"
+                    app:progressView_progressFromPrevious="true"
+                    app:progressView_radius="12dp"
+                    android:visibility="gone"/>
+
+                <!-- Repair Kit Status -->
+                <TextView
+                    android:id="@+id/repairKitStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Repair Kit: Not Active"
+                    android:textColor="#FF9800"
+                    android:layout_marginTop="4dp"
+                    android:visibility="gone"/>
+
+                <TextView
+                    android:id="@+id/repairKitTimer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Time Remaining: --:--"
+                    android:textColor="#FF9800"
+                    android:visibility="gone"/>
+            </LinearLayout>
         </LinearLayout>
 
         <!-- GridView for the game board -->
@@ -108,8 +153,7 @@
                 android:layout_height="match_parent"
                 android:background="#FFFFFF"
                 android:numColumns="16"
-                tools:listitem="@layout/field_item">
-            </GridView>
+                tools:listitem="@layout/field_item"/>
 
             <GridView
                 android:id="@+id/gridView"
@@ -117,12 +161,9 @@
                 android:layout_height="match_parent"
                 android:background="@android:color/transparent"
                 android:numColumns="16"
-                tools:listitem="@layout/field_item">
-            </GridView>
+                tools:listitem="@layout/field_item"/>
 
         </FrameLayout>
-
-
     </LinearLayout>
 
     <!-- Right Panel: Controls -->
@@ -138,8 +179,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
             android:orientation="horizontal"
+            android:gravity="center_horizontal"
             android:paddingBottom="8dp">
 
             <Button
@@ -172,9 +213,9 @@
             app:progressView_colorProgress="@color/red"
             app:progressView_labelColorInner="@color/black"
             app:progressView_labelColorOuter="@color/red"
-            app:progressView_labelSize="13sp"
+            app:progressView_labelSize="16sp"
             app:progressView_labelSpace="10dp"
-            app:progressView_labelText="Tank Health"
+            app:progressView_labelText="Tank Health: 100/100"
             app:progressView_labelTypeface="bold"
             app:progressView_max="100"
             app:progressView_padding="1dp"
@@ -190,9 +231,9 @@
             app:progressView_colorProgress="@color/red"
             app:progressView_labelColorInner="@color/black"
             app:progressView_labelColorOuter="@color/red"
-            app:progressView_labelSize="13sp"
+            app:progressView_labelSize="16sp"
             app:progressView_labelSpace="10dp"
-            app:progressView_labelText="Builder Health"
+            app:progressView_labelText="Builder Health: 80/80"
             app:progressView_labelTypeface="bold"
             app:progressView_max="80"
             app:progressView_padding="1dp"
@@ -208,9 +249,9 @@
             app:progressView_colorProgress="@color/red"
             app:progressView_labelColorInner="@color/black"
             app:progressView_labelColorOuter="@color/red"
-            app:progressView_labelSize="13sp"
+            app:progressView_labelSize="16sp"
             app:progressView_labelSpace="10dp"
-            app:progressView_labelText="Soldier Health"
+            app:progressView_labelText="Soldier Health: 25/25"
             app:progressView_labelTypeface="bold"
             app:progressView_max="25"
             app:progressView_padding="1dp"
@@ -218,11 +259,22 @@
             app:progressView_progressFromPrevious="true"
             app:progressView_radius="12dp" />
 
-        <!-- Movement Controls -->
-
-        <!-- Eject Power-up Button -->
-
         <!-- Status Messages -->
+        <TextView
+            android:id="@+id/statusTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="#FF0000"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:id="@+id/eventBusStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#FF0000"
+            android:layout_gravity="center"/>
 
         <Spinner
             android:id="@+id/selectPlayable"
@@ -242,7 +294,6 @@
             android:layout_marginTop="16dp"
             android:text="Eject Power-up" />
 
-        <!-- Toggle Button for Units -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -282,16 +333,9 @@
                     android:text="@string/right" />
             </LinearLayout>
 
-            <Button
-                android:id="@+id/buttonFire"
-                android:layout_width="136dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:baselineAligned="false"
-                android:text="FIRE" />
-
         </LinearLayout>
 
+        <!-- Toggle Button for Units -->
         <Button
             android:id="@+id/buttonEjectSoldier"
             android:layout_width="wrap_content"
@@ -299,25 +343,36 @@
             android:text="@string/ejectsoldier" />
 
         <!-- Build or Dismantle Button -->
-
-
         <Button
             android:id="@+id/buttonBuild"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/build" />
+            android:text="@string/build"
+            android:layout_marginTop="8dp" />
 
         <!-- Build or Dismantle Button -->
         <Button
             android:id="@+id/buttonDismantle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/dismantle" />
+            android:text="@string/dismantle"
+            android:layout_marginTop="8dp" />
 
-        <!-- Eject Power-up Button -->
+        <!-- Fire Button -->
+        <Button
+            android:id="@+id/buttonFire"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="FIRE" />
+
+        <Button
+            android:id="@+id/buttonSellPowerUps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Sell Power-ups"
+            android:layout_marginTop="8dp" />
 
     </LinearLayout>
-
 </LinearLayout>

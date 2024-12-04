@@ -42,4 +42,7 @@ public interface GameRepository {
 
     public void leave(long playableId)
             throws TankDoesNotExistException;
+
+    boolean repair(long playableId)
+            throws TankDoesNotExistException;
 }

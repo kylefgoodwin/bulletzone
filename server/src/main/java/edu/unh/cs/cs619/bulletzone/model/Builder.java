@@ -57,12 +57,17 @@ public class Builder extends Playable {
 
     @Override
     public void hit(int damage) {
-        life -= damage;
+        int finalDamage = powerUpManager.processDamage(damage);
+        life -= finalDamage;
         if (life <= 0) {
             //handle game over scenario
         }
-        System.out.println("Builder id: " + id + " Builder Life: " + life);
-        EventBus.getDefault().post(new HitEvent((int) id, 2));
+        EventBus.getDefault().post(new HitEvent(
+                (int) id,
+                2,
+                powerUpManager.getShieldHealth(),
+                finalDamage
+        ));
     }
 
     @JsonIgnore
