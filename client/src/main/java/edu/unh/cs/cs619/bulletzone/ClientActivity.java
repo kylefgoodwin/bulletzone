@@ -1,7 +1,6 @@
 package edu.unh.cs.cs619.bulletzone;
 
 import static java.lang.Thread.sleep;
-import static java.sql.Types.NULL;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -14,41 +13,45 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
-import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Spinner;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import org.androidannotations.annotations.*;
-import org.androidannotations.rest.spring.annotations.RestService;
-import org.androidannotations.api.BackgroundExecutor;
-
-import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
-import edu.unh.cs.cs619.bulletzone.events.HitEvent;
-import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
-import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
-import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
-import edu.unh.cs.cs619.bulletzone.rest.BulletZoneRestClient;
-import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
-import edu.unh.cs.cs619.bulletzone.ui.GridAdapter;
-import edu.unh.cs.cs619.bulletzone.util.ClientActivityShakeDriver;
-import edu.unh.cs.cs619.bulletzone.util.FileHelper;
-import edu.unh.cs.cs619.bulletzone.util.ReplayData;
-import edu.unh.cs.cs619.bulletzone.util.ReplayDataFlat;
 
 import androidx.annotation.VisibleForTesting;
 
 import com.skydoves.progressview.ProgressView;
 
+import org.androidannotations.annotations.AfterInject;
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.Bean;
+import org.androidannotations.annotations.Click;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.ItemSelect;
+import org.androidannotations.annotations.NonConfigurationInstance;
+import org.androidannotations.annotations.UiThread;
+import org.androidannotations.annotations.ViewById;
+import org.androidannotations.api.BackgroundExecutor;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
+
+import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
+import edu.unh.cs.cs619.bulletzone.events.HitEvent;
+import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
+import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
+import edu.unh.cs.cs619.bulletzone.events.TerrainUpdateEvent;
+import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
+import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
+import edu.unh.cs.cs619.bulletzone.util.ClientActivityShakeDriver;
+import edu.unh.cs.cs619.bulletzone.util.FileHelper;
+import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
 @EActivity(R.layout.activity_client)
 public class ClientActivity extends Activity {
@@ -61,7 +64,8 @@ public class ClientActivity extends Activity {
     @ViewById
     protected ProgressView tankHealthBar;
 
-    @ViewById ProgressView soldierHealthBar;
+    @ViewById
+    ProgressView soldierHealthBar;
 
     @ViewById
     protected ProgressView builderHealthBar;
@@ -105,6 +109,15 @@ public class ClientActivity extends Activity {
     @ViewById
     protected Spinner selectImprovement;
 
+    @ViewById
+    protected ProgressView shieldHealthBar;
+
+    @ViewById
+    protected TextView repairKitStatus;
+
+    @ViewById
+    protected TextView repairKitTimer;
+
     @NonConfigurationInstance
     @Bean
     GridPollerTask gridPollTask;
@@ -138,6 +151,11 @@ public class ClientActivity extends Activity {
     private long lastEventTimestamp = 0;
     private Set<Long> processedItemEvents = new HashSet<>();
     private Set<Long> processedEventIds = new HashSet<>();
+    private Handler repairKitHandler = new Handler(Looper.getMainLooper());
+    private long repairKitEndTime = 0;
+    private Runnable repairKitUpdateRunnable;
+    private Handler repairKitHealingHandler = new Handler(Looper.getMainLooper());
+    private Runnable repairKitHealingRunnable;
 
     // For testing purposes only
     @VisibleForTesting
@@ -173,6 +191,8 @@ public class ClientActivity extends Activity {
     @Override
     protected void onDestroy() {
         Log.d(TAG, "onDestroy called");
+
+        stopRepairKitTimer();
 
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this);
@@ -214,6 +234,20 @@ public class ClientActivity extends Activity {
             userIdTextView.setText("User ID: Not logged in");
             updateBalanceUI(null);
         }
+
+        // Initialize health bars with labels
+        tankHealthBar.setProgress(100);
+        tankHealthBar.setLabelText("Tank Health: 100/100");
+
+        builderHealthBar.setProgress(80);
+        builderHealthBar.setLabelText("Builder Health: 80/80");
+
+        soldierHealthBar.setProgress(25);
+        soldierHealthBar.setLabelText("Soldier Health: 25/25");
+
+        shieldHealthBar.setProgress(0);
+        shieldHealthBar.setLabelText("Shield: 0/50");
+        shieldHealthBar.setVisibility(View.GONE);
 
         playerData.resetPowerUps();
         updateStatsDisplay();
@@ -278,6 +312,25 @@ public class ClientActivity extends Activity {
     protected void updateStatsDisplay() {
         Log.d(TAG, "Updating stats - Move: " + playerData.getMoveInterval() + "ms, Fire: " + playerData.getFireInterval() + "ms");
 
+        // Update tank health display
+        if (tankHealthBar != null) {
+            tankHealthBar.setProgress(playerData.getTankLife());
+            tankHealthBar.setLabelText(String.format("Tank Health: %d/100", playerData.getTankLife()));
+        }
+
+        // Update builder health display
+        if (builderHealthBar != null) {
+            builderHealthBar.setProgress(playerData.getBuilderLife());
+            builderHealthBar.setLabelText(String.format("Builder Health: %d/80", playerData.getBuilderLife()));
+        }
+
+        // Update soldier health display
+        if (soldierHealthBar != null) {
+            soldierHealthBar.setProgress(playerData.getSoldierLife());
+            soldierHealthBar.setLabelText(String.format("Soldier Health: %d/25", playerData.getSoldierLife()));
+        }
+
+        // Update movement and fire rate displays
         if (movementSpeedText != null) {
             movementSpeedText.setText("Movement Speed: " + playerData.getMoveInterval() + "ms");
         }
@@ -285,6 +338,34 @@ public class ClientActivity extends Activity {
             fireRateText.setText("Fire Rate: " + playerData.getFireInterval() + "ms");
         }
 
+        // Update shield visibility and status
+        if (shieldHealthBar != null) {
+            int shieldCount = playerData.getDeflectorShieldCount();
+            if (shieldCount > 0) {
+                shieldHealthBar.setVisibility(View.VISIBLE);
+                shieldHealthBar.setProgress(playerData.getShieldHealth());
+                shieldHealthBar.setLabelText(String.format("Shield: %d/50", playerData.getShieldHealth()));
+            } else {
+                shieldHealthBar.setVisibility(View.GONE);
+            }
+        }
+
+        // Update repair kit status
+        if (repairKitStatus != null && repairKitTimer != null) {
+            int repairKitCount = playerData.getRepairKitCount();
+            if (repairKitCount > 0) {
+                repairKitStatus.setVisibility(View.VISIBLE);
+                repairKitTimer.setVisibility(View.VISIBLE);
+                repairKitStatus.setText("Repair Kit: Active");
+                updateRepairKitTimer();
+            } else {
+                repairKitStatus.setVisibility(View.GONE);
+                repairKitTimer.setVisibility(View.GONE);
+                stopRepairKitTimer();
+            }
+        }
+
+        // Update active effects display
         if (activeEffects != null) {
             StringBuilder effects = new StringBuilder();
             int powerUps = playerData.getActivePowerUps();
@@ -294,6 +375,8 @@ public class ClientActivity extends Activity {
             if (powerUps > 0) {
                 int antiGravCount = playerData.getAntiGravCount();
                 int fusionCount = playerData.getFusionReactorCount();
+                int shieldCount = playerData.getDeflectorShieldCount();
+                int repairKitCount = playerData.getRepairKitCount();
 
                 if (antiGravCount > 0) {
                     effects.append("• Anti-Grav (").append(antiGravCount).append(")\n");
@@ -301,10 +384,63 @@ public class ClientActivity extends Activity {
                 if (fusionCount > 0) {
                     effects.append("• Fusion Reactor (").append(fusionCount).append(")\n");
                 }
+                if (shieldCount > 0) {
+                    effects.append("• Deflector Shield (").append(shieldCount).append(") - Absorbs damage\n");
+                }
+                if (repairKitCount > 0) {
+                    effects.append("• Repair Kit (").append(repairKitCount).append(") - Auto-healing\n");
+                }
                 activeEffects.setText(effects.toString().trim());
             } else {
                 activeEffects.setText("None");
             }
+        }
+
+        // Force UI updates using post instead of runOnUiThread
+        if (tankHealthBar != null) tankHealthBar.post(() -> tankHealthBar.invalidate());
+        if (builderHealthBar != null) builderHealthBar.post(() -> builderHealthBar.invalidate());
+        if (soldierHealthBar != null) soldierHealthBar.post(() -> soldierHealthBar.invalidate());
+        if (shieldHealthBar != null) shieldHealthBar.post(() -> shieldHealthBar.invalidate());
+    }
+
+    private void updateRepairKitTimer() {
+        if (repairKitUpdateRunnable != null) {
+            repairKitHandler.removeCallbacks(repairKitUpdateRunnable);
+        }
+
+        repairKitUpdateRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (repairKitTimer != null) {
+                    long currentTime = System.currentTimeMillis();
+                    long timeRemaining = repairKitEndTime - currentTime;
+
+                    if (timeRemaining > 0) {
+                        int seconds = (int) (timeRemaining / 1000);
+                        int minutes = seconds / 60;
+                        seconds = seconds % 60;
+                        repairKitTimer.setText(String.format("Time Remaining: %02d:%02d", minutes, seconds));
+                        repairKitHandler.postDelayed(this, 1000);
+                    } else {
+                        repairKitTimer.setText("Time Remaining: 00:00");
+                        playerData.decrementPowerUps(5); // Remove repair kit
+                        updateStatsDisplay();
+                    }
+                }
+            }
+        };
+
+        repairKitHandler.post(repairKitUpdateRunnable);
+    }
+
+    private void stopRepairKitTimer() {
+        if (repairKitUpdateRunnable != null) {
+            repairKitHandler.removeCallbacks(repairKitUpdateRunnable);
+            repairKitUpdateRunnable = null;
+        }
+        if (repairKitHealingRunnable != null) {
+            repairKitHealingHandler.removeCallbacks(repairKitHealingRunnable);
+            repairKitHealingRunnable = null;
         }
     }
 
@@ -322,12 +458,12 @@ public class ClientActivity extends Activity {
     @ItemSelect({R.id.selectPlayable})
     protected void onPlayableSelect(boolean checked, int position) {
         Log.d(TAG, "Spinner position = " + position);
-        playableType = position+1;
+        playableType = position + 1;
     }
 
     @ItemSelect({R.id.selectImprovement})
-    protected void onBuildSelect(boolean checked, int position){
-        Log.d(TAG,"spinnerpositon = " + position);
+    protected void onBuildSelect(boolean checked, int position) {
+        Log.d(TAG, "spinnerpositon = " + position);
         improvementType = position;
     }
 
@@ -407,7 +543,7 @@ public class ClientActivity extends Activity {
         }
     }
 
-        @Click(R.id.buttonEjectSoldier)
+    @Click(R.id.buttonEjectSoldier)
     protected void onButtonEjectSoldier() {
         clientController.ejectSoldierAsync(playableId);
 //        playerData.setSoldierEjected(true);
@@ -416,9 +552,70 @@ public class ClientActivity extends Activity {
     @Click(R.id.buttonLeave)
     void leaveGame() {
         Log.d(TAG, "leaveGame() called, tank ID: " + playableId);
+
+        // Sell all power-ups before leaving
+        sellAllPowerUps();
+
         BackgroundExecutor.cancelAll("grid_poller_task", true);
         clientController.leaveGameAsync(playableId);
         leaveUI();
+    }
+
+    private void sellAllPowerUps() {
+        Random random = new Random();
+        double total = 0;  // Accumulate in this variable
+
+        // Check and sell AntiGrav power-ups
+        int antiGravCount = playerData.getAntiGravCount();
+        while (antiGravCount > 0) {
+            double credit = 250 + random.nextInt(101); // 250-350 credits
+            total += credit;
+            antiGravCount--;
+        }
+
+        // Check and sell FusionReactor power-ups
+        int fusionCount = playerData.getFusionReactorCount();
+        while (fusionCount > 0) {
+            double credit = 350 + random.nextInt(101); // 350-450 credits
+            total += credit;
+            fusionCount--;
+        }
+
+        // Check and sell DeflectorShield power-ups
+        int shieldCount = playerData.getDeflectorShieldCount();
+        while (shieldCount > 0) {
+            double credit = 250 + random.nextInt(101); // 250-350 credits
+            total += credit;
+            shieldCount--;
+        }
+
+        // Check and sell RepairKit power-ups
+        int repairKitCount = playerData.getRepairKitCount();
+        while (repairKitCount > 0) {
+            double credit = 150 + random.nextInt(101); // 150-250 credits
+            total += credit;
+            repairKitCount--;
+        }
+
+        final double finalTotal = total;  // Create final variable for lambda
+
+        if (finalTotal > 0) {
+            // Add credits to user's account
+            tankEventController.addCredits(userId, finalTotal);
+
+            // Show notification with final total
+            runOnUiThread(() -> {
+                Toast.makeText(this,
+                        String.format("Sold power-ups for %.2f credits!", finalTotal),
+                        Toast.LENGTH_LONG).show();
+            });
+
+            // Update balance display
+            fetchAndUpdateBalance();
+        }
+
+        // Reset all power-ups after selling
+        playerData.resetPowerUps();
     }
 
     @Click(R.id.buttonLogin)
@@ -458,7 +655,7 @@ public class ClientActivity extends Activity {
     }
 
     @Click(R.id.buttonEject)
-    protected void onButtonEject(){
+    protected void onButtonEject() {
         clientController.ejectPowerUpAsync(playableId);
     }
 
@@ -531,21 +728,124 @@ public class ClientActivity extends Activity {
     }
 
     @Subscribe
-    public void onHitEvent(HitEvent event) throws InterruptedException {
-//        Log.d("onHitEvent", "Hit");
+    public void onHitEvent(HitEvent event) {
         if (event.getPlayableId() == playableId) {
-            clientController.getLifeAsync((int) playableId, playableType);
-            sleep(100);
-//            Log.d("onHitEvent", "tank life: " + playerData.getTankLife());
-            tankHealthBar.setProgress(playerData.getTankLife());
-            builderHealthBar.setProgress(playerData.getBuilderLife());
-            soldierHealthBar.setProgress(playerData.getSoldierLife());
+            // Remember repair kit status before health update
+            boolean hasRepairKit = playerData.getRepairKitCount() > 0;
+            long currentTime = System.currentTimeMillis();
 
-            sleep(100);
+            // Request updated health from server
+            clientController.getLifeAsync((int) playableId, event.getPlayableType());
 
-            if (playerData.getTankLife() == 0 || playerData.getSoldierLife() == 0) {
+            try {
+                Thread.sleep(100); // Brief delay to allow server response
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            // Update health bars based on event type
+            updateHealthBars(event.getPlayableType());
+
+            // Maintain repair kit status through hit
+            if (hasRepairKit && currentTime < playerData.getRepairKitExpiration()) {
+                if (playerData.getRepairKitCount() == 0) {
+                    playerData.incrementPowerUps(5);
+                }
+            }
+
+            // Update shield health if we have one
+            if (playerData.getDeflectorShieldCount() > 0) {
+                int shieldHealth = event.getShieldHealth();
+                updateShieldHealth(shieldHealth);
+            }
+
+            // Check for death
+            if (playerData.getTankLife() <= 0 ||
+                    (playerData.getSoldierLife() <= 0 && event.getPlayableType() == 3)) {
                 leaveGame();
             }
+        }
+    }
+
+    @UiThread
+    protected void updateHealthBars(int playableType) {
+        // Update tank health bar
+        if (tankHealthBar != null) {
+            int tankHealth = playerData.getTankLife();
+            tankHealthBar.setProgress(tankHealth);
+            tankHealthBar.setLabelText(String.format("Tank Health: %d/100", tankHealth));
+        }
+
+        // Update builder health bar
+        if (builderHealthBar != null) {
+            int builderHealth = playerData.getBuilderLife();
+            builderHealthBar.setProgress(builderHealth);
+            builderHealthBar.setLabelText(String.format("Builder Health: %d/80", builderHealth));
+        }
+
+        // Update soldier health bar
+        if (soldierHealthBar != null) {
+            int soldierHealth = playerData.getSoldierLife();
+            soldierHealthBar.setProgress(soldierHealth);
+            soldierHealthBar.setLabelText(String.format("Soldier Health: %d/25", soldierHealth));
+        }
+
+        // Force a UI refresh
+        runOnUiThread(() -> {
+            tankHealthBar.invalidate();
+            builderHealthBar.invalidate();
+            soldierHealthBar.invalidate();
+        });
+    }
+
+    @UiThread
+    protected void updateHealthDisplay(HitEvent event) {
+        // Update tank health display with correct value
+        int tankHealth = playerData.getTankLife();
+        tankHealthBar.setProgress(tankHealth);
+        tankHealthBar.setLabelText(String.format("Tank Health: %d/100", tankHealth));
+
+        // Handle shield display
+        int shieldHealth = event.getShieldHealth();
+        if (shieldHealth <= 5) { // If shield is critically low or depleted
+            runOnUiThread(() -> {
+                shieldHealthBar.setVisibility(View.GONE);
+                playerData.setShieldHealth(0);
+                playerData.decrementPowerUps(4);
+                updateStatsDisplay();
+            });
+        } else if (playerData.getDeflectorShieldCount() > 0) {
+            runOnUiThread(() -> {
+                shieldHealthBar.setVisibility(View.VISIBLE);
+                shieldHealthBar.setProgress(shieldHealth);
+                shieldHealthBar.setLabelText(String.format("Shield: %d/50", shieldHealth));
+                playerData.setShieldHealth(shieldHealth);
+            });
+        }
+
+        // Update other health bars
+        builderHealthBar.setProgress(playerData.getBuilderLife());
+        builderHealthBar.setLabelText(String.format("Builder Health: %d/80", playerData.getBuilderLife()));
+
+        soldierHealthBar.setProgress(playerData.getSoldierLife());
+        soldierHealthBar.setLabelText(String.format("Soldier Health: %d/25", playerData.getSoldierLife()));
+    }
+
+    @UiThread
+    protected void updateShieldHealth(int shieldHealth) {
+        if (shieldHealthBar != null) {
+            if (shieldHealth <= 5) {
+                shieldHealthBar.setVisibility(View.GONE);
+                playerData.setShieldHealth(0);
+                playerData.decrementPowerUps(4);
+                updateStatsDisplay();
+            } else {
+                shieldHealthBar.setVisibility(View.VISIBLE);
+                shieldHealthBar.setProgress(shieldHealth);
+                shieldHealthBar.setLabelText(String.format("Shield: %d/50", shieldHealth));
+                playerData.setShieldHealth(shieldHealth);
+            }
+            shieldHealthBar.invalidate();
         }
     }
 
@@ -573,37 +873,40 @@ public class ClientActivity extends Activity {
                 break;
 
             case 2: // AntiGrav
-                Log.d(TAG, "AntiGrav pickup - Current move interval: " + playerData.getMoveInterval());
                 playerData.incrementPowerUps(2);
-
-                int newMoveInterval = playerData.getMoveInterval() / 2;
-                int newFireInterval = playerData.getFireInterval() + 100;
-
-                playerData.setMoveInterval(newMoveInterval);
-                playerData.setFireInterval(newFireInterval);
-
-                Log.d(TAG, "Updated intervals - Move: " + newMoveInterval + ", Fire: " + newFireInterval);
                 updateStatsDisplay();
-
                 Toast.makeText(this, "Anti-Grav Power-up Acquired!", Toast.LENGTH_SHORT).show();
                 showPowerUpMessage("Anti-Grav activated!\nSpeed doubled! Fire rate slightly reduced");
                 break;
 
             case 3: // FusionReactor
-                Log.d(TAG, "FusionReactor pickup - Current fire interval: " + playerData.getFireInterval());
                 playerData.incrementPowerUps(3);
-
-                newFireInterval = playerData.getFireInterval() / 2;
-                newMoveInterval = playerData.getMoveInterval() + 100;
-
-                playerData.setMoveInterval(newMoveInterval);
-                playerData.setFireInterval(newFireInterval);
-
-                Log.d(TAG, "Updated intervals - Move: " + newMoveInterval + ", Fire: " + newFireInterval);
                 updateStatsDisplay();
-
                 Toast.makeText(this, "Fusion Reactor Power-up Acquired!", Toast.LENGTH_SHORT).show();
                 showPowerUpMessage("Fusion Reactor activated!\nFire rate doubled! Speed slightly reduced");
+                break;
+
+            case 4: // Deflector Shield
+                playerData.incrementPowerUps(4);
+                updateStatsDisplay();
+                Toast.makeText(this, "Deflector Shield Acquired!", Toast.LENGTH_SHORT).show();
+                showPowerUpMessage("Shield activated!\nAbsorbing 50% damage");
+                shieldHealthBar.setProgress(50);
+                shieldHealthBar.setLabelText("Shield: 50/50");
+                shieldHealthBar.setVisibility(View.VISIBLE);
+                playerData.setShieldHealth(50);
+                break;
+
+            case 5: // Repair Kit
+                playerData.incrementPowerUps(5);
+                updateStatsDisplay();
+                Toast.makeText(this, "Repair Kit Acquired!", Toast.LENGTH_SHORT).show();
+                showPowerUpMessage("Repair Kit activated!\nAuto-healing for 120 seconds");
+                repairKitEndTime = System.currentTimeMillis() + 120000; // 120 seconds
+                repairKitStatus.setVisibility(View.VISIBLE);
+                repairKitTimer.setVisibility(View.VISIBLE);
+                updateRepairKitTimer();
+                handleRepairKitHealing(); // Start the healing process
                 break;
         }
     }
@@ -645,7 +948,93 @@ public class ClientActivity extends Activity {
                     moveInterval, fireInterval);
             showPowerUpMessage(status);
         }
+        updateStatsDisplay();
+    }
 
+    private void startRepairKitHealing() {
+        if (repairKitHealingRunnable != null) {
+            repairKitHealingHandler.removeCallbacks(repairKitHealingRunnable);
+        }
+
+        repairKitHealingRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (playerData.getRepairKitCount() > 0 && playerData.getTankLife() < 100) {
+                    playerData.setTankLife(Math.min(100, playerData.getTankLife() + 1));
+                    runOnUiThread(() -> {
+                        tankHealthBar.setProgress(playerData.getTankLife());
+                        tankHealthBar.setLabelText(String.format("Tank Health: %d/100", playerData.getTankLife()));
+                    });
+                    repairKitHealingHandler.postDelayed(this, 1000); // Heal every second
+                }
+            }
+        };
+        repairKitHealingHandler.post(repairKitHealingRunnable);
+    }
+
+    private void handleRepairKitHealing() {
+        if (repairKitHealingRunnable != null) {
+            repairKitHealingHandler.removeCallbacks(repairKitHealingRunnable);
+        }
+
+        repairKitHealingRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (playerData.getRepairKitCount() > 0 && playerData.getTankLife() < 100) {
+                    // Make server-side repair request first
+                    clientController.repairAsync(playerData.getTankId());
+
+                    // Small delay to allow server response
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+
+                    // Update local health and UI
+                    int currentHealth = playerData.getTankLife();
+                    int newHealth = Math.min(100, currentHealth + 1);
+                    playerData.setTankLife(newHealth);
+
+                    runOnUiThread(() -> {
+                        if (tankHealthBar != null) {
+                            tankHealthBar.setProgress(newHealth);
+                            tankHealthBar.setLabelText(String.format("Tank Health: %d/100", newHealth));
+                            tankHealthBar.invalidate();
+                        }
+                    });
+
+                    // Schedule next healing tick if still needed
+                    if (playerData.getRepairKitCount() > 0 && newHealth < 100) {
+                        repairKitHealingHandler.postDelayed(this, 1000);
+                    }
+                }
+            }
+        };
+
+        // Start the healing immediately
+        repairKitHealingHandler.post(repairKitHealingRunnable);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onTerrainUpdate(TerrainUpdateEvent event) {
+        int playableType = event.getPlayableType();
+        Log.d(TAG, "Terrain Update Event received: Hilly: " + event.isHilly() +
+                " Forest: " + event.isForest() +
+                " Rocky: " + event.isRocky() +
+                " PlayableType: " + playableType);
+
+        // Set the playable type first
+        playerData.setCurId(playableType);
+
+        // Then update terrain state
+        playerData.setTerrainState(
+                event.isHilly(),
+                event.isForest(),
+                event.isRocky()
+        );
+
+        // Update UI
         updateStatsDisplay();
     }
 }

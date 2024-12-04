@@ -1,5 +1,7 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.greenrobot.eventbus.EventBus;
 import org.javatuples.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +11,6 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
-//import org.java.tuples.Pair; // ???
 
 import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.Bullet;
@@ -23,9 +24,6 @@ import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
-import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component
 public class InMemoryGameRepository implements GameRepository {
@@ -338,7 +336,36 @@ public class InMemoryGameRepository implements GameRepository {
             this.game = new Game();
             createFieldHolderGrid(game);
             gameBoardBuilder.setupGame(game);
+            // Spawn test items immediately
+            spawnTestPowerUps();
             startItemSpawner();
+        }
+    }
+
+    private void spawnTestPowerUps() {
+        // Spawn Deflector Shield
+        spawnSpecificItem(4);  // Shield
+        spawnSpecificItem(5);  // Repair Kit
+    }
+
+    private void spawnSpecificItem(int itemType) {
+        for (int attempts = 0; attempts < 10; attempts++) {
+            int x = random.nextInt(FIELD_DIM);
+            int y = random.nextInt(FIELD_DIM);
+            FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
+            if (!fieldElement.isPresent()) {
+                Item item = new Item(itemType);
+                fieldElement.setFieldEntity(item);
+                item.setParent(fieldElement);
+
+                System.out.println("Successfully spawned test item!");
+                System.out.println("Item type: " + itemType);
+                System.out.println("Item value: " + item.getIntValue());
+                System.out.println("Position: [" + x + "," + y + "]");
+
+                EventBus.getDefault().post(new SpawnEvent(item.getIntValue(), fieldElement.getPosition()));
+                break;
+            }
         }
     }
 
@@ -380,7 +407,6 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     private void spawnRandomItem() {
-        // Add this debug print at the start
         System.out.println("Attempting to spawn random item...");
 
         for (int attempts = 0; attempts < 10; attempts++) {
@@ -388,15 +414,15 @@ public class InMemoryGameRepository implements GameRepository {
             int y = random.nextInt(FIELD_DIM);
             FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
             if (!fieldElement.isPresent()) {
-                // Weighted random selection
-                int itemType = random.nextInt(3) + 1; // 1=Thingamajig, 2=AntiGrav, 3=FusionReactor
-                Item item = new Item(itemType);
+                // Weighted random selection with equal chances for testing
+                int rand = random.nextInt(5) + 1;  // 1-5
+
+                Item item = new Item(rand);  // Create item with type 1-5
                 fieldElement.setFieldEntity(item);
                 item.setParent(fieldElement);
 
-                // Add these debug prints
                 System.out.println("Successfully spawned item!");
-                System.out.println("Item type: " + itemType);
+                System.out.println("Item type: " + rand);
                 System.out.println("Item value: " + item.getIntValue());
                 System.out.println("Position: [" + x + "," + y + "]");
 
@@ -464,7 +490,25 @@ public class InMemoryGameRepository implements GameRepository {
             //return false;
             throw new TankDoesNotExistException(playableId);
         }
-
         return playable.getLife();
+    }
+
+    @Override
+    public boolean repair(long playableId) throws TankDoesNotExistException {
+        synchronized (this.monitor) {
+            Playable playable = game.getTanks().get(playableId);
+            if (playable == null) {
+                throw new TankDoesNotExistException(playableId);
+            }
+
+            // Only repair if health is not at maximum
+            int currentHealth = playable.getLife();
+            if (currentHealth < 100) {
+                playable.setLife(Math.min(100, currentHealth + 1));
+                return true;
+            }
+
+            return false;
+        }
     }
 }

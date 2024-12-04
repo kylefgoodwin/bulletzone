@@ -38,8 +38,9 @@ public abstract class FieldEntity {
         return getIntValue() >= 4000 && getIntValue() <= 4003;
     }
 
-    public boolean isItem(){
-        return getIntValue() >= 3001 && getIntValue() <= 3003;
+    public boolean isItem() {
+        int value = getIntValue();
+        return value >= 3001 && value <= 3005;  // Updated range to include all power-ups
     }
 
     public boolean isPlayable(){

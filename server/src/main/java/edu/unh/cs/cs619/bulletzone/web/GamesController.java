@@ -167,4 +167,14 @@ class GamesController {
                 HttpStatus.OK
         );
     }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/repair", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    ResponseEntity<BooleanWrapper> repairPlayable(@PathVariable long playableId)
+            throws TankDoesNotExistException {
+        return new ResponseEntity<BooleanWrapper>(
+                new BooleanWrapper(gameRepository.repair(playableId)),
+                HttpStatus.OK
+        );
+    }
 }
