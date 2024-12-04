@@ -96,6 +96,7 @@ public class MoveCommand implements Command {
                 game.getTanks().get(playableId).setLastEntryTime(millis);
                 EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
                 game.setSoldierEjected(false);
+                // This would be the place to update the health bar of the soldier to full while in tank
                 return false;
             }
         }
@@ -172,7 +173,7 @@ public class MoveCommand implements Command {
             }
 
             // Handle wall collisions
-            else if (nextField.getEntity().isWall()) {
+            else if (nextField.getEntity().isWall() || nextField.getEntity().isPlayable()) {
                 playable.setDirection(direction);
 
                 // Ram/Hit mechanic
@@ -206,13 +207,35 @@ public class MoveCommand implements Command {
                 return false;
             }
             // Handle tank collisions
-            else if (nextField.getEntity().isPlayable()) {
+            else if (nextField.getEntity().isPlayable()) { // This is broken perhaps, perhaps not?
                 playable.setDirection(direction);
-                // TODO: Add ram mechanic here as well for playable collisions
+                Playable otherPlay = (Playable) nextField.getEntity();
+                int otherLife = otherPlay.getLife();
+                int playableLife = playable.getLife();
+
+                if (playableType == 1) {
+                    otherPlay.hit((int) Math.ceil(playableLife * 0.1));
+                    playable.hit((int) Math.floor(otherLife * 0.16));
+                } else if (playableType == 2) {
+                    otherPlay.hit((int) Math.ceil(playableLife * 0.3));
+                    playable.hit((int) Math.floor(otherLife * 0.04));
+                } else if (playableType == 3) {
+                    otherPlay.hit((int) Math.ceil(playableLife * 0.4));
+                    playable.hit((int) Math.floor(otherLife * 0.08));
+                }
+
+//                if (otherPlay.getLife() <= 0) {
+//                    game.getHolderGrid().get(otherPlay.getPosition()).clearField();
+//                }
+
+                if (playable.getLife() <= 0) {
+                    handleRemovingPlayable(currentField);
+                }
+
                 return false;
             }
         }
-        return false;
+        return false; // Not sure what to return here
     }
 
     private boolean handleTerrainConstraints (Playable playable, Terrain t, FieldHolder
