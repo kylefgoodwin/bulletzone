@@ -13,6 +13,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -104,6 +105,15 @@ public class ClientActivity extends Activity {
 
     @ViewById
     protected Spinner selectImprovement;
+
+    @ViewById
+    protected Button buttonBuild;
+
+    @ViewById
+    protected Button buttonDismantle;
+
+    @ViewById
+    protected Button buttonEjectSoldier;
 
     @NonConfigurationInstance
     @Bean
@@ -323,6 +333,24 @@ public class ClientActivity extends Activity {
     protected void onPlayableSelect(boolean checked, int position) {
         Log.d(TAG, "Spinner position = " + position);
         playableType = position+1;
+
+        // Logic block to enable / disable buttons depending on selected playable type
+        if (playableType == 1) {
+            buttonBuild.setEnabled(false);
+            buttonDismantle.setEnabled(false);
+            selectImprovement.setEnabled(false);
+            buttonEjectSoldier.setEnabled(true);
+        } else if (playableType == 2) {
+            buttonBuild.setEnabled(true);
+            buttonDismantle.setEnabled(true);
+            selectImprovement.setEnabled(true);
+            buttonEjectSoldier.setEnabled(false);
+        } else if (playableType == 3) {
+            buttonBuild.setEnabled(false);
+            buttonDismantle.setEnabled(false);
+            selectImprovement.setEnabled(false);
+            buttonEjectSoldier.setEnabled(false);
+        }
     }
 
     @ItemSelect({R.id.selectImprovement})

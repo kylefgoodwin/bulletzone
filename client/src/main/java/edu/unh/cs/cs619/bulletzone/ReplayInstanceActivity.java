@@ -71,7 +71,7 @@ public class ReplayInstanceActivity extends Activity {
         SystemClock.sleep(500);
         simBoardView.replayAttach(replayGridView, replaytGridView);
         speedMenu.setAdapter(new ArrayAdapter<>(
-                this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,speedSelections
+                this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, speedSelections
         ));
     }
 
