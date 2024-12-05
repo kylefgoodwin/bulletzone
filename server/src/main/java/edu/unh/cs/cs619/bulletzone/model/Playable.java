@@ -114,7 +114,7 @@ public abstract class Playable extends FieldEntity {
         return lastMoveTime;
     }
 
-    public long getAllowedMoveInterval() {
+    public int getAllowedMoveInterval() {
         return allowedMoveInterval;
     }
 

@@ -48,6 +48,14 @@ public abstract class FieldEntity {
 
     public boolean isMiningFacility(){return getIntValue() == 920;}
 
+    public boolean isImprovement(){return getIntValue() == 902 || getIntValue() == 903 || getIntValue() == 920;}
+
+    public boolean isRoad(){return getIntValue() == 902;}
+
+    public boolean isBridge(){return getIntValue() == 903;}
+
+    public boolean isFactory(){return getIntValue() == 920;}
+
     public boolean isIndestructibleWall(){return getIntValue() == Integer.MAX_VALUE;}
 }
 

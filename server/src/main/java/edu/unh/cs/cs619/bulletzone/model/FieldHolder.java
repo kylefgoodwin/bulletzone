@@ -10,6 +10,7 @@ public class FieldHolder {
 
     private final Map<Direction, FieldHolder> neighbors = new HashMap<>();
     private Optional<FieldEntity> playerEntityHolder = Optional.empty();
+    private Optional<FieldEntity> improvementEntityHolder = Optional.empty();
     private Optional<FieldEntity> itemEntityHolder = Optional.empty();
     private Optional<FieldEntity> terrainEntityHolder = Optional.empty();
     private final int position;
@@ -33,6 +34,10 @@ public class FieldHolder {
         return playerEntityHolder.isPresent();
     }
 
+    public boolean isImprovementPresent() {
+        return improvementEntityHolder.isPresent();
+    }
+
     public boolean isTerrainPresent() {
         return terrainEntityHolder.isPresent();
     }
@@ -49,6 +54,10 @@ public class FieldHolder {
         return itemEntityHolder.get();
     }
 
+    public FieldEntity getImprovementEntity() {
+        return improvementEntityHolder.get();
+    }
+
     public FieldEntity getTerrainEntityHolder() {
         return terrainEntityHolder.get();
     }
@@ -58,6 +67,10 @@ public class FieldHolder {
 
     public void setItemEntity(FieldEntity entity) {
         itemEntityHolder = Optional.of(checkNotNull(entity, "Field Entitity cannot be null"));
+    }
+
+    public void setImprovementEntityHolder(FieldEntity entity) {
+        improvementEntityHolder = Optional.of(checkNotNull(entity, "Field Entitity cannot be null"));
     }
 
     public void setTerrainEntityHolder(FieldEntity entity) {

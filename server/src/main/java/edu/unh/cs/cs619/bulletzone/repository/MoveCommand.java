@@ -160,6 +160,34 @@ public class MoveCommand implements Command {
             playable.setDirection(direction);
             return false;
         }
+        // Handle improvements
+        else if (nextField.getEntity().isImprovement()) {
+            if (nextField.getEntity().isRoad()) {
+                // Store road reference for reappearance after the playable moves
+                Improvement road = (Improvement) nextField.getEntity();
+
+                // Update playable's allowedMoveInterval to half its original value
+                playable.setAllowedMoveInterval(playable.getAllowedMoveInterval() / 2);
+
+                // Move playable into the road entity
+                moveUnit(currentField, nextField, playable, direction);
+
+                // Reappear the road on the previous field
+                if (currentField.getEntity().isImprovement() && currentField.getEntity().isRoad()) {
+                    currentField.setFieldEntity(road);
+                }
+                playable.setDirection(direction);
+                return false;
+            } else if (nextField.getEntity().isBridge()) {
+                playable.setDirection(direction);
+                return false;
+            } else if (nextField.getEntity().isFactory()) {
+                playable.setDirection(direction);
+                return false;
+            }
+            playable.setDirection(direction);
+            return false;
+        }
 
         playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
         return false;
