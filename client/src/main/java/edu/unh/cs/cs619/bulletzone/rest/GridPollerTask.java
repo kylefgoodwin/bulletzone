@@ -13,14 +13,20 @@ import org.androidannotations.annotations.UiThread;
 import org.androidannotations.rest.spring.annotations.RestService;
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import edu.unh.cs.cs619.bulletzone.ClientController;
 import edu.unh.cs.cs619.bulletzone.PlayerData;
+import edu.unh.cs.cs619.bulletzone.TankEventController;
+import edu.unh.cs.cs619.bulletzone.PlayerData;
 import edu.unh.cs.cs619.bulletzone.events.GameEvent;
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
+import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
+import edu.unh.cs.cs619.bulletzone.events.MiningCreditsEvent;
 import edu.unh.cs.cs619.bulletzone.events.UpdateBoardEvent;
 import edu.unh.cs.cs619.bulletzone.util.GameEventCollectionWrapper;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
@@ -36,13 +42,20 @@ public class GridPollerTask {
     @Bean
     ClientController clientController;
 
-    ReplayData replayData = ReplayData.getReplayData();
+    @Bean
+    TankEventController tankEventController;
+
     PlayerData playerData = PlayerData.getPlayerData();
+
+    ReplayData replayData = ReplayData.getReplayData();
 
     private long previousTimeStamp = -1;
     private long lastUpdateTime = System.currentTimeMillis();
     private GameEventProcessor currentProcessor = null;
     private boolean isRunning = true;
+    private long userId = playerData.getUserId();
+    private long playableId = playerData.getTankId();
+    double miningFacilityCount = 0;
 
     private static class ItemLocation {
         final int itemType;
@@ -76,6 +89,8 @@ public class GridPollerTask {
 
     private final Set<ItemLocation> itemsPresent = new HashSet<>();
     private final Set<ItemLocation> processedItemPickups = new HashSet<>();
+    Map<ItemLocation, Long> miningFacilityOwners = new HashMap<>();
+    private Map<Long, Long> lastMiningTimestampMap = new HashMap<>();
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Background(id = "grid_poller_task")
@@ -98,6 +113,7 @@ public class GridPollerTask {
                 try {
                     grid = restClient.playerGrid();
                     Set<ItemLocation> currentItems = new HashSet<>();
+                    Map<Long, Boolean> userHasFacility = new HashMap<>();
                     int[][] boardState = grid.getGrid();
 
                     // Update tank stats periodically (every 1 second)
@@ -115,7 +131,54 @@ public class GridPollerTask {
                             if (value >= 3001 && value <= 3005) {
                                 currentItems.add(new ItemLocation(value, i, j));
                             }
+                            // Check for mining facility
+                            if (value == 920) {
+                                ItemLocation facility = new ItemLocation(value, i, j);
+
+                                // Determine the owner of the facility
+                                Long ownerIdBoxed = miningFacilityOwners.get(facility);
+
+                                if (ownerIdBoxed == null) {
+                                    long newOwnerId = playerData.getUserId(); // Assign userId from playerData if new facility
+                                    miningFacilityOwners.put(facility, newOwnerId);
+                                    ownerIdBoxed = newOwnerId;
+                                }
+
+                                long ownerId = ownerIdBoxed; // Safely unbox after null check
+                                userHasFacility.put(ownerId, true); // Mark that the user owns this facility
+
+                            }
                         }
+                    }
+
+                    // Process mining facility ownership
+                    for (Map.Entry<ItemLocation, Long> entry : miningFacilityOwners.entrySet()) {
+                        ItemLocation facility = entry.getKey();
+                        long ownerId = entry.getValue();
+
+                        // Check if the facility is still on the board
+                        if (!Boolean.TRUE.equals(userHasFacility.get(ownerId))) {
+                            Log.d(TAG, "User " + ownerId + " has no mining facilities left on the board. Skipping credit.");
+                            continue;
+                        }
+
+                        long currentTime = System.currentTimeMillis();
+                        if (lastMiningTimestampMap.containsKey(ownerId)) {
+                            long lastAwardTime = lastMiningTimestampMap.get(ownerId);
+                            if (currentTime - lastAwardTime < 1000) {
+                                // If less than 1 second has passed, skip awarding credits
+                                Log.d(TAG, "Skipping mining credit for user " + ownerId + " due to rate limit.");
+                                continue;
+                            }
+                        }
+
+                        // Add credits for the user who owns this facility
+                        tankEventController.addCredits(ownerId, 1.0); // Add 1 credit
+                        EventBus.getDefault().post(new MiningCreditsEvent(1, ownerId, 1.0));
+                        Log.d(TAG, "Added credits for user " + ownerId + " for facility at " + facility);
+
+                        // Update the timestamp for this user to the current time
+                        lastMiningTimestampMap.put(ownerId, currentTime);
                     }
 
                     // Check for disappeared items (picked up)

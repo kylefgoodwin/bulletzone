@@ -47,6 +47,7 @@ import java.util.Set;
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
 import edu.unh.cs.cs619.bulletzone.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
+import edu.unh.cs.cs619.bulletzone.events.MiningCreditsEvent;
 import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
 import edu.unh.cs.cs619.bulletzone.events.TerrainUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.events.UIUpdateEvent;
@@ -177,6 +178,7 @@ public class ClientActivity extends Activity {
     private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility"));
     private long lastEventTimestamp = 0;
     private Set<Long> processedItemEvents = new HashSet<>();
+    private Set<Long> processedMiningEvents = new HashSet<>();
     private Set<Long> processedEventIds = new HashSet<>();
     private Handler repairKitHandler = new Handler(Looper.getMainLooper());
     private long repairKitEndTime = 0;
@@ -487,7 +489,6 @@ public class ClientActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             gridPollTask.doPoll(eventProcessor);
         }
-        tankEventController.startMiningFacility(userId, playableId);
     }
 
     @ItemSelect({R.id.selectPlayable})
@@ -564,7 +565,6 @@ public class ClientActivity extends Activity {
             } else if (improvementType == 2) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
                 tankEventController.removeCredits(userId, 300.0, playerData.setCurEntity("miningFacility"));
-                tankEventController.startMiningFacility(userId, playableId);
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds
@@ -901,6 +901,36 @@ public class ClientActivity extends Activity {
                 playerData.setShieldHealth(shieldHealth);
             }
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMiningCredits(MiningCreditsEvent event) {
+        // Create a unique identifier for this event
+        long eventId = event.getTimeStamp() + event.getOwnerId();
+
+        // Check for duplicate events
+//        if (event.getTimeStamp() <= lastEventTimestamp || processedMiningEvents.contains(eventId)) {
+//            Log.d(TAG, "Skipping duplicate mining credit event");
+//            return;
+//        }
+
+        // Mark the event as processed by adding it to the sets
+        lastEventTimestamp = event.getTimeStamp();
+        processedMiningEvents.add(eventId);
+
+        // Logging for debugging
+        Log.d(TAG, "Mining credit event received. User ID: " + event.getOwnerId() +
+                ", Credits: " + event.getCreditAmount());
+
+        // Show a toast to inform the user
+        String message = String.format("Mining Facility generated %.2f credits!", event.getCreditAmount());
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+
+        // Update the balance in the UI
+        fetchAndUpdateBalance();
+
+        // Optionally add the event ID to another set if needed
+        processedEventIds.add(eventId);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
