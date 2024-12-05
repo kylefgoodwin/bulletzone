@@ -1085,19 +1085,24 @@ public class ClientActivity extends Activity {
         Log.d(TAG, "Terrain Update Event received: Hilly: " + event.isHilly() +
                 " Forest: " + event.isForest() +
                 " Rocky: " + event.isRocky() +
-                " PlayableType: " + playableType);
+                " PlayableType: " + playableType +
+                " From: " + event.getFromPosition() +
+                " To: " + event.getToPosition());
 
         // Set the playable type first
         playerData.setCurId(playableType);
 
-        // Then update terrain state
-        playerData.setTerrainState(
-                event.isHilly(),
-                event.isForest(),
-                event.isRocky()
-        );
+        // Only update terrain state if we actually moved
+        if (event.isPositionChanged()) {
+            // Update terrain state
+            playerData.setTerrainState(
+                    event.isHilly(),
+                    event.isForest(),
+                    event.isRocky()
+            );
 
-        // Update UI
-        updateStatsDisplay();
+            // Update UI
+            updateStatsDisplay();
+        }
     }
 }
