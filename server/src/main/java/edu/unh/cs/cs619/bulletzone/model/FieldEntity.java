@@ -35,7 +35,7 @@ public abstract class FieldEntity {
     }
 
     public boolean isTerrain(){
-        return getIntValue() >= 4000 && getIntValue() <= 4003;
+        return getIntValue() >= 4000 && getIntValue() <= 4004;
     }
 
     public boolean isItem() {

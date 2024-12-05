@@ -32,7 +32,7 @@ public class BoardCell {
 
     public String getCellInfo() {
         String baseInfo = "Location: (" + this.col + ", " + this.row + ")";
-        if (rawValue >= 3000 && rawValue <= 3003 || rawValue >= 4000 && rawValue <= 4003) {
+        if (rawValue >= 3000 && rawValue <= 3003 || rawValue >= 4000 && rawValue <= 4004) {
             return baseInfo + " - " + getCellType();
         }
         return baseInfo;

@@ -12,6 +12,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+
+
 public final class Game {
     private static final int FIELD_DIM = 16;
     private final long id;
@@ -64,7 +66,7 @@ public final class Game {
 
     public void addPlayable(long playerId, Playable playable, String ip) {
         synchronized (playables) {
-            Playable[] playablesArray = playables.computeIfAbsent(playerId, k -> new Playable[4]);
+            Playable[] playablesArray = playables.computeIfAbsent(playerId, k -> new Playable[5]);
             int type = playable.getPlayableType();
             if (type >= 1 && type < playablesArray.length) {
                 playablesArray[type] = playable;
@@ -97,6 +99,13 @@ public final class Game {
         playerCredits.put(builder.getId(), 1000.0); // Initialize credits for new builder
         playerAccounts.putIfAbsent(builder.getId(), new BankAccount(builder.getId()));
         EventBus.getDefault().post(new SpawnEvent(builder.getIntValue(), builder.getPosition()));
+    }
+
+    public void addShip(String ip, Ship ship) {
+        addPlayable(ship.getId(), ship, ip);
+            playerCredits.put(ship.getId(), 1000.0); // Initialize credits for new ship
+        playerAccounts.putIfAbsent(ship.getId(), new BankAccount(ship.getId()));
+        EventBus.getDefault().post(new SpawnEvent(ship.getIntValue(), ship.getPosition()));
     }
 
     // Method to modify a player's bank account balance
@@ -142,9 +151,10 @@ public final class Game {
     public void removePlayerFromIP(String ip) {
         Long playerId = playersIP.remove(ip);
         if (playerId != null) {
-            removePlayable(playerId, 1); // Example: remove the tank (type 1)
-            removePlayable(playerId, 2); // Example: remove the builder (type 2)
-            removePlayable(playerId, 3); // Example: remove the soldier (type 3)
+            removePlayable(playerId, 1);
+            removePlayable(playerId, 2);
+            removePlayable(playerId, 3);
+            removePlayable(playerId, 4);
         }
     }
 
@@ -214,6 +224,24 @@ public final class Game {
         return allSoldiers; // Return the map of player IDs to soldiers
     }
 
+    public Map<Long, Soldier> getShips() {
+        Map<Long, Soldier> allSoldiers = new HashMap<>();
+
+        // Iterate over each player ID in the playables map
+        for (Long playerId : playables.keySet()) {
+            Playable[] playablesArray = playables.get(playerId);
+            if (playablesArray != null) {
+                // Check if the playable at index 3 is a Soldier
+                Playable playable = playablesArray[4];
+                if (playable != null && playable.getPlayableType() == 4) {
+                    allSoldiers.put(playerId, (Soldier) playable); // Add the player ID and the soldier to the map
+                }
+            }
+        }
+
+        return allSoldiers; // Return the map of player IDs to soldiers
+    }
+
 
     public ConcurrentMap<Long, Playable[]> getPlayables() {
         return playables;
@@ -232,6 +260,11 @@ public final class Game {
     // Method to remove a builder by ID
     public void removeBuilder(long builderId) {
         removePlayable(builderId, 2); // Remove builder (type 2)
+    }
+
+    // Method to remove a builder by ID
+    public void removeShip(long shipId) {
+        removePlayable(shipId, 4); // Remove builder (type 2)
     }
 
     // Method to get the grid of the game

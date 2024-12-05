@@ -13,6 +13,7 @@ public class Terrain extends BoardCell {
     public final int rocky = 4001;
     public final int hilly = 4002;
     public final int forest = 4003;
+    public final int water = 4004;
 
     public Terrain(int val, int r, int c) {
         super(val, r, c);
@@ -25,6 +26,9 @@ public class Terrain extends BoardCell {
             cellType = "Hilly";
         } else if (val == forest){
             resourceID = R.drawable.forest;
+            cellType = "Forest";
+        } else if (val == water) {
+            resourceID = R.drawable.water;
             cellType = "Forest";
         } else {
             resourceID = R.drawable.blank;

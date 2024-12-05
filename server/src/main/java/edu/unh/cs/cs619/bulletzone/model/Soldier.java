@@ -46,6 +46,7 @@ public class Soldier extends Playable {
         if (terrain.isForest() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 1.25))) {
             return false;
         }
+        setLastMoveTime(millis);
         return true;
     }
 

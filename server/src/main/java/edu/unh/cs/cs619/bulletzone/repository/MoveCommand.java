@@ -80,18 +80,6 @@ public class MoveCommand implements Command {
             }
         }
 
-        //Handle movement to terrain
-        if (nextField.isTerrainPresent()) {
-            Terrain t = (Terrain) nextField.getTerrainEntityHolder();
-            if (!playable.handleTerrainConstraints(t, millis)) {
-                return false;
-            }
-            moveUnit(currentField, nextField, playable, direction);
-            playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
-            return true;
-            //return handleTerrainConstraints(playable, t, currentField, nextField);
-        }
-
         // Only proceed with movement if we're facing the right direction
         if (currentDirection == direction) {
             // Calculate base movement delay
@@ -100,7 +88,21 @@ public class MoveCommand implements Command {
             // Apply terrain modifiers
             if (nextField.isTerrainPresent()) {
                 Terrain terrain = (Terrain) nextField.getTerrainEntityHolder();
-                if (playableType == 1) { // Tank
+                // Always emit terrain event
+                TerrainUpdateEvent terevent = new TerrainUpdateEvent(
+                        playableType,
+                        t != null && t.isHilly(),
+                        t != null && t.isForest(),
+                        t != null && t.isRocky()
+                );
+                EventBus.getDefault().post(terevent);
+
+                if(playable.handleTerrainConstraints(terrain, millis)){
+                    moveUnit(currentField, nextField, playable, direction);
+                    return true;
+                }
+                return false;
+                /*if (playableType == 1) { // Tank
                     if (terrain.isHilly()) {
                         moveDelay = (long)(moveDelay * 1.5);
                     } else if (terrain.isForest()) {
@@ -117,7 +119,7 @@ public class MoveCommand implements Command {
                     if (terrain.isForest()) {
                         moveDelay = (long)(moveDelay * 1.25);
                     }
-                }
+                }*/
             }
 
         // Handle movement to empty space
@@ -138,112 +140,56 @@ public class MoveCommand implements Command {
                 return false;
             }
         }
-            // Handle empty space movement
-            if (!nextField.isPresent()) {
-                moveUnit(currentField, nextField, playable, direction);
-                playable.setLastMoveTime(millis + moveDelay);
-                return true;
-            }
+        // Handle empty space movement
+        if (!nextField.isPresent()) {
+            moveUnit(currentField, nextField, playable, direction);
+            playable.setLastMoveTime(millis + moveDelay);
+            return true;
+        }
 
-            // Soldier re-entry
-            if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
-                if(game.getTanks().get((playableId)).getPosition() == nextField.getPosition()){
-                    game.removeSoldier(playableId);
-                    game.getTanks().get(playableId).sethasSoldier(false);
-                    currentField.clearField();
-                    game.getTanks().get(playableId).setLastEntryTime(millis);
-                    EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
-                    game.setSoldierEjected(false);
-                    return false;
-                }
-            }
+        // Handle item pickup
+        if (nextField.getEntity().isItem()) {
+            Item item = (Item) nextField.getEntity();
+            int itemValue = item.getIntValue();
+            int itemPos = nextField.getPosition();
 
-            // Handle item pickup
-            if (nextField.getEntity().isItem()) {
-                Item item = (Item) nextField.getEntity();
-                int itemValue = item.getIntValue();
-                int itemPos = nextField.getPosition();
+            handleItemPickup(item, playable);
 
-                handleItemPickup(item, playable);
+            // Move to item location
+            nextField.clearField();
+            int oldPos = playable.getPosition();
+            currentField.clearField();
+            nextField.setFieldEntity(playable);
+            playable.setParent(nextField);
+            playable.setDirection(direction);
 
-                // Move to item location
-                nextField.clearField();
-                int oldPos = playable.getPosition();
-                currentField.clearField();
-                nextField.setFieldEntity(playable);
-                playable.setParent(nextField);
-                playable.setDirection(direction);
+            EventBus.getDefault().post(new RemoveEvent(itemValue, itemPos));
+            EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
 
-                EventBus.getDefault().post(new RemoveEvent(itemValue, itemPos));
-                EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
+            playable.setLastMoveTime(millis + moveDelay);
+            return true;
+        }
 
-                playable.setLastMoveTime(millis + moveDelay);
-                return true;
-            }
-
-            // Handle collisions
-            if (nextField.getEntity().isWall() || nextField.getEntity().isPlayable()) {
-                return false;
-            }
+        // Handle collisions
+        if (nextField.getEntity().isWall() || nextField.getEntity().isPlayable()) {
+            return false;
+        }
         }
 
         return false;
     }
 
     private boolean handleTerrainConstraints(Playable playable, Terrain t, FieldHolder currentField, FieldHolder nextField) {
-        // Always emit terrain event
-        TerrainUpdateEvent event = new TerrainUpdateEvent(
-                playableType,
-                t != null && t.isHilly(),
-                t != null && t.isForest(),
-                t != null && t.isRocky()
-        );
-        EventBus.getDefault().post(event);
 
-        // Check timing constraints for terrain types
-        if (playableType == 1) { //tank
-            if (t.isHilly() && (millis < playable.getLastMoveTime())) {
-                return false;
-            } else if (t.isForest() && (millis < playable.getLastMoveTime())) {
-                System.out.println("Moving tank into forest");
-                return false;
-            }
-        } else if (playableType == 2) { //builder
-            if (t.isRocky() && (millis < playable.getLastMoveTime())) {
-                return false;
-            }
-            if (t.isForest()) {
-                return false;
-            }
-        } else if (playableType == 3) { //soldier
-            if (t.isForest() && (millis < playable.getLastMoveTime())) {
-                return false;
-            }
+
+        if(playable.handleTerrainConstraints(t, millis)){
+            // If we pass timing checks, move the unit
+            moveUnit(currentField, nextField, playable, direction);
+            // Set appropriate delay based on terrain type
+            return true;
+        } else {
+            return false;
         }
-
-        // If we pass timing checks, move the unit
-        moveUnit(currentField, nextField, playable, direction);
-
-        // Set appropriate delay based on terrain type
-        long delay = playable.getAllowedMoveInterval();
-        if (playableType == 1) { // Tank
-            if (t.isHilly()) {
-                delay = (long)(delay * 1.5);
-            } else if (t.isForest()) {
-                delay = delay * 2;
-            }
-        } else if (playableType == 2) { // Builder
-            if (t.isRocky()) {
-                delay = (long)(delay * 1.5);
-            }
-        } else if (playableType == 3) { // Soldier
-            if (t.isForest()) {
-                delay = (long)(delay * 1.25);
-            }
-        }
-
-        playable.setLastMoveTime(millis + delay);
-        return true;
     }
 
     private void handleItemPickup(Item item, Playable playable) {

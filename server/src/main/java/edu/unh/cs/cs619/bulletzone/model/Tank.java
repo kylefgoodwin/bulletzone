@@ -41,6 +41,7 @@ public class Tank extends Playable {
         } else if (terrain.isForest() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 2))) {
             return false;
         }
+        setLastMoveTime(millis);
         return true;
     }
 

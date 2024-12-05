@@ -43,10 +43,10 @@ public class Builder extends Playable {
     public boolean handleTerrainConstraints(Terrain terrain, long millis) {
         if (terrain.isRocky() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 1.5))) {
             return false;
-        }
-        if (terrain.isForest()) {
+        } else if (terrain.isForest()) {
             return false;
         }
+        setLastMoveTime(millis);
         return true;
     }
 

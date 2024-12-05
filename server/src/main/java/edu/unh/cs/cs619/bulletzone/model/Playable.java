@@ -14,9 +14,7 @@ import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 public abstract class Playable extends FieldEntity {
     private static final String TAG = "Playable";
 
-
     protected PowerUpManager powerUpManager;
-
 
     protected final long id;
     protected int userId;
@@ -275,7 +273,6 @@ public abstract class Playable extends FieldEntity {
     public boolean canEjectSoldier(){ return false; }
     public boolean canShoot(){ return true; }
     public boolean canAcceptSoldier(){ return false; }
-
 
     public void addPowerUp(Item powerUp) {
         powerUpManager.addPowerUp(powerUp);

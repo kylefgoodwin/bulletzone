@@ -150,7 +150,7 @@ public class ClientActivity extends Activity {
     private int playableType = 1;
     private int improvementType = 0;
     private long userId = -1;
-    private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier"));
+    private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier", "Ship"));
     private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility"));
     private long lastEventTimestamp = 0;
     private Set<Long> processedItemEvents = new HashSet<>();
@@ -476,6 +476,11 @@ public class ClientActivity extends Activity {
             selectImprovement.setEnabled(true);
             buttonEjectSoldier.setEnabled(false);
         } else if (playableType == 3) {
+            buttonBuild.setEnabled(false);
+            buttonDismantle.setEnabled(false);
+            selectImprovement.setEnabled(false);
+            buttonEjectSoldier.setEnabled(false);
+        } else if (playableType == 4){
             buttonBuild.setEnabled(false);
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
