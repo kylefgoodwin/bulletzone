@@ -162,7 +162,6 @@ public class GridPollerTask {
                             continue;
                         }
 
-                        long currentTime = System.currentTimeMillis();
                         if (lastMiningTimestampMap.containsKey(ownerId)) {
                             long lastAwardTime = lastMiningTimestampMap.get(ownerId);
                             if (currentTime - lastAwardTime < 1000) {
