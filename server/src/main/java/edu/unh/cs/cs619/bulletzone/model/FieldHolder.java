@@ -54,7 +54,7 @@ public class FieldHolder {
         return itemEntityHolder.get();
     }
 
-    public FieldEntity getImprovementEntity() {
+    public FieldEntity getImprovementEntityHolder() {
         return improvementEntityHolder.get();
     }
 

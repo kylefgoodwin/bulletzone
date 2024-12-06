@@ -46,6 +46,18 @@ public class Tank extends Playable {
     }
 
     @Override
+    public boolean handleImprovements(Improvement improvement, long millis) {
+        if (improvement.isRoad() && millis < (getLastMoveTime() + (getAllowedMoveInterval() / 2))) {
+            return false;
+        } else if (improvement.isBridge() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        } else if (improvement.isDeck() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public boolean canEjectSoldier(){ return true; }
 
     @Override

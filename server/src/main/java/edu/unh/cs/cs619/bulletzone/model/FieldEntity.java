@@ -54,6 +54,8 @@ public abstract class FieldEntity {
 
     public boolean isBridge(){return getIntValue() == 903;}
 
+    public boolean isDeck(){return getIntValue() == 904;}
+
     public boolean isFactory(){return getIntValue() == 920;}
 
     public boolean isIndestructibleWall(){return getIntValue() == Integer.MAX_VALUE;}

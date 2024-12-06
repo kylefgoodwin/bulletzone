@@ -5,7 +5,7 @@ public class Factory extends FieldEntity {
     int destructValue, pos;
 
     public Factory() {
-        this.destructValue = 920;
+        this.destructValue = 930;
     }
 
     public Factory(int destructValue, int pos) {

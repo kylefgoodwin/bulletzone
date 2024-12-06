@@ -89,6 +89,29 @@ public class MoveCommand implements Command {
                 return true;
             }
         }
+        // Handles Improvements
+        if (nextField.getEntity().isImprovement()) {
+            if (nextField.getEntity().isWall()) {
+                playable.setDirection(direction);
+                return false;
+            } else if (nextField.getEntity().isIndestructibleWall()) {
+                playable.setDirection(direction);
+                return false;
+            } else if (nextField.getEntity().isMiningFacility()) {
+                playable.setDirection(direction);
+                return false;
+            } else if (nextField.getEntity().isFactory()) {
+                playable.setDirection(direction);
+                return false;
+            }
+            Improvement improvement = (Improvement) nextField.getImprovementEntityHolder();
+            if (!playable.handleImprovements(improvement, millis)) {
+                return false;
+            }
+            moveUnit(currentField, nextField, playable, direction);
+            playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
+            return true;
+        }
 
         //Handle movement to terrain
         if (nextField.isTerrainPresent()) {
@@ -157,34 +180,6 @@ public class MoveCommand implements Command {
         }
         // Handle tank collisions
         else if (nextField.getEntity().isPlayable()) {
-            playable.setDirection(direction);
-            return false;
-        }
-        // Handle improvements
-        else if (nextField.getEntity().isImprovement()) {
-            if (nextField.getEntity().isRoad()) {
-                // Store road reference for reappearance after the playable moves
-                Improvement road = (Improvement) nextField.getEntity();
-
-                // Update playable's allowedMoveInterval to half its original value
-                playable.setAllowedMoveInterval(playable.getAllowedMoveInterval() / 2);
-
-                // Move playable into the road entity
-                moveUnit(currentField, nextField, playable, direction);
-
-                // Reappear the road on the previous field
-                if (currentField.getEntity().isImprovement() && currentField.getEntity().isRoad()) {
-                    currentField.setFieldEntity(road);
-                }
-                playable.setDirection(direction);
-                return false;
-            } else if (nextField.getEntity().isBridge()) {
-                playable.setDirection(direction);
-                return false;
-            } else if (nextField.getEntity().isFactory()) {
-                playable.setDirection(direction);
-                return false;
-            }
             playable.setDirection(direction);
             return false;
         }
