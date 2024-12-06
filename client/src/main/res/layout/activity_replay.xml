@@ -2,7 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#95C462">
 
     <Button
         android:id="@+id/replay4Button"
@@ -42,6 +43,7 @@
         android:layout_marginTop="130dp"
         android:layout_marginEnd="265dp"
         android:layout_marginBottom="35dp"
+        android:fontFamily="casual"
         android:text="Select a Replay"
         android:textSize="40sp"
         app:layout_constraintBottom_toTopOf="@+id/replay0Button"

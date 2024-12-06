@@ -23,6 +23,7 @@ import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TerrainUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TurnEvent;
+import edu.unh.cs.cs619.bulletzone.model.events.UIUpdateEvent;
 
 public class MoveCommand implements Command {
     private static final Logger log = LoggerFactory.getLogger(MoveCommand.class);
@@ -55,20 +56,7 @@ public class MoveCommand implements Command {
         FieldHolder nextField = currentField.getNeighbor(direction);
         checkNotNull(currentField.getNeighbor(direction), "Neighbor is not available");
 
-        // Calculate terrain effects first to emit event
-        boolean isTerrainField = nextField.isTerrainPresent();
-        Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
-
-        // Always emit terrain event
-        TerrainUpdateEvent event = new TerrainUpdateEvent(
-                playableType,
-                isTerrainField && t != null && t.isHilly(),
-                isTerrainField && t != null && t.isForest(),
-                isTerrainField && t != null && t.isRocky()
-        );
-        EventBus.getDefault().post(event);
-
-        // Handle turning first
+        // Handle turning first (don't emit terrain events for turns)
         if (currentDirection != direction) {
             // For opposite and perpendicular directions
             if ((currentDirection == Direction.Up && (direction == Direction.Down || direction == Direction.Left || direction == Direction.Right)) ||
@@ -81,32 +69,47 @@ public class MoveCommand implements Command {
                 return true;
             }
         }
-        // Handle movement to empty space
-        if (!nextField.isPresent()) {
-            moveUnit(currentField, nextField, playable, direction, false);
-            playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
-            return true;
-        } // Soldier re-entry
-        else if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
-            System.out.println("Re-entry");
-            if (game.getTanks().get((playableId)).getPosition() == nextField.getPosition()) {
-                game.removeSoldier(playableId);
-                game.getTanks().get(playableId).sethasSoldier(false);
-                currentField.clearField();
-                game.getTanks().get(playableId).setLastEntryTime(millis);
-                EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
-                game.setSoldierEjected(false);
-                // This would be the place to update the health bar of the soldier to full while in tank
-                return false;
-            }
-        }
 
         // Only proceed with movement if we're facing the right direction
         if (currentDirection == direction) {
             // Calculate base movement delay
             long moveDelay = playable.getAllowedMoveInterval();
 
-            // Apply terrain modifiers
+            // Handle empty space movement
+            if (!nextField.isPresent()) {
+                // Calculate terrain effects for movement
+                boolean isTerrainField = nextField.isTerrainPresent();
+                Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
+
+                // Emit terrain event only for actual movement
+                TerrainUpdateEvent event = new TerrainUpdateEvent(
+                        isTerrainField && t != null && t.isHilly(),
+                        isTerrainField && t != null && t.isForest(),
+                        isTerrainField && t != null && t.isRocky(),
+                        playableType,
+                        currentField.getPosition(),
+                        nextField.getPosition()
+                );
+                EventBus.getDefault().post(event);
+
+                moveUnit(currentField, nextField, playable, direction, false);
+                playable.setLastMoveTime(millis + moveDelay);
+                return true;
+            }
+            // Soldier re-entry
+            else if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
+                if (game.getTanks().get((playableId)).getPosition() == nextField.getPosition()) {
+                    game.removeSoldier(playableId);
+                    game.getTanks().get(playableId).sethasSoldier(false);
+                    currentField.clearField();
+                    game.getTanks().get(playableId).setLastEntryTime(millis);
+                    EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
+                    game.setSoldierEjected(false);
+                    return false;
+                }
+            }
+
+            // Apply terrain modifiers if movement is possible
             if (nextField.isTerrainPresent()) {
                 Terrain terrain = (Terrain) nextField.getTerrainEntityHolder();
                 if (playableType == 1) { // Tank
@@ -129,35 +132,27 @@ public class MoveCommand implements Command {
                 }
             }
 
-            // Handle empty space movement
-            if (!nextField.isPresent()) {
-                moveUnit(currentField, nextField, playable, direction, false);
-                playable.setLastMoveTime(millis + moveDelay);
-                return true;
-            }
-
-            // Soldier re-entry
-            if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
-                if (game.getTanks().get((playableId)).getPosition() == nextField.getPosition()) {
-                    game.removeSoldier(playableId);
-                    game.getTanks().get(playableId).sethasSoldier(false);
-                    currentField.clearField();
-                    game.getTanks().get(playableId).setLastEntryTime(millis);
-                    EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
-                    game.setSoldierEjected(false);
-                    return false;
-                }
-            }
-
-            // Handle item pickup
+            // Handle item pickup with terrain event
             if (nextField.getEntity().isItem()) {
                 Item item = (Item) nextField.getEntity();
                 int itemValue = item.getIntValue();
                 int itemPos = nextField.getPosition();
 
+                // Emit terrain event for movement to item
+                boolean isTerrainField = nextField.isTerrainPresent();
+                Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
+                TerrainUpdateEvent event = new TerrainUpdateEvent(
+                        isTerrainField && t != null && t.isHilly(),
+                        isTerrainField && t != null && t.isForest(),
+                        isTerrainField && t != null && t.isRocky(),
+                        playableType,
+                        currentField.getPosition(),
+                        nextField.getPosition()
+                );
+                EventBus.getDefault().post(event);
+
                 handleItemPickup(item, playable);
 
-                // Move to item location
                 nextField.clearField();
                 int oldPos = playable.getPosition();
                 currentField.clearField();
@@ -172,70 +167,110 @@ public class MoveCommand implements Command {
                 return true;
             }
 
-            // Handle wall collisions
+            // Handle collisions
             else if (nextField.getEntity().isWall() || nextField.getEntity().isPlayable()) {
                 playable.setDirection(direction);
 
-                // Ram/Hit mechanic
-                Wall wall = (Wall) nextField.getEntity();
-                int wallLife = wall.getLife();
-                int playableLife = playable.getLife();
-                if (wall.getIntValue() != 1000) {
-                    if (playableType == 1) {
-                        // tank
-                        wall.hit((int) Math.ceil(playableLife * 0.1));
-                        playable.hit((int) Math.floor(wallLife * 0.16));
-                    } else if (playableType == 2) {
-                        // builder
-                        wall.hit((int) Math.ceil(playableLife * 0.3));
-                        playable.hit((int) Math.floor(wallLife * 0.04));
-                    } else if (playableType == 3) {
-                        // soldier
-                        wall.hit((int) Math.ceil(playableLife * 0.4));
-                        playable.hit((int) Math.floor(wallLife * 0.08));
-                    } // TODO: Add ship when available
+                if (nextField.getEntity().isWall()) {
+                    Wall wall = (Wall) nextField.getEntity();
+                    int wallLife = wall.getLife();
+                    int playableLife = playable.getLife();
+                    if (wall.getIntValue() != 1000) {
+                        if (playableType == 1) {
+                            wall.hit((int) Math.ceil(playableLife * 0.1));
+                            playable.hit((int) Math.floor(wallLife * 0.16));
+                        } else if (playableType == 2) {
+                            wall.hit((int) Math.ceil(playableLife * 0.3));
+                            playable.hit((int) Math.floor(wallLife * 0.04));
+                        } else if (playableType == 3) {
+                            wall.hit((int) Math.ceil(playableLife * 0.4));
+                            playable.hit((int) Math.floor(wallLife * 0.08));
+                        }
 
-                    if (wall.getLife() <= 0) {
-                        game.getHolderGrid().get(wall.getPos()).clearField();
+                        if (wall.getLife() <= 0) {
+                            game.getHolderGrid().get(wall.getPos()).clearField();
+                        }
+
+                        if (playable.getLife() <= 0) {
+                            handleRemovingPlayable(currentField);
+                        }
+                    }
+                } else { // Handle playable collision
+                    Playable otherPlay = (Playable) nextField.getEntity();
+                    int otherLife = otherPlay.getLife();
+                    int playableLife = playable.getLife();
+
+                    if (playableType == 1) {
+                        otherPlay.hit((int) Math.ceil(playableLife * 0.1));
+                        playable.hit((int) Math.floor(otherLife * 0.16));
+                    } else if (playableType == 2) {
+                        otherPlay.hit((int) Math.ceil(playableLife * 0.3));
+                        playable.hit((int) Math.floor(otherLife * 0.04));
+                    } else if (playableType == 3) {
+                        otherPlay.hit((int) Math.ceil(playableLife * 0.4));
+                        playable.hit((int) Math.floor(otherLife * 0.08));
                     }
 
                     if (playable.getLife() <= 0) {
                         handleRemovingPlayable(currentField);
                     }
                 }
-
-                return false;
-            }
-            // Handle tank collisions
-            else if (nextField.getEntity().isPlayable()) { // This is broken perhaps, perhaps not?
-                playable.setDirection(direction);
-                Playable otherPlay = (Playable) nextField.getEntity();
-                int otherLife = otherPlay.getLife();
-                int playableLife = playable.getLife();
-
-                if (playableType == 1) {
-                    otherPlay.hit((int) Math.ceil(playableLife * 0.1));
-                    playable.hit((int) Math.floor(otherLife * 0.16));
-                } else if (playableType == 2) {
-                    otherPlay.hit((int) Math.ceil(playableLife * 0.3));
-                    playable.hit((int) Math.floor(otherLife * 0.04));
-                } else if (playableType == 3) {
-                    otherPlay.hit((int) Math.ceil(playableLife * 0.4));
-                    playable.hit((int) Math.floor(otherLife * 0.08));
-                }
-
-//                if (otherPlay.getLife() <= 0) {
-//                    game.getHolderGrid().get(otherPlay.getPosition()).clearField();
-//                }
-
-                if (playable.getLife() <= 0) {
-                    handleRemovingPlayable(currentField);
-                }
-
                 return false;
             }
         }
-        return false; // Not sure what to return here
+        return false;
+    }
+
+    public boolean uIUpdates(Direction direction) {
+
+        Direction currentDirection = direction;
+        FieldHolder currentField = playable.getParent();
+        FieldHolder nextField = currentField.getNeighbor(direction);
+        checkNotNull(currentField.getNeighbor(direction), "Neighbor is not available");
+
+        // Handle turning first
+        if (currentDirection != direction) {
+            // For opposite and perpendicular directions
+            if ((currentDirection == Direction.Up && (direction == Direction.Down || direction == Direction.Left || direction == Direction.Right)) ||
+                    (currentDirection == Direction.Down && (direction == Direction.Up || direction == Direction.Left || direction == Direction.Right)) ||
+                    (currentDirection == Direction.Left && (direction == Direction.Right || direction == Direction.Up || direction == Direction.Down)) ||
+                    (currentDirection == Direction.Right && (direction == Direction.Left || direction == Direction.Up || direction == Direction.Down))) {
+                // Don't update lastMoveTime for rotations
+                return true;
+            }
+        }
+
+        // Only proceed with movement if we're facing the right direction
+        if (currentDirection == direction) {
+            // Calculate base movement delay
+
+            // Handle empty space movement
+            if (!nextField.isPresent()) {
+                return true;
+            }
+
+            // Soldier re-entry
+            if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
+                if(game.getTanks().get((playableId)).getPosition() == nextField.getPosition()){
+                    return true;
+                }
+            }
+
+            // Handle item pickup
+            if (nextField.getEntity().isItem()) {
+                return true;
+            }
+
+            if (nextField.getEntity().isIndestructibleWall()) {
+                return false;
+            } else if (nextField.getEntity().isWall() || nextField.getEntity().isPlayable() ||
+                        nextField.getEntity().isMiningFacility()) {
+                    return true;
+            }
+
+
+        }
+        return false;
     }
 
     private boolean handleTerrainConstraints (Playable playable, Terrain t, FieldHolder
@@ -243,10 +278,12 @@ public class MoveCommand implements Command {
         boolean hiddenMove = false;
         // Always emit terrain event
         TerrainUpdateEvent event = new TerrainUpdateEvent(
-                playableType,
                 t != null && t.isHilly(),
                 t != null && t.isForest(),
-                t != null && t.isRocky()
+                t != null && t.isRocky(),
+                playableType,
+                currentField.getPosition(),  // fromPosition
+                nextField.getPosition()      // toPosition
         );
         EventBus.getDefault().post(event);
 
@@ -361,6 +398,8 @@ public class MoveCommand implements Command {
         } else {
             EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
         }
+        EventBus.getDefault().post(new UIUpdateEvent(uIUpdates(Direction.Up), uIUpdates(Direction.Down),
+                uIUpdates(Direction.Left), uIUpdates(Direction.Right)));
     }
 
     public void handleRemovingPlayable(FieldHolder currentField){

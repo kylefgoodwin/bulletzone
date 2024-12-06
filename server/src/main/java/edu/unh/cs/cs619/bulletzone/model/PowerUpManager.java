@@ -11,10 +11,15 @@ public class PowerUpManager {
     private int currentFireDelay;
     private int shieldHealth;
     private long repairKitExpiration;
-    private static final int MAX_SHIELD_HEALTH = 50;  // Updated to 50
+    private static final int MAX_SHIELD_HEALTH = 50;
     private static final int SHIELD_HEAL_RATE = 1;
     private static final int REPAIR_KIT_DURATION = 120000;
     private long lastShieldRegenTime;
+
+    private int antiGravCount = 0;
+    private int fusionReactorCount = 0;
+    private int deflectorShieldCount = 0;
+    private int repairKitCount = 0;
 
     public PowerUpManager(int baseMovementDelay, int baseFireDelay) {
         this.baseMovementDelay = baseMovementDelay;
@@ -28,12 +33,26 @@ public class PowerUpManager {
 
     public void addPowerUp(Item powerUp) {
         powerUps.addLast(powerUp);
-        if (powerUp.getType() == 4) {  // Shield
-            shieldHealth = MAX_SHIELD_HEALTH;
-            lastShieldRegenTime = System.currentTimeMillis();
-            System.out.println("Shield activated with health: " + shieldHealth);
-        } else if (powerUp.getType() == 5) {  // Repair Kit
-            repairKitExpiration = System.currentTimeMillis() + REPAIR_KIT_DURATION;
+        switch (powerUp.getType()) {
+            case 2: // AntiGrav
+                antiGravCount++;
+                currentMovementDelay /= 2;
+                currentFireDelay += 100;
+                break;
+            case 3: // FusionReactor
+                fusionReactorCount++;
+                currentFireDelay /= 2;
+                currentMovementDelay += 100;
+                break;
+            case 4: // Shield
+                deflectorShieldCount++;
+                shieldHealth = MAX_SHIELD_HEALTH;
+                lastShieldRegenTime = System.currentTimeMillis();
+                break;
+            case 5: // RepairKit
+                repairKitCount++;
+                repairKitExpiration = System.currentTimeMillis() + REPAIR_KIT_DURATION;
+                break;
         }
         recalculateDelays();
     }
@@ -41,91 +60,125 @@ public class PowerUpManager {
     public Item ejectLastPowerUp() {
         if (!powerUps.isEmpty()) {
             Item powerUp = powerUps.removeLast();
-            if (powerUp.getType() == 4) {
-                shieldHealth = 0;
-                System.out.println("Shield deactivated");
-            } else if (powerUp.getType() == 5) {
-                repairKitExpiration = 0;
-                return null;
+            switch (powerUp.getType()) {
+                case 2: // AntiGrav
+                    if (antiGravCount > 0) {
+                        antiGravCount--;
+                        currentMovementDelay = baseMovementDelay;
+                        currentFireDelay = baseFireDelay;
+                        recalculateDelays();
+                    }
+                    break;
+                case 3: // FusionReactor
+                    if (fusionReactorCount > 0) {
+                        fusionReactorCount--;
+                        currentMovementDelay = baseMovementDelay;
+                        currentFireDelay = baseFireDelay;
+                        recalculateDelays();
+                    }
+                    break;
+                case 4: // Shield
+                    if (deflectorShieldCount > 0) {
+                        deflectorShieldCount--;
+                        shieldHealth = 0;
+                        if (deflectorShieldCount == 0) {
+                            powerUps.removeIf(item -> item.getType() == 4);
+                        }
+                        recalculateDelays();
+                        return null; // Don't drop shield item when ejected
+                    }
+                    break;
+                case 5: // RepairKit
+                    if (repairKitCount > 0) {
+                        repairKitCount--;
+                        if (repairKitCount == 0) {
+                            repairKitExpiration = 0;
+                            powerUps.removeIf(item -> item.getType() == 5);
+                        }
+                    }
+                    break;
             }
-            recalculateDelays();
             return powerUp;
         }
         return null;
-    }
-
-    public int processDamage(int incomingDamage) {
-        if (shieldHealth > 0) {
-            // Shield reduces damage by 50%
-            int reducedDamage = incomingDamage / 2;
-
-            // Shield takes full damage
-            shieldHealth = Math.max(0, shieldHealth - incomingDamage);
-
-            if (shieldHealth <= 0) {
-                shieldHealth = 0;
-                powerUps.removeIf(item -> item.getType() == 4);
-                recalculateDelays();
-                System.out.println("Shield depleted and destroyed");
-            }
-
-            System.out.println("Shield absorbed 50% damage. Shield health: " + shieldHealth);
-            return reducedDamage; // Return half damage
-        }
-        return incomingDamage; // No shield, full damage
     }
 
     private void recalculateDelays() {
         currentMovementDelay = baseMovementDelay;
         currentFireDelay = baseFireDelay;
 
-        for (Item powerUp : powerUps) {
-            switch (powerUp.getType()) {
-                case 2: // AntiGrav
-                    currentMovementDelay /= 2;
-                    currentFireDelay += 100;
-                    break;
-                case 3: // FusionReactor
-                    currentFireDelay /= 2;
-                    currentMovementDelay += 100;
-                    break;
-                case 4: // Deflector Shield - 50% slower firing
-                    currentFireDelay = (int)(currentFireDelay * 1.5);
-                    break;
-            }
+        // Apply stacked AntiGrav effects
+        for (int i = 0; i < antiGravCount; i++) {
+            currentMovementDelay /= 2;
+            currentFireDelay += 100;
         }
+
+        // Apply stacked FusionReactor effects
+        for (int i = 0; i < fusionReactorCount; i++) {
+            currentFireDelay /= 2;
+            currentMovementDelay += 100;
+        }
+
+        // Apply shield effects only if we have active shields
+        if (deflectorShieldCount > 0 && shieldHealth > 0) {
+            currentFireDelay = (int)(currentFireDelay * 1.5);
+        }
+    }
+
+    public int processDamage(int incomingDamage) {
+        if (shieldHealth > 0 && deflectorShieldCount > 0) {
+            // Calculate reduced damage first
+            int reducedDamage = incomingDamage / 2;
+
+            // Apply full damage to shield
+            shieldHealth = Math.max(0, shieldHealth - incomingDamage);
+
+            // If shield breaks, remove all shield effects
+            if (shieldHealth <= 0) {
+                shieldHealth = 0;
+                deflectorShieldCount = 0;
+                powerUps.removeIf(item -> item.getType() == 4);
+                recalculateDelays();
+            }
+
+            // Return the halved damage
+            return reducedDamage;
+        }
+        return incomingDamage;
     }
 
     public void update() {
         long currentTime = System.currentTimeMillis();
 
-        // Shield regeneration
-        if (shieldHealth > 0 && shieldHealth < MAX_SHIELD_HEALTH &&
-                currentTime - lastShieldRegenTime >= 1000) {  // Check if 1 second has passed
+        // Only regenerate shield if we have active shield power-ups
+        if (shieldHealth > 0 && deflectorShieldCount > 0 &&
+                shieldHealth < MAX_SHIELD_HEALTH &&
+                currentTime - lastShieldRegenTime >= 1000) {
             shieldHealth = Math.min(MAX_SHIELD_HEALTH, shieldHealth + SHIELD_HEAL_RATE);
             lastShieldRegenTime = currentTime;
-            System.out.println("Shield regenerated to: " + shieldHealth);
         }
 
-        // Repair kit handling
-        if (repairKitExpiration > 0) {
-            if (currentTime >= repairKitExpiration) {
-                powerUps.removeIf(item -> item.getType() == 5);
+        if (repairKitExpiration > 0 && currentTime >= repairKitExpiration) {
+            repairKitCount--;
+            if (repairKitCount <= 0) {
                 repairKitExpiration = 0;
-                recalculateDelays();
+                powerUps.removeIf(item -> item.getType() == 5);
             }
+            recalculateDelays();
         }
     }
 
-    // In PowerUpManager.java
     public boolean hasActiveRepairKit() {
-        long currentTime = System.currentTimeMillis();
-        return currentTime < repairKitExpiration &&
-                powerUps.stream().anyMatch(item -> item.getType() == 5);
+        return System.currentTimeMillis() < repairKitExpiration && repairKitCount > 0;
     }
 
+    // Getters
     public int getCurrentMovementDelay() { return currentMovementDelay; }
     public int getCurrentFireDelay() { return currentFireDelay; }
     public int getShieldHealth() { return shieldHealth; }
     public boolean hasPowerUps() { return !powerUps.isEmpty(); }
+    public int getAntiGravCount() { return antiGravCount; }
+    public int getFusionReactorCount() { return fusionReactorCount; }
+    public int getDeflectorShieldCount() { return deflectorShieldCount; }
+    public int getRepairKitCount() { return repairKitCount; }
 }

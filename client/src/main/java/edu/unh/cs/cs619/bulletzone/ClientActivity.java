@@ -4,6 +4,7 @@ import static java.lang.Thread.sleep;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -46,8 +47,10 @@ import java.util.Set;
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
 import edu.unh.cs.cs619.bulletzone.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
+import edu.unh.cs.cs619.bulletzone.events.MiningCreditsEvent;
 import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
 import edu.unh.cs.cs619.bulletzone.events.TerrainUpdateEvent;
+import edu.unh.cs.cs619.bulletzone.events.UIUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
 import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
 import edu.unh.cs.cs619.bulletzone.util.ClientActivityShakeDriver;
@@ -120,6 +123,18 @@ public class ClientActivity extends Activity {
     protected Button buttonEjectSoldier;
 
     @ViewById
+    protected Button buttonUp;
+
+    @ViewById
+    protected Button buttonDown;
+
+    @ViewById
+    protected Button buttonLeft;
+
+    @ViewById
+    protected Button buttonRight;
+
+    @ViewById
     protected ProgressView shieldHealthBar;
 
     @ViewById
@@ -152,20 +167,26 @@ public class ClientActivity extends Activity {
 
     FileHelper fileHelper;
 
+    MediaPlayer mediaPlayer;
+
     private long playableId = -1;
     private int playableType = 1;
     private int improvementType = 0;
     private long userId = -1;
+
     private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier"));
     private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility"));
     private long lastEventTimestamp = 0;
     private Set<Long> processedItemEvents = new HashSet<>();
+    private Set<Long> processedMiningEvents = new HashSet<>();
     private Set<Long> processedEventIds = new HashSet<>();
     private Handler repairKitHandler = new Handler(Looper.getMainLooper());
     private long repairKitEndTime = 0;
     private Runnable repairKitUpdateRunnable;
     private Handler repairKitHealingHandler = new Handler(Looper.getMainLooper());
     private Runnable repairKitHealingRunnable;
+
+
 
     // For testing purposes only
     @VisibleForTesting
@@ -196,6 +217,10 @@ public class ClientActivity extends Activity {
         shakeDriver = new ClientActivityShakeDriver(this, () -> onButtonFire());
         processedItemEvents = new HashSet<>();
         processedEventIds = new HashSet<>();
+
+        mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.goblin_march_song);
+        mediaPlayer.start();
+        mediaPlayer.setLooping(true);
     }
 
     @Override
@@ -207,6 +232,8 @@ public class ClientActivity extends Activity {
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this);
         }
+
+        mediaPlayer.stop();
 
         clientController.updateReplays(getApplicationContext());
 
@@ -462,7 +489,6 @@ public class ClientActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             gridPollTask.doPoll(eventProcessor);
         }
-        tankEventController.startMiningFacility(userId, playableId);
     }
 
     @ItemSelect({R.id.selectPlayable})
@@ -539,7 +565,6 @@ public class ClientActivity extends Activity {
             } else if (improvementType == 2) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
                 tankEventController.removeCredits(userId, 300.0, playerData.setCurEntity("miningFacility"));
-                tankEventController.startMiningFacility(userId, playableId);
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds
@@ -575,6 +600,7 @@ public class ClientActivity extends Activity {
         @Click(R.id.buttonEjectSoldier)
     protected void onButtonEjectSoldier() {
         clientController.ejectSoldierAsync(playableId);
+        buttonEjectSoldier.setEnabled(false);
 //        playerData.setSoldierEjected(true);
     }
 
@@ -878,6 +904,36 @@ public class ClientActivity extends Activity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMiningCredits(MiningCreditsEvent event) {
+        // Create a unique identifier for this event
+        long eventId = event.getTimeStamp() + event.getOwnerId();
+
+        // Check for duplicate events
+//        if (event.getTimeStamp() <= lastEventTimestamp || processedMiningEvents.contains(eventId)) {
+//            Log.d(TAG, "Skipping duplicate mining credit event");
+//            return;
+//        }
+
+        // Mark the event as processed by adding it to the sets
+        lastEventTimestamp = event.getTimeStamp();
+        processedMiningEvents.add(eventId);
+
+        // Logging for debugging
+        Log.d(TAG, "Mining credit event received. User ID: " + event.getOwnerId() +
+                ", Credits: " + event.getCreditAmount());
+
+        // Show a toast to inform the user
+        String message = String.format("Mining Facility generated %.2f credits!", event.getCreditAmount());
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+
+        // Update the balance in the UI
+        fetchAndUpdateBalance();
+
+        // Optionally add the event ID to another set if needed
+        processedEventIds.add(eventId);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onItemPickup(ItemPickupEvent event) {
         // Create a unique identifier for this event
         long eventId = event.getTimeStamp() + event.getItemType();
@@ -937,6 +993,15 @@ public class ClientActivity extends Activity {
                 handleRepairKitHealing(); // Start the healing process
                 break;
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void updateUIOnMove(UIUpdateEvent event) {
+        Log.d(TAG, "Updating UI based on most recent move: " + event.toString());
+        buttonUp.setEnabled(event.getCanMoveUp());
+        buttonDown.setEnabled(event.getCanMoveDown());
+        buttonLeft.setEnabled(event.getCanMoveLeft());
+        buttonRight.setEnabled(event.getCanMoveRight());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -1050,19 +1115,24 @@ public class ClientActivity extends Activity {
         Log.d(TAG, "Terrain Update Event received: Hilly: " + event.isHilly() +
                 " Forest: " + event.isForest() +
                 " Rocky: " + event.isRocky() +
-                " PlayableType: " + playableType);
+                " PlayableType: " + playableType +
+                " From: " + event.getFromPosition() +
+                " To: " + event.getToPosition());
 
         // Set the playable type first
         playerData.setCurId(playableType);
 
-        // Then update terrain state
-        playerData.setTerrainState(
-                event.isHilly(),
-                event.isForest(),
-                event.isRocky()
-        );
+        // Only update terrain state if we actually moved
+        if (event.isPositionChanged()) {
+            // Update terrain state
+            playerData.setTerrainState(
+                    event.isHilly(),
+                    event.isForest(),
+                    event.isRocky()
+            );
 
-        // Update UI
-        updateStatsDisplay();
+            // Update UI
+            updateStatsDisplay();
+        }
     }
 }

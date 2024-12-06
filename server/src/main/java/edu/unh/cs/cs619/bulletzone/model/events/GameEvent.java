@@ -15,7 +15,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(name = "turn", value = TurnEvent.class),
         @JsonSubTypes.Type(name = "hit", value = HitEvent.class),
         @JsonSubTypes.Type(name = "turn", value = TurnEvent.class),
-        @JsonSubTypes.Type(name = "itemPickup", value = ItemPickupEvent.class)
+        @JsonSubTypes.Type(name = "itemPickup", value = ItemPickupEvent.class),
+        @JsonSubTypes.Type(name = "UI", value = UIUpdateEvent.class)
 })
 public abstract class GameEvent {
     private long timeStamp;

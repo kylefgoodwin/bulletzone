@@ -1,13 +1,15 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import org.greenrobot.eventbus.EventBus;
-
 import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
+import edu.unh.cs.cs619.bulletzone.model.events.PowerUpEjectEvent;
+import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 public class Tank extends Playable {
     private static final String TAG = "Tank";
+    private static final int BASE_MOVE_INTERVAL = 500;
+    private static final int BASE_FIRE_INTERVAL = 1500;
 
     public Tank(long id, Direction direction, String ip) {
         super(id, direction, ip);
@@ -15,7 +17,7 @@ public class Tank extends Playable {
         playableType = 1;
 
         numberOfBullets = 0;
-        allowedFireInterval = 1500;
+        allowedFireInterval = BASE_FIRE_INTERVAL;
         allowedNumberOfBullets = 2;
         lastFireTime = 0;
         bulletDamage = 30;
@@ -23,14 +25,14 @@ public class Tank extends Playable {
         allowedTurnInterval = 0;
         lastTurnTime = 0;
 
-        allowedMoveInterval = 500;
+        allowedMoveInterval = BASE_MOVE_INTERVAL;
         lastMoveTime = 0;
-        moveMultiplier = 1;  // Initialize move multiplier
+        moveMultiplier = 1;
 
         lastEntryTime = 0;
         allowedDeployInterval = 5000;
 
-        powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        powerUpManager = new PowerUpManager(BASE_MOVE_INTERVAL, BASE_FIRE_INTERVAL);
         hasSoldier = false;
     }
 
@@ -40,7 +42,6 @@ public class Tank extends Playable {
             int finalDamage = powerUpManager.processDamage(damage);
             life -= finalDamage;
 
-            // Post event with updated shield status
             EventBus.getDefault().post(new HitEvent(
                     (int) id,
                     playableType,
@@ -59,47 +60,56 @@ public class Tank extends Playable {
     @Override
     public void update() {
         super.update();
-        if (powerUpManager != null && powerUpManager.hasActiveRepairKit()) {
-            life = Math.min(100, life + 1); // Heal 1 point per second
+        if (powerUpManager != null) {
+            powerUpManager.update();
+            if (powerUpManager.hasActiveRepairKit()) {
+                life = Math.min(100, life + 1);
+            }
+            allowedMoveInterval = powerUpManager.getCurrentMovementDelay();
+            allowedFireInterval = powerUpManager.getCurrentFireDelay();
         }
     }
 
     public boolean tryEjectPowerUp(FieldHolder target) {
-        if (powerUpManager != null && powerUpManager.hasPowerUps()) {
-            Item powerUp = powerUpManager.ejectLastPowerUp();
-            if (powerUp != null) {
-                // Handle immediate destruction of repair kit
-                if (powerUp.getIntValue() == 3005) { // RepairKit
-                    return true;
-                }
-
-                // Place other power-ups on the field
-                Direction dropDirection = getDropDirection();
-                FieldHolder dropLocation = target.getNeighbor(dropDirection);
-
-                if (dropLocation != null && !dropLocation.isPresent()) {
-                    dropLocation.setFieldEntity(powerUp);
-                    powerUp.setParent(dropLocation);
-                    return true;
-                }
-            }
+        if (!powerUpManager.hasPowerUps()) {
+            return false;
         }
+
+        Item powerUp = powerUpManager.ejectLastPowerUp();
+        if (powerUp == null) {
+            // Handle repair kit ejection
+            EventBus.getDefault().post(new PowerUpEjectEvent(5));
+            return true;
+        }
+
+        // Update tank stats
+        allowedMoveInterval = powerUpManager.getCurrentMovementDelay();
+        allowedFireInterval = powerUpManager.getCurrentFireDelay();
+        moveMultiplier = 1;  // Reset move multiplier
+
+        Direction dropDirection = getDropDirection();
+        FieldHolder dropLocation = target.getNeighbor(dropDirection);
+
+        if (dropLocation != null && !dropLocation.isPresent()) {
+            dropLocation.setFieldEntity(powerUp);
+            powerUp.setParent(dropLocation);
+
+            // Post both spawn and eject events
+            EventBus.getDefault().post(new SpawnEvent(powerUp.getIntValue(), dropLocation.getPosition()));
+            EventBus.getDefault().post(new PowerUpEjectEvent(powerUp.getType()));
+            return true;
+        }
+
         return false;
     }
 
     private Direction getDropDirection() {
-        // Get opposite direction of current facing
         switch (direction) {
-            case Up:
-                return Direction.Down;
-            case Down:
-                return Direction.Up;
-            case Left:
-                return Direction.Right;
-            case Right:
-                return Direction.Left;
-            default:
-                return Direction.Down;
+            case Up: return Direction.Down;
+            case Down: return Direction.Up;
+            case Left: return Direction.Right;
+            case Right: return Direction.Left;
+            default: return Direction.Down;
         }
     }
 
