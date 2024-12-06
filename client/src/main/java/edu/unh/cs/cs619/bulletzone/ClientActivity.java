@@ -86,12 +86,6 @@ public class ClientActivity extends Activity {
     protected TextView balanceTextView;
 
     @ViewById
-    protected TextView statusTextView;
-
-    @ViewById
-    protected TextView eventBusStatus;
-
-    @ViewById
     protected TextView activeEffects;
 
     @ViewById
