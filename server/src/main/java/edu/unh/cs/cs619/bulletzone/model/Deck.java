@@ -1,28 +1,23 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
-public class Deck extends FieldEntity {
+public class Deck extends Improvement {
 
-    int destructValue, pos;
+    int destructValue = 904;
+    int pos;
 
-    // Default constructor for an indestructible deck
+    // Constructor for an indestructible deck
     public Deck() {
-        this.destructValue = 904; // Default value for deck
+        super(904); // 902 represents the value for a deck
     }
 
-    // Constructor with parameters
-    public Deck(int destructValue, int pos) {
-        this.destructValue = destructValue;
-        this.pos = pos;
+    @Override
+    public FieldEntity copy() {
+        return new Deck();
     }
 
     @Override
     public int getIntValue() {
         return destructValue;
-    }
-
-    @Override
-    public FieldEntity copy() {
-        return new Deck(destructValue, pos);
     }
 
     public int getPos() {

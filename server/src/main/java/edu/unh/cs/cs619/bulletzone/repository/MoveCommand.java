@@ -129,7 +129,7 @@ public class MoveCommand implements Command {
                     playable.setDirection(direction);
                     return false;
                 }
-                Improvement improvement = (Improvement) nextField.getImprovementEntityHolder();
+                Improvement improvement = (Improvement) nextField.getEntity();
                 if (!playable.handleImprovements(improvement, millis)) {
                     return false;
                 }
@@ -302,10 +302,11 @@ public class MoveCommand implements Command {
                 return true;
             }
 
-            if (nextField.getEntity().isIndestructibleWall()) {
+            if (nextField.getEntity().isIndestructibleWall() || nextField.getEntity().isFactory()) {
                 return false;
             } else if (nextField.getEntity().isWall() || nextField.getEntity().isPlayable() ||
-                        nextField.getEntity().isMiningFacility()) {
+                        nextField.getEntity().isMiningFacility() || nextField.getEntity().isRoad() ||
+                        nextField.getEntity().isDeck() || nextField.getEntity().isBridge()) {
                     return true;
             }
 

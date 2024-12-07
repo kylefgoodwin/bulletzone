@@ -1,28 +1,23 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
-public class Bridge extends FieldEntity {
+public class Bridge extends Improvement {
 
-    int destructValue, pos;
+    int destructValue = 903;
+    int pos;
 
-    // Default constructor for an indestructible bridge
+    // Constructor for an indestructible bridge
     public Bridge() {
-        this.destructValue = 903; // Default value for bridge
+        super(903);
     }
 
-    // Constructor with parameters
-    public Bridge(int destructValue, int pos) {
-        this.destructValue = destructValue;
-        this.pos = pos;
+    @Override
+    public FieldEntity copy() {
+        return new Road();
     }
 
     @Override
     public int getIntValue() {
         return destructValue;
-    }
-
-    @Override
-    public FieldEntity copy() {
-        return new Bridge(destructValue, pos);
     }
 
     public int getPos() {

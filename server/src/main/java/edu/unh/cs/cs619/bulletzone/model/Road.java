@@ -1,28 +1,24 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
-public class Road extends FieldEntity {
+public class Road extends Improvement {
 
-    int destructValue, pos;
+    int destructValue = 902;
+    int pos;
 
-    // Default constructor for an indestructible road
+    // Constructor for an indestructible road
     public Road() {
-        this.destructValue = 902; // Default value for road
+        super(902); // 902 represents the value for a road
     }
 
-    // Constructor with parameters
-    public Road(int destructValue, int pos) {
-        this.destructValue = destructValue;
-        this.pos = pos;
+    // Override copy method to create a new instance of Road
+    @Override
+    public FieldEntity copy() {
+        return new Road();
     }
 
     @Override
     public int getIntValue() {
         return destructValue;
-    }
-
-    @Override
-    public FieldEntity copy() {
-        return new Road(destructValue, pos);
     }
 
     public int getPos() {

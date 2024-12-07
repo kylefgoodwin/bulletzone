@@ -1,16 +1,18 @@
 package edu.unh.cs.cs619.bulletzone.model;
 
-public class Factory extends FieldEntity {
+public class Factory extends Improvement {
 
-    int destructValue, pos;
+    int destructValue = 930;
+    int pos;
 
+    // Constructor for an indestructible road
     public Factory() {
-        this.destructValue = 930;
+        super(930); // 930 represents the value for a factory
     }
 
-    public Factory(int destructValue, int pos) {
-        this.destructValue = destructValue;
-        this.pos = pos;
+    @Override
+    public FieldEntity copy() {
+        return new Road();
     }
 
     @Override
@@ -18,12 +20,8 @@ public class Factory extends FieldEntity {
         return destructValue;
     }
 
-    @Override
-    public FieldEntity copy() {
-        return new Factory(destructValue, pos);
-    }
-
-    public int getPos(){
+    public int getPos() {
         return pos;
     }
+
 }
