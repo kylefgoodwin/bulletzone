@@ -90,6 +90,26 @@ public class TankEventController {
             }
             miningFacilityCount++;
 
+        } else if (Objects.equals(entity, "road")) {
+            Log.d(TAG, "Balance (road)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 40.0) {
+                restClient.build(playableId, playableType, entity);
+            }
+        } else if (Objects.equals(entity, "deck")) {
+            Log.d(TAG, "Balance (deck)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 80.0) {
+                restClient.build(playableId, playableType, entity);
+            }
+        } else if (Objects.equals(entity, "bridge")) {
+            Log.d(TAG, "Balance (bridge)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 120.0) {
+                restClient.build(playableId, playableType, entity);
+            }
+        } else if (Objects.equals(entity, "factory")) {
+            Log.d(TAG, "Balance (factory)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 250.0) {
+                restClient.build(playableId, playableType, entity);
+            }
         }
     }
     @Background
@@ -109,7 +129,7 @@ public class TankEventController {
         Log.d(TAG, "Processing build, amount: " + amount);
         if (Objects.equals(entity, "destructibleWall")) {
             Log.d(TAG, "Balance (destructibleWall)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 300.0 ) {
+            if (restClient.getBalance(userId) >= 80.0 ) {
                 BooleanWrapper result = restClient.deductBalance(userId, amount);
                 if (result != null && result.isResult()) {
                     Log.d(TAG, "Transaction successful: " + amount + " credits");
@@ -119,7 +139,7 @@ public class TankEventController {
             }
         } else if (Objects.equals(entity, "indestructibleWall")) {
             Log.d(TAG, "Balance (indestructibleWall)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 300.0 ) {
+            if (restClient.getBalance(userId) >= 150.0 ) {
                 BooleanWrapper result = restClient.deductBalance(userId, amount);
                 if (result != null && result.isResult()) {
                     Log.d(TAG, "Transaction successful: " + amount + " credits");
@@ -138,9 +158,47 @@ public class TankEventController {
                 }
             }
 
+        } else if (Objects.equals(entity, "road")) {
+            Log.d(TAG, "Balance (road)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 40.0 ) {
+                BooleanWrapper result = restClient.deductBalance(userId, amount);
+                if (result != null && result.isResult()) {
+                    Log.d(TAG, "Transaction successful: " + amount + " credits");
+                } else {
+                    Log.e(TAG, "Transaction failed: " + amount + " credits");
+                }
+            }
+        } else if (Objects.equals(entity, "deck")) {
+            Log.d(TAG, "Balance (deck)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 80.0 ) {
+                BooleanWrapper result = restClient.deductBalance(userId, amount);
+                if (result != null && result.isResult()) {
+                    Log.d(TAG, "Transaction successful: " + amount + " credits");
+                } else {
+                    Log.e(TAG, "Transaction failed: " + amount + " credits");
+                }
+            }
+        } else if (Objects.equals(entity, "bridge")) {
+            Log.d(TAG, "Balance (bridge)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 120.0 ) {
+                BooleanWrapper result = restClient.deductBalance(userId, amount);
+                if (result != null && result.isResult()) {
+                    Log.d(TAG, "Transaction successful: " + amount + " credits");
+                } else {
+                    Log.e(TAG, "Transaction failed: " + amount + " credits");
+                }
+            }
+        } else if (Objects.equals(entity, "factory")) {
+            Log.d(TAG, "Balance (factory)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 250.0 ) {
+                BooleanWrapper result = restClient.deductBalance(userId, amount);
+                if (result != null && result.isResult()) {
+                    Log.d(TAG, "Transaction successful: " + amount + " credits");
+                } else {
+                    Log.e(TAG, "Transaction failed: " + amount + " credits");
+                }
+            }
         }
-
-
     }
 
     @Background
@@ -188,8 +246,15 @@ public class TankEventController {
             } else {
                 Log.e(TAG, "Mining facility " + playableId + " is not active or not owned by user " + userId);
             }
+        } else if (Objects.equals(entity, "road")) {
+            restClient.build(playableId, playableType, entity);
+        } else if (Objects.equals(entity, "deck")) {
+            restClient.build(playableId, playableType, entity);
+        } else if (Objects.equals(entity, "bridge")) {
+            restClient.build(playableId, playableType, entity);
+        } else if (Objects.equals(entity, "factory")) {
+            restClient.build(playableId, playableType, entity);
         }
-
     }
 
     private boolean onePointTurn(int currentButtonId) {

@@ -37,6 +37,31 @@ public class Tank extends Playable {
     }
 
     @Override
+    public boolean handleTerrainConstraints(Terrain terrain, long millis) {
+        if (terrain.isHilly() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 1.5))) {
+            return false;
+        } else if (terrain.isForest() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 2))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean handleImprovements(Improvement improvement, long millis) {
+        if (improvement.isRoad() && millis < (getLastMoveTime() + (getAllowedMoveInterval() / 2))) {
+            return false;
+        } else if (improvement.isBridge() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        } else if (improvement.isDeck() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean canEjectSoldier(){ return true; }
+
+    @Override
     public void hit(int damage) {
         if (powerUpManager != null) {
             int finalDamage = powerUpManager.processDamage(damage);

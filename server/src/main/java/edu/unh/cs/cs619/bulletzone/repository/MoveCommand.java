@@ -8,14 +8,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
+import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
 import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.IllegalTransitionException;
+import edu.unh.cs.cs619.bulletzone.model.Improvement;
 import edu.unh.cs.cs619.bulletzone.model.Item;
 import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
+import edu.unh.cs.cs619.bulletzone.model.Soldier;
+import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
@@ -35,6 +39,14 @@ public class MoveCommand implements Command {
     Playable playable;
     private static final int FIELD_DIM = 16;
 
+    /**
+     * Constructor for MoveCommand called each time
+     * move() is called in InGameMemoryRepository
+     *
+     * @param playable   playable to move
+     *
+     * @param direction direction for tank to move
+     */
     public MoveCommand(Playable playable, int playableType, Game game, Direction direction, long currentTimeMillis) {
         this.playable = playable;
         this.playableType = playableType;
@@ -44,6 +56,14 @@ public class MoveCommand implements Command {
         this.playableId = playable.getId();
     }
 
+    /**
+     * Command to move a tank with tankId in given direction
+     *
+     * @return true if moved, false otherwise
+     * @throws TankDoesNotExistException  throws error if tank does not exist
+     * @throws IllegalTransitionException unsure, not thrown
+     * @throws LimitExceededException     unsure, not thrown
+     */
     @Override
     public boolean execute() throws TankDoesNotExistException, IllegalTransitionException, LimitExceededException {
         // Check if enough time has passed since last move
@@ -94,6 +114,27 @@ public class MoveCommand implements Command {
 
                 moveUnit(currentField, nextField, playable, direction, false);
                 playable.setLastMoveTime(millis + moveDelay);
+                return true;
+            } else if (nextField.getEntity().isImprovement()) {
+                if (nextField.getEntity().isWall()) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isIndestructibleWall()) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isMiningFacility()) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isFactory()) {
+                    playable.setDirection(direction);
+                    return false;
+                }
+                Improvement improvement = (Improvement) nextField.getImprovementEntityHolder();
+                if (!playable.handleImprovements(improvement, millis)) {
+                    return false;
+                }
+                moveUnit(currentField, nextField, playable, direction, false);
+                playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
                 return true;
             }
             // Soldier re-entry
