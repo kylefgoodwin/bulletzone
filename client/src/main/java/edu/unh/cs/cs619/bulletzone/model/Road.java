@@ -12,7 +12,7 @@ public class Road extends BoardCell{
     public Road(int val, int r, int c) {
         super(val, r, c);
 
-        resourceID = R.drawable.goldmine;
+        resourceID = R.drawable.road;
         cellType = "Road";
 
     }

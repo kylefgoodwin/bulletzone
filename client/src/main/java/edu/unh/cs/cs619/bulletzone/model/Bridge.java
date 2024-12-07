@@ -12,7 +12,7 @@ public class Bridge extends BoardCell{
     public Bridge(int val, int r, int c) {
         super(val, r, c);
 
-        resourceID = R.drawable.goldmine;
+        resourceID = R.drawable.bridge;
         cellType = "Bridge";
 
     }
