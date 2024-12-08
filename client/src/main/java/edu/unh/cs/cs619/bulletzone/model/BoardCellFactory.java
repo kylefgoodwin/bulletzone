@@ -28,6 +28,14 @@ public class BoardCellFactory {
             return new Wall(val, row, col);
         } else if (val == 920){
             return new MiningFacility(val, row, col);
+        } else if (val == 902){
+            return new Road(val, row, col);
+        } else if (val == 903){
+            return new Deck(val, row, col);
+        } else if (val == 904){
+            return new Bridge(val, row, col);
+        } else if (val == 930){
+            return new Factory(val, row, col);
         } else {
             return new BoardCell(val, row, col);
         }

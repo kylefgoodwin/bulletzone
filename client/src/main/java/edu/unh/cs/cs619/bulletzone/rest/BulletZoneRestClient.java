@@ -96,3 +96,4 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
 //    @Get("/{playableId}/isFacilityActive")
 //    BooleanWrapper isFacilityActive(@Path long playableId);
 }
+
