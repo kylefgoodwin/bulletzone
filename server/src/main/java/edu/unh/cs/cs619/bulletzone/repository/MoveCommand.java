@@ -438,14 +438,14 @@ public class MoveCommand implements Command {
      * @param playable playable to move
      * @param direction Direction of movement
      */
-    private void moveUnit(FieldHolder currentField, FieldHolder nextField, Playable playable, Direction direction, boolean hiddenMove) {
+    private void moveUnit(FieldHolder currentField, FieldHolder nextField, Playable playable, Direction direction, boolean hidden) {
         int oldPos = playable.getPosition();
         currentField.clearField();
         nextField.setFieldEntity(playable);
         playable.setParent(nextField);
         playable.setDirection(direction);
 
-        if (hiddenMove) {
+        if (hidden) {
             MoveEvent move = new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition());
             move.setTankID((int) playableId);
             EventBus.getDefault().post(move);
