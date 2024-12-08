@@ -27,6 +27,7 @@ public class PlayerData {
     private int builderLife = 80;
     private int soldierLife = 25;
     private long initialTimeStamp;
+    private boolean soldierHidden = false; // Is my soldier hidden?
 
     // Power-up states
     private int activePowerUps = 0;
@@ -366,6 +367,14 @@ public class PlayerData {
         if (repairKitCount > 0 && System.currentTimeMillis() < repairKitExpiration) {
             // Don't need to do anything - just ensuring we don't deactivate it
         }
+    }
+
+    public void setSoldierHidden(boolean hideSoldier) {
+        this.soldierHidden = hideSoldier;
+    }
+
+    public boolean getSoldierHidden() {
+        return this.soldierHidden;
     }
 
     public void setSoldierEjected(boolean soldierEjected) { this.soldierEjected = soldierEjected; }

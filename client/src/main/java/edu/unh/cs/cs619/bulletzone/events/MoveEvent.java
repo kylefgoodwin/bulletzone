@@ -27,6 +27,7 @@ public class MoveEvent extends GameEvent implements Serializable {
 
     @Override
     void applyTo(int[][] board) {
+//        Log.d("Move Event", "MOVING");
         board[oldPosition / 16][oldPosition % 16] = 0;
         board[newPosition / 16][newPosition % 16] = rawServerValue;
     }

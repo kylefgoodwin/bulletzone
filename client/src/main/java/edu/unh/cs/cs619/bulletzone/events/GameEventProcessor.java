@@ -103,17 +103,20 @@ public class GameEventProcessor {
 
             try {
 
-                if (event instanceof MoveEvent) {
-                    MoveEvent mv = (MoveEvent) event;
-
-                    if (mv.getTankID() == -1) {
-                        event.applyTo(playerLayer);
-                    } else if (mv.getTankID() == PlayerData.getPlayerData().getTankId()) {
-                        event.applyTo(playerLayer);
-                    }
-                } else {
+//                if (event instanceof MoveEvent) {
+//                    MoveEvent mv = (MoveEvent) event;
+//
+//                    Log.d(TAG, "Move Event");
+//
+//                    if (mv.getTankID() == -1) {
+//                        event.applyTo(playerLayer);
+//                    } else if (mv.getTankID() == PlayerData.getPlayerData().getTankId()) {
+//                        Log.d(TAG, "Hidden Move");
+//                        event.applyTo(playerLayer);
+//                    }
+//                } else {
                     event.applyTo(playerLayer);
-                }
+//                }
 
                 Log.d(TAG, "Successfully applied event: " + event);
             } catch (Exception e) {

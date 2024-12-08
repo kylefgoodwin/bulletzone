@@ -1,11 +1,14 @@
 package edu.unh.cs.cs619.bulletzone;
 
 import android.content.Context;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EBean;
+import org.androidannotations.annotations.UiThread;
 import org.androidannotations.rest.spring.annotations.RestService;
 import org.greenrobot.eventbus.EventBus;
 
@@ -56,6 +59,32 @@ public class ClientController {
     }
 
     @Background
+    public void postLifeAsync(int playableId, int playableType, ClientActivity context) {
+        try {
+
+            int life;
+            if (playableId == PlayerData.getPlayerData().getTankId() && playableType == 1) {
+                getLifeAsync(playableId, playableType);
+            }
+            life = restClient.getLife(playableId, playableType).getResult();
+
+            showLifeToast(life, context);
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting life", e);
+            showLifeToast(-1, context);
+        }
+    }
+
+    @UiThread
+    void showLifeToast(int life, ClientActivity context) {
+        if (life != -1) {
+            Toast.makeText(context, "Health: " + life, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(context, "Failed to fetch life.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Background
     public void getLifeAsync(int playableId, int playableType) {
         try {
             if (playableType == 1) {
@@ -69,7 +98,7 @@ public class ClientController {
                 }
 
                 int newLifeTank = restClient.getLife(playableId, playableType).getResult();
-                Log.d(TAG, String.format("Tank life update - Old: %d, New: %d", oldLife, newLifeTank));
+//                Log.d(TAG, String.format("Tank life update - Old: %d, New: %d", oldLife, newLifeTank));
                 PlayerData.getPlayerData().setTankLife(newLifeTank);
             } else if (playableType == 2) {
                 int oldLife = PlayerData.getPlayerData().getBuilderLife();

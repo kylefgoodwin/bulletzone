@@ -57,9 +57,6 @@ public class SimulationBoard extends GameEventProcessor {
             for (int j = 0; j < board[i].length; j++) {
                 // Create BoardCells for player, item, and terrain data
                 BoardCell playerCell = factory.makeCell(board[i][j], i, j);
-                if (!playerCell.getCellType().equals("Empty")) {
-//                    Log.d("SimulationBoard", "Board (" + i + "," + j + ") = " + playerCell.getCellType());
-                }
 //                BoardCell itemCell = factory.makeCell(board[i][j + 1], i, j);
                 BoardCell terrainCell = factory.makeCell(tBoard[i][j], i, j);
 
