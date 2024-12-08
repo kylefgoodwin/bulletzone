@@ -38,7 +38,7 @@ public class Soldier extends Playable {
         allowedDeployInterval = 5000;
 
         recentlyEnteredTank = false;
-        powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        this.powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval, PlayableType.SOLDIER);
     }
 
     @Override

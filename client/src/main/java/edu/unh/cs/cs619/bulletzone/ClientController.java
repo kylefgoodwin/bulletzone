@@ -61,13 +61,28 @@ public class ClientController {
     @Background
     public void postLifeAsync(int playableId, int playableType, ClientActivity context) {
         try {
-
-            int life;
-            if (playableId == PlayerData.getPlayerData().getTankId() && playableType == 1) {
-                getLifeAsync(playableId, playableType);
+            // If it's our own playable, use cached values
+            if (playableId == PlayerData.getPlayerData().getTankId()) {
+                int health = -1;
+                switch (playableType) {
+                    case 1: // Tank
+                        health = PlayerData.getPlayerData().getTankLife();
+                        break;
+                    case 2: // Builder
+                        health = PlayerData.getPlayerData().getBuilderLife();
+                        break;
+                    case 3: // Soldier
+                        health = PlayerData.getPlayerData().getSoldierLife();
+                        break;
+                }
+                if (health != -1) {
+                    showLifeToast(health, context);
+                    return;
+                }
             }
-            life = restClient.getLife(playableId, playableType).getResult();
 
+            // For other units, query server
+            int life = restClient.getLife(playableId, playableType).getResult();
             showLifeToast(life, context);
         } catch (Exception e) {
             Log.e(TAG, "Error getting life", e);
@@ -93,37 +108,37 @@ public class ClientController {
                 // Try to repair if repair kit is active and health isn't full
                 if (PlayerData.getPlayerData().isRepairKitActive() && oldLife < 100) {
                     repairAsync(playableId);
-                    // Give server time to process repair
                     SystemClock.sleep(50);
                 }
 
                 int newLifeTank = restClient.getLife(playableId, playableType).getResult();
-//                Log.d(TAG, String.format("Tank life update - Old: %d, New: %d", oldLife, newLifeTank));
-                PlayerData.getPlayerData().setTankLife(newLifeTank);
+                if (newLifeTank >= 0) {  // Only update if valid response
+                    PlayerData.getPlayerData().setTankLife(newLifeTank);
+                }
             } else if (playableType == 2) {
                 int oldLife = PlayerData.getPlayerData().getBuilderLife();
 
-                // Try to repair if repair kit is active and health isn't full
                 if (PlayerData.getPlayerData().isRepairKitActive() && oldLife < 80) {
                     repairAsync(playableId);
                     SystemClock.sleep(50);
                 }
 
                 int newLifeBuilder = restClient.getLife(playableId, playableType).getResult();
-                Log.d(TAG, String.format("Builder life update - Old: %d, New: %d", oldLife, newLifeBuilder));
-                PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
+                if (newLifeBuilder >= 0) {
+                    PlayerData.getPlayerData().setBuilderLife(newLifeBuilder);
+                }
             } else if (playableType == 3) {
                 int oldLife = PlayerData.getPlayerData().getSoldierLife();
 
-                // Try to repair if repair kit is active and health isn't full
                 if (PlayerData.getPlayerData().isRepairKitActive() && oldLife < 25) {
                     repairAsync(playableId);
                     SystemClock.sleep(50);
                 }
 
                 int newLifeSoldier = restClient.getLife(playableId, playableType).getResult();
-                Log.d(TAG, String.format("Soldier life update - Old: %d, New: %d", oldLife, newLifeSoldier));
-                PlayerData.getPlayerData().setSoldierLife(newLifeSoldier);
+                if (newLifeSoldier >= 0) {
+                    PlayerData.getPlayerData().setSoldierLife(newLifeSoldier);
+                }
             }
         } catch (Exception e) {
             Log.e(TAG, "Error getting life: " + e.getMessage());

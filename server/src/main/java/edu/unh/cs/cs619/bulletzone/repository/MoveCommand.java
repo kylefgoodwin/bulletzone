@@ -103,45 +103,54 @@ public class MoveCommand implements Command {
                 boolean isTerrainField = nextField.isTerrainPresent();
                 Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
 
-                // Emit terrain event only for actual movement
-                TerrainUpdateEvent event = new TerrainUpdateEvent(
-                        isTerrainField && t != null && t.isHilly(),
-                        isTerrainField && t != null && t.isForest(),
-                        isTerrainField && t != null && t.isRocky(),
-                        playableType,
-                        currentField.getPosition(),
-                        nextField.getPosition()
-                );
-                EventBus.getDefault().post(event);
-
-
+                // Check if soldier is moving into forest
                 if (playableType == 3 && isTerrainField && t != null && t.isForest()) {
-                    hiddenMove = true;
+                    // First remove the soldier for other players
+                    RemoveEvent removeEvent = new RemoveEvent(playable.getIntValue(), currentField.getPosition());
+                    removeEvent.setTankID((int)playableId);
+                    EventBus.getDefault().post(removeEvent);
+
+                    // Then post terrain event
+                    TerrainUpdateEvent event = new TerrainUpdateEvent(
+                            false,
+                            true,  // Keep forest true to maintain proper terrain state
+                            false,
+                            playableType,
+                            currentField.getPosition(),
+                            nextField.getPosition()
+                    );
+                    EventBus.getDefault().post(event);
+
+                    // Move the unit but only visible to owner
+                    MoveEvent moveEvent = new MoveEvent(playable.getIntValue(), currentField.getPosition(), nextField.getPosition());
+                    moveEvent.setTankID((int)playableId);
+                    EventBus.getDefault().post(moveEvent);
+
+                    // Update positions
+                    currentField.clearField();
+                    nextField.setFieldEntity(playable);
+                    playable.setParent(nextField);
+                    playable.setDirection(direction);
+
+                    moveDelay = (long) (moveDelay * 1.25);
+                    playable.setLastMoveTime(millis + moveDelay);
+                    return true;
+                } else {
+                    // Emit normal terrain event
+                    TerrainUpdateEvent event = new TerrainUpdateEvent(
+                            isTerrainField && t != null && t.isHilly(),
+                            isTerrainField && t != null && t.isForest(),
+                            isTerrainField && t != null && t.isRocky(),
+                            playableType,
+                            currentField.getPosition(),
+                            nextField.getPosition()
+                    );
+                    EventBus.getDefault().post(event);
+
+                    moveUnit(currentField, nextField, playable, direction, false);
+                    playable.setLastMoveTime(millis + moveDelay);
+                    return true;
                 }
-                moveUnit(currentField, nextField, playable, direction, hiddenMove);
-                playable.setLastMoveTime(millis + moveDelay);
-                return true;
-            } else if (nextField.getEntity().isImprovement()) {
-                if (nextField.getEntity().isWall()) {
-                    playable.setDirection(direction);
-                    return false;
-                } else if (nextField.getEntity().isIndestructibleWall()) {
-                    playable.setDirection(direction);
-                    return false;
-                } else if (nextField.getEntity().isMiningFacility()) {
-                    playable.setDirection(direction);
-                    return false;
-                } else if (nextField.getEntity().isFactory()) {
-                    playable.setDirection(direction);
-                    return false;
-                }
-                Improvement improvement = (Improvement) nextField.getEntity();
-                if (!playable.handleImprovements(improvement, millis)) {
-                    return false;
-                }
-                moveUnit(currentField, nextField, playable, direction, false);
-                playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
-                return true;
             }
             // Soldier re-entry
             else if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
@@ -153,30 +162,6 @@ public class MoveCommand implements Command {
                     EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
                     game.setSoldierEjected(false);
                     return false;
-                }
-            }
-
-            // Apply terrain modifiers if movement is possible
-            if (nextField.isTerrainPresent()) {
-                Terrain terrain = (Terrain) nextField.getTerrainEntityHolder();
-                if (playableType == 1) { // Tank
-                    if (terrain.isHilly()) {
-                        moveDelay = (long) (moveDelay * 1.5);
-                    } else if (terrain.isForest()) {
-                        moveDelay = moveDelay * 2;
-                    }
-                } else if (playableType == 2) { // Builder
-                    if (terrain.isRocky()) {
-                        moveDelay = (long) (moveDelay * 1.5);
-                    }
-                    if (terrain.isForest()) {
-                        return false;
-                    }
-                } else if (playableType == 3) { // Soldier
-                    if (terrain.isForest()) {
-                        moveDelay = (long) (moveDelay * 1.25);
-                        // hiddenMove = true;
-                    }
                 }
             }
 
@@ -210,7 +195,7 @@ public class MoveCommand implements Command {
 
                 EventBus.getDefault().post(new RemoveEvent(itemValue, itemPos));
                 EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
-                // Handle hidden move here too
+
                 playable.setLastMoveTime(millis + moveDelay);
                 return true;
             }
@@ -247,10 +232,6 @@ public class MoveCommand implements Command {
                     Playable otherPlay = (Playable) nextField.getEntity();
                     int otherLife = otherPlay.getLife();
                     int playableLife = playable.getLife();
-
-                    if (otherPlay.getId() == playableId) {
-                        return false;
-                    }
 
                     if (playableType == 1) {
                         otherPlay.hit((int) Math.ceil(playableLife * 0.1));
@@ -472,5 +453,25 @@ public class MoveCommand implements Command {
     @Override
     public Long executeJoin() {
         return null;
+    }
+
+    private void handleSoldierHiding(FieldHolder currentField, FieldHolder nextField, Playable playable, Direction direction, long moveDelay) {
+        // Create RemoveEvent for other players
+        RemoveEvent removeEvent = new RemoveEvent(playable.getIntValue(), currentField.getPosition());
+        removeEvent.setTankID((int)playableId);
+        EventBus.getDefault().post(removeEvent);
+
+        // Create special MoveEvent that only the soldier owner can see
+        MoveEvent moveEvent = new MoveEvent(playable.getIntValue(), currentField.getPosition(), nextField.getPosition());
+        moveEvent.setTankID((int)playableId);
+        EventBus.getDefault().post(moveEvent);
+
+        // Update positions
+        currentField.clearField();
+        nextField.setFieldEntity(playable);
+        playable.setParent(nextField);
+        playable.setDirection(direction);
+
+        playable.setLastMoveTime(millis + moveDelay);
     }
 }

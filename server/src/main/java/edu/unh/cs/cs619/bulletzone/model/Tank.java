@@ -32,7 +32,7 @@ public class Tank extends Playable {
         lastEntryTime = 0;
         allowedDeployInterval = 5000;
 
-        powerUpManager = new PowerUpManager(BASE_MOVE_INTERVAL, BASE_FIRE_INTERVAL);
+        this.powerUpManager = new PowerUpManager(BASE_MOVE_INTERVAL, BASE_FIRE_INTERVAL, PlayableType.TANK);
         hasSoldier = false;
     }
 
@@ -40,10 +40,7 @@ public class Tank extends Playable {
     public boolean handleTerrainConstraints(Terrain terrain, long millis) {
         if (terrain.isHilly() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 1.5))) {
             return false;
-        } else if (terrain.isForest() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 2))) {
-            return false;
-        }
-        return true;
+        } else return !terrain.isForest() || millis >= (getLastMoveTime() + (getAllowedMoveInterval() * 2L));
     }
 
     @Override
@@ -100,32 +97,48 @@ public class Tank extends Playable {
             return false;
         }
 
+        // Try all directions in a specific order
+        Direction[] directions = {
+                Direction.Up,
+                Direction.Right,
+                Direction.Down,
+                Direction.Left
+        };
+
+        // Check each direction for an available spot
+        FieldHolder dropLocation = null;
+        for (Direction dir : directions) {
+            FieldHolder potential = target.getNeighbor(dir);
+            if (potential != null && !potential.isPresent()) {
+                dropLocation = potential;
+                break;
+            }
+        }
+
+        // If no valid location found, can't drop
+        if (dropLocation == null) {
+            return false;
+        }
+
+        // Try to eject the power-up
         Item powerUp = powerUpManager.ejectLastPowerUp();
         if (powerUp == null) {
-            // Handle repair kit ejection
-            EventBus.getDefault().post(new PowerUpEjectEvent(5));
-            return true;
+            return false;
         }
+
+        // Place the power-up in the world
+        dropLocation.setFieldEntity(powerUp);
+        powerUp.setParent(dropLocation);
 
         // Update tank stats
         allowedMoveInterval = powerUpManager.getCurrentMovementDelay();
         allowedFireInterval = powerUpManager.getCurrentFireDelay();
         moveMultiplier = 1;  // Reset move multiplier
 
-        Direction dropDirection = getDropDirection();
-        FieldHolder dropLocation = target.getNeighbor(dropDirection);
-
-        if (dropLocation != null && !dropLocation.isPresent()) {
-            dropLocation.setFieldEntity(powerUp);
-            powerUp.setParent(dropLocation);
-
-            // Post both spawn and eject events
-            EventBus.getDefault().post(new SpawnEvent(powerUp.getIntValue(), dropLocation.getPosition()));
-            EventBus.getDefault().post(new PowerUpEjectEvent(powerUp.getType()));
-            return true;
-        }
-
-        return false;
+        // Post events
+        EventBus.getDefault().post(new SpawnEvent(powerUp.getIntValue(), dropLocation.getPosition()));
+        EventBus.getDefault().post(new PowerUpEjectEvent(powerUp.getType()));
+        return true;
     }
 
     private Direction getDropDirection() {

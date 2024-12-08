@@ -102,22 +102,24 @@ public class GameEventProcessor {
             lastEventTimestamp = event.getTimeStamp();
 
             try {
+                if (event instanceof MoveEvent) {
+                    MoveEvent moveEvent = (MoveEvent) event;
+                    if (moveEvent.getTankID() != -1) {
+                        // Only apply move if we own this soldier
+                        if (moveEvent.getTankID() == PlayerData.getPlayerData().getTankId()) {
+                            event.applyTo(playerLayer);
+                        }
+                        return;
+                    }
+                } else if (event instanceof RemoveEvent) {
+                    RemoveEvent removeEvent = (RemoveEvent) event;
+                    // Skip remove if we own this soldier
+                    if (removeEvent.getTankID() == PlayerData.getPlayerData().getTankId()) {
+                        return;
+                    }
+                }
 
-//                if (event instanceof MoveEvent) {
-//                    MoveEvent mv = (MoveEvent) event;
-//
-//                    Log.d(TAG, "Move Event");
-//
-//                    if (mv.getTankID() == -1) {
-//                        event.applyTo(playerLayer);
-//                    } else if (mv.getTankID() == PlayerData.getPlayerData().getTankId()) {
-//                        Log.d(TAG, "Hidden Move");
-//                        event.applyTo(playerLayer);
-//                    }
-//                } else {
-                    event.applyTo(playerLayer);
-//                }
-
+                event.applyTo(playerLayer);
                 Log.d(TAG, "Successfully applied event: " + event);
             } catch (Exception e) {
                 Log.e(TAG, "Error applying event: " + e.getMessage(), e);
