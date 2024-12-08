@@ -200,6 +200,10 @@ public class MoveCommand implements Command {
                     int otherLife = otherPlay.getLife();
                     int playableLife = playable.getLife();
 
+                    if (otherPlay.getId() == playableId) {
+                        return false;
+                    }
+
                     if (playableType == 1) {
                         otherPlay.hit((int) Math.ceil(playableLife * 0.1));
                         playable.hit((int) Math.floor(otherLife * 0.16));
