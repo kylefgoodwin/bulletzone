@@ -129,12 +129,16 @@ public class MoveCommand implements Command {
                     playable.setDirection(direction);
                     return false;
                 }
-                Improvement improvement = (Improvement) nextField.getEntity();
-                if (!playable.handleImprovements(improvement, millis)) {
-                    return false;
-                }
+//                Improvement improvement = (Improvement) nextField.getEntity();
+//                if (!playable.handleImprovements(improvement, millis)) {
+//                    return false;
+//                } else {
+//                    moveDelay = (long) (moveDelay / 2);
+//                }
+
+                nextField.storeEntity();
                 moveUnit(currentField, nextField, playable, direction, false);
-                playable.setLastMoveTime(millis + playable.getAllowedMoveInterval());
+                playable.setLastMoveTime(millis + moveDelay / 2);
                 return true;
             }
             // Soldier re-entry
@@ -430,6 +434,10 @@ public class MoveCommand implements Command {
         int oldPos = playable.getPosition();
         currentField.clearField();
         nextField.setFieldEntity(playable);
+        if (currentField.passedImprovement()) {
+
+            currentField.restoreEntity();
+        }
         playable.setParent(nextField);
         playable.setDirection(direction);
 

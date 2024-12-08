@@ -31,9 +31,9 @@ public class BoardCellFactory {
         } else if (val == 902){
             return new Road(val, row, col);
         } else if (val == 903){
-            return new Deck(val, row, col);
-        } else if (val == 904){
             return new Bridge(val, row, col);
+        } else if (val == 904){
+            return new Deck(val, row, col);
         } else if (val == 930){
             return new Factory(val, row, col);
         } else {
