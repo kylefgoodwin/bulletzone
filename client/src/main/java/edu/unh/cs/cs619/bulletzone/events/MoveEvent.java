@@ -25,7 +25,12 @@ public class MoveEvent extends GameEvent implements Serializable {
 
     @Override
     void applyTo(int[][] board) {
-        if (PlayerData.getPlayerData().getTankId() == tankID) {
+        PlayerData pData = PlayerData.getPlayerData();
+
+        if (tankID == -1) {
+            board[oldPosition / 16][oldPosition % 16] = 0;
+            board[newPosition / 16][newPosition % 16] = rawServerValue;
+        } else if (tankID == pData.getTankId()) {
             board[oldPosition / 16][oldPosition % 16] = 0;
             board[newPosition / 16][newPosition % 16] = rawServerValue;
         }

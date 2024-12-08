@@ -37,6 +37,7 @@ public class MoveCommand implements Command {
     Direction direction;
     long millis;
     Playable playable;
+    boolean hiddenMove;
     private static final int FIELD_DIM = 16;
 
     /**
@@ -54,6 +55,7 @@ public class MoveCommand implements Command {
         this.direction = direction;
         this.millis = currentTimeMillis;
         this.playableId = playable.getId();
+        this.hiddenMove = false;
     }
 
     /**
@@ -112,7 +114,11 @@ public class MoveCommand implements Command {
                 );
                 EventBus.getDefault().post(event);
 
-                moveUnit(currentField, nextField, playable, direction, false);
+
+                if (playableType == 3 && isTerrainField && t != null && t.isForest()) {
+                    hiddenMove = true;
+                }
+                moveUnit(currentField, nextField, playable, direction, hiddenMove);
                 playable.setLastMoveTime(millis + moveDelay);
                 return true;
             } else if (nextField.getEntity().isImprovement()) {
@@ -169,6 +175,7 @@ public class MoveCommand implements Command {
                 } else if (playableType == 3) { // Soldier
                     if (terrain.isForest()) {
                         moveDelay = (long) (moveDelay * 1.25);
+                        // hiddenMove = true;
                     }
                 }
             }
@@ -203,7 +210,7 @@ public class MoveCommand implements Command {
 
                 EventBus.getDefault().post(new RemoveEvent(itemValue, itemPos));
                 EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
-
+                // Handle hidden move here too
                 playable.setLastMoveTime(millis + moveDelay);
                 return true;
             }
@@ -319,6 +326,7 @@ public class MoveCommand implements Command {
         return false;
     }
 
+    // Announce on discord if you're going to use this method xoxo
     private boolean handleTerrainConstraints (Playable playable, Terrain t, FieldHolder
     currentField, FieldHolder nextField){
         boolean hiddenMove = false;
