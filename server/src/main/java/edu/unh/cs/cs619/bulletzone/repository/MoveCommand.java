@@ -2,14 +2,12 @@ package edu.unh.cs.cs619.bulletzone.repository;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.apache.juli.logging.Log;
 import org.greenrobot.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
-import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.IllegalTransitionException;
@@ -95,7 +93,7 @@ public class MoveCommand implements Command {
                 game.getTanks().get(playableId).sethasSoldier(false);
                 currentField.clearField();
                 game.getTanks().get(playableId).setLastEntryTime(millis);
-                EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
+                EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition(), playableId));
                 game.setSoldierEjected(false);
                 // This would be the place to update the health bar of the soldier to full while in tank
                 return false;
@@ -140,11 +138,12 @@ public class MoveCommand implements Command {
             // Soldier re-entry
             if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
                 if (game.getTanks().get((playableId)).getPosition() == nextField.getPosition()) {
+                    int userID = playable.getUserId();
                     game.removeSoldier(playableId);
                     game.getTanks().get(playableId).sethasSoldier(false);
                     currentField.clearField();
                     game.getTanks().get(playableId).setLastEntryTime(millis);
-                    EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
+                    EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition(), playableId));
                     game.setSoldierEjected(false);
                     return false;
                 }
@@ -166,7 +165,7 @@ public class MoveCommand implements Command {
                 playable.setParent(nextField);
                 playable.setDirection(direction);
 
-                EventBus.getDefault().post(new RemoveEvent(itemValue, itemPos));
+                EventBus.getDefault().post(new RemoveEvent(itemValue, itemPos, 0));
                 EventBus.getDefault().post(new MoveEvent(playable.getIntValue(), oldPos, nextField.getPosition()));
 
                 playable.setLastMoveTime(millis + moveDelay);
@@ -324,7 +323,7 @@ public class MoveCommand implements Command {
             }
 
             // Create remove event and change tankID to whomever I do NOT want to remove
-            RemoveEvent remove = new RemoveEvent(playable.getIntValue(), playable.getPosition());
+            RemoveEvent remove = new RemoveEvent(playable.getIntValue(), playable.getPosition(), 0);
             remove.setTankID((int) playableId);
             EventBus.getDefault().post(remove);
 

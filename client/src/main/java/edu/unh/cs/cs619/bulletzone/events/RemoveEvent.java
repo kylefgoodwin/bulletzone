@@ -13,10 +13,19 @@ public class RemoveEvent extends GameEvent  implements Serializable {
     private int position;
     @JsonProperty
     private int tankID; // The ID of the user who SHOULD see the tank i.e. do not remove for this ID
+    @JsonProperty
+    private long soldierRemove;
 
     private static final long serialVersionUID = 1L;
 
     public RemoveEvent() {}
+
+    public long getSoldierRemove() {
+        return soldierRemove;
+    }
+    public int getTankID() {
+        return tankID;
+    }
 
     @Override
     public void applyTo(int[][] board) {
@@ -25,9 +34,10 @@ public class RemoveEvent extends GameEvent  implements Serializable {
         //      then do nothing, don't change the value @ position
         // else
         //      do change the value @ position
-        if (PlayerData.getPlayerData().getTankId() != tankID) {
+        if (PlayerData.getPlayerData().getTankId() != soldierRemove) {
             board[position / 16][position % 16] = 0;
         }
+        board[position / 16][position % 16] = 0;
     }
 
     @Override

@@ -48,6 +48,7 @@ import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
 import edu.unh.cs.cs619.bulletzone.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
+import edu.unh.cs.cs619.bulletzone.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.events.TerrainUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.events.UIUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
@@ -490,17 +491,17 @@ public class ClientActivity extends Activity {
         playableType = position+1;
 
         // Logic block to enable / disable buttons depending on selected playable type
-        if (playableType == 1) {
+        if (playableType == 1) { // Tank
             buttonBuild.setEnabled(false);
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
             buttonEjectSoldier.setEnabled(true);
-        } else if (playableType == 2) {
+        } else if (playableType == 2) { // Builder
             buttonBuild.setEnabled(true);
             buttonDismantle.setEnabled(true);
             selectImprovement.setEnabled(true);
             buttonEjectSoldier.setEnabled(false);
-        } else if (playableType == 3) {
+        } else if (playableType == 3) { // Soldier
             buttonBuild.setEnabled(false);
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
@@ -594,6 +595,7 @@ public class ClientActivity extends Activity {
         @Click(R.id.buttonEjectSoldier)
     protected void onButtonEjectSoldier() {
         clientController.ejectSoldierAsync(playableId);
+        selectPlayable.setSelection(2);
         buttonEjectSoldier.setEnabled(false);
 //        playerData.setSoldierEjected(true);
     }
@@ -1093,5 +1095,14 @@ public class ClientActivity extends Activity {
 
         // Update UI
         updateStatsDisplay();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRemoveEvent(RemoveEvent event) {
+        Log.d(TAG, "Event Tank ID: " + event.getSoldierRemove() + " | Player Tank ID: "
+                + playerData.getTankId());
+        if (event.getSoldierRemove() == playerData.getTankId()) {
+            selectPlayable.setSelection(0);
+        }
     }
 }
