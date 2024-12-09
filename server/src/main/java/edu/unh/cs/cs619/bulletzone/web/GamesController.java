@@ -21,6 +21,7 @@ import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
+import edu.unh.cs.cs619.bulletzone.model.PlayableDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.util.PlayableWrapper;
 import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -86,7 +87,7 @@ class GamesController {
     @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/move/{direction}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     ResponseEntity<BooleanWrapper> move(@PathVariable long playableId, @PathVariable int playableType, @PathVariable byte direction)
-            throws TankDoesNotExistException, LimitExceededException, IllegalTransitionException {
+            throws TankDoesNotExistException, LimitExceededException, IllegalTransitionException, PlayableDoesNotExistException {
         return new ResponseEntity<BooleanWrapper>(
                 new BooleanWrapper(gameRepository.move(playableId, playableType, Direction.fromByte(direction))),
                 HttpStatus.OK
@@ -106,7 +107,7 @@ class GamesController {
     @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/fire", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     ResponseEntity<BooleanWrapper> fire(@PathVariable long playableId, @PathVariable int playableType)
-            throws TankDoesNotExistException, LimitExceededException {
+            throws TankDoesNotExistException, LimitExceededException, PlayableDoesNotExistException {
         return new ResponseEntity<BooleanWrapper>(
                 new BooleanWrapper(gameRepository.fire(playableId, playableType, 1)),
                 HttpStatus.OK
@@ -116,7 +117,7 @@ class GamesController {
     @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/fire/{bulletType}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     ResponseEntity<BooleanWrapper> fire(@PathVariable long playableId, @PathVariable int playableType, @PathVariable int bulletType)
-            throws TankDoesNotExistException, LimitExceededException {
+            throws TankDoesNotExistException, LimitExceededException, PlayableDoesNotExistException {
         return new ResponseEntity<BooleanWrapper>(
                 new BooleanWrapper(gameRepository.fire(playableId, playableType, bulletType)),
                 HttpStatus.OK

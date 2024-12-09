@@ -269,6 +269,13 @@ public abstract class Playable extends FieldEntity {
         return moveMultiplier;
     }
 
+    public abstract boolean handleTerrainConstraints(Terrain terrain, long millis);
+
+    public boolean canBuild(){ return false; }
+    public boolean canEjectSoldier(){ return false; }
+    public boolean canShoot(){ return true; }
+    public boolean canAcceptSoldier(){ return false; }
+
 
     public void addPowerUp(Item powerUp) {
         powerUpManager.addPowerUp(powerUp);

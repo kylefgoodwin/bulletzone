@@ -85,7 +85,16 @@ public class Soldier extends Playable {
         }
     }
 
-    @JsonIgnore
+    @Override
+    public boolean handleTerrainConstraints(Terrain terrain, long millis){
+       if (terrain.isForest() && millis < (getLastMoveTime()+getAllowedMoveInterval()*1.25)) {
+            return false;
+        }
+        setLastMoveTime(millis);
+        return true;
+    }
+
+@JsonIgnore
 
     @Override
     public int getIntValue() {

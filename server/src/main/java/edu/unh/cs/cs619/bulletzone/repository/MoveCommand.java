@@ -112,6 +112,7 @@ public class MoveCommand implements Command {
             // Apply terrain modifiers if movement is possible
             if (nextField.isTerrainPresent()) {
                 Terrain terrain = (Terrain) nextField.getTerrainEntityHolder();
+
                 if (playableType == 1) { // Tank
                     if (terrain.isHilly()) {
                         moveDelay = (long) (moveDelay * 1.5);
@@ -405,14 +406,7 @@ public class MoveCommand implements Command {
     public void handleRemovingPlayable(FieldHolder currentField){
         playable.getParent().clearField();
         playable.setParent(new FieldHolder(currentField.getPosition()));
-        if (playableType == 1){
-            game.removeTank(playable.getId());
-        } else if (playableType == 2){
-            game.removeBuilder(playable.getId());
-        } else if (playableType == 3){
-            game.removeSoldier(playable.getId());
-            game.getTanks().get(playable.getId()).sethasSoldier(false);
-        }
+        game.removePlayable(playable.getId(), playable.getPlayableType());
     }
 
     @Override
