@@ -51,11 +51,9 @@ public class InMemoryGameRepository implements GameRepository {
     private final AtomicLong idGenerator = new AtomicLong();
     private final Object monitor = new Object();
     private Game game = null;
-    private final int[] bulletDamage = {5, 10, 30};
-    private final int[] bulletDelay = {500, 1000, 1500};
     private final int[] trackActiveBullets = {0, 0, 0, 0, 0, 0};
     private final Timer itemSpawnTimer = new Timer();
-    private static final int ITEM_SPAWN_INTERVAL = 15000; // 15 seconds
+    private static final int MAX_POWERUPS = 10;
     private static final Random random = new Random();
 
     private final FireCommand fireCommand;
@@ -180,78 +178,28 @@ public class InMemoryGameRepository implements GameRepository {
 
     @Override
     public boolean move(long playableId, int playableType, Direction direction)
-            throws TankDoesNotExistException, IllegalTransitionException, LimitExceededException {
+            throws TankDoesNotExistException, IllegalTransitionException, LimitExceededException, PlayableDoesNotExistException {
         synchronized (this.monitor) {
-            // Find tank
 
-            Playable playable = null;
-
-            if (playableType == 1) {
-                playable = game.getTanks().get(playableId);
-                if(playable.gethasSoldier()){
-                    playable = game.getSoldiers().get(playableId);
-                }
-            }
-
-            if (playable == null && playableType == 2) {
-                playable = game.getBuilders().get(playableId);
-                if (playable.isBuilding()) {
-                    System.out.println("Builder cannot turn while building.");
-                    return false;
-                }
-                if (playable.isDismantling()) {
-                    System.out.println("Aborting dismantling due to turning.");
-                    playable.stopDismantling();
-                }
-            }
-
-            if (playable == null && playableType == 3) {
-                playable = game.getTanks().get(playableId);
-                if(playable.gethasSoldier()){
-                    playable = game.getSoldiers().get(playableId);
-                }
-            }
-
-            if (playable == null) {
-                throw new TankDoesNotExistException(playableId);
-            }
-
+            playableType = determinePlayableType(game, playableId, playableType);
+            Playable playable = game.getPlayable(playableId, playableType);
+            if (playable == null) { throw new PlayableDoesNotExistException(playableId, playable.getPlayableType()); }
             long millis = System.currentTimeMillis();
             MoveCommand moveCommand = new MoveCommand(playable, playableType, game, direction, millis);
-
             return moveCommand.execute();
         }
     }
 
     @Override
     public boolean fire(long playableId, int playableType, int bulletType)
-            throws TankDoesNotExistException {
+            throws PlayableDoesNotExistException {
         synchronized (this.monitor) {
 
             // Find playable
-            Playable playable = null;
 
-            if (playableType == 1) {
-                playable = game.getTanks().get(playableId);
-                if(playable.gethasSoldier()){
-                    playable = game.getSoldiers().get(playableId);
-                }
-            }
-
-            if (playable == null && playableType == 2) {
-                playable = game.getBuilders().get(playableId);
-            }
-
-            if (playable == null && playableType == 3) {
-                playable = game.getTanks().get(playableId);
-                if(playable.gethasSoldier()){
-                    playable = game.getSoldiers().get(playableId);
-                }
-            }
-
-            if (playable == null) {
-                throw new TankDoesNotExistException(playableId);
-            }
+            int pt = determinePlayableType(game, playableId, playableType);
+            Playable playable = game.getPlayable(playableId, pt);
+            if (playable == null) { throw new PlayableDoesNotExistException(playableId, playable.getPlayableType()); }
             long millis = System.currentTimeMillis();
             final Playable finalPlayable = playable;
 
@@ -279,7 +227,7 @@ public class InMemoryGameRepository implements GameRepository {
                 public void run() {
                     synchronized (monitor) {
                         System.out.println("Active Bullet: " + finalPlayable.getNumberOfBullets() + "---- Bullet ID: " + bullet.getIntValue());
-                        fireCommand.moveBulletAndHandleCollision(game, bullet, finalPlayable, playableType, trackActiveBullets, this);
+                        fireCommand.moveBulletAndHandleCollision(game, bullet, finalPlayable, pt, trackActiveBullets, this);
                     }
                 }
             }, 0, BULLET_PERIOD);
@@ -345,16 +293,19 @@ public class InMemoryGameRepository implements GameRepository {
             this.game = new Game();
             createFieldHolderGrid(game);
             gameBoardBuilder.setupGame(game);
-            // Spawn test items immediately
-            spawnTestPowerUps();
             startItemSpawner();
         }
     }
 
-    private void spawnTestPowerUps() {
-        // Spawn Deflector Shield
-        spawnSpecificItem(4);  // Shield
-        spawnSpecificItem(5);  // Repair Kit
+    private boolean canSpawnMorePowerUps() {
+        int currentPowerUps = 0;
+        for (int i = 0; i < FIELD_DIM * FIELD_DIM; i++) {
+            FieldHolder holder = game.getHolderGrid().get(i);
+            if (holder.isPresent() && holder.getEntity().isItem()) {
+                currentPowerUps++;
+            }
+        }
+        return currentPowerUps < MAX_POWERUPS;
     }
 
     private void spawnSpecificItem(int itemType) {
@@ -416,6 +367,10 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     private void spawnRandomItem() {
+        if (!canSpawnMorePowerUps()) {
+            return;
+        }
+
         System.out.println("Attempting to spawn random item...");
 
         for (int attempts = 0; attempts < 10; attempts++) {
@@ -426,7 +381,7 @@ public class InMemoryGameRepository implements GameRepository {
                 // Weighted random selection with equal chances for testing
                 int rand = random.nextInt(5) + 1;  // 1-5
 
-                Item item = new Item(rand);  // Create item with type 1-5
+                Item item = new Item(rand);
                 fieldElement.setFieldEntity(item);
                 item.setParent(fieldElement);
 
@@ -475,6 +430,10 @@ public class InMemoryGameRepository implements GameRepository {
             Tank tank = game.getTanks().get(tankId);
             if (tank == null) {
                 throw new TankDoesNotExistException(tankId);
+            }
+
+            if (!canSpawnMorePowerUps()) {
+                return false;
             }
 
             return tank.tryEjectPowerUp(tank.getParent());
@@ -527,4 +486,14 @@ public class InMemoryGameRepository implements GameRepository {
             return false;
         }
     }
+
+    private int determinePlayableType(Game game, long playableId, int playableType){
+        if(!game.getTanks().get(playableId).gethasSoldier() && playableType == 3){
+            playableType = 1;
+        } else if (game.getTanks().get(playableId).gethasSoldier() && playableType == 1){
+            playableType = 3;
+        }
+        return playableType;
+    }
+
 }

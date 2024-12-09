@@ -1,5 +1,6 @@
 package edu.unh.cs.cs619.bulletzone;
 
+import android.util.Log;
 import android.widget.GridView;
 
 import org.androidannotations.annotations.Bean;
@@ -7,7 +8,11 @@ import org.androidannotations.annotations.EBean;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.util.Objects;
+
+import edu.unh.cs.cs619.bulletzone.model.BoardCell;
 import edu.unh.cs.cs619.bulletzone.model.SimulationBoard;
+import edu.unh.cs.cs619.bulletzone.model.TankItem;
 import edu.unh.cs.cs619.bulletzone.rest.GridUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.ui.GridAdapter;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
@@ -74,5 +79,9 @@ public class SimBoardView {
             EventBus.getDefault().unregister(gridEventHandler);
             isRegistered = false;
         }
+    }
+
+    public BoardCell getCellAtPosition(int position) {
+        return simBoard.getCell(position).playerData;
     }
 }

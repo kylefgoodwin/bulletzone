@@ -36,7 +36,7 @@ public class Builder extends Playable {
         lastMoveTime = 0;
         moveMultiplier = 1;
 
-        powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        this.powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval, PlayableType.BUILDER);
     }
 
     @Override
@@ -81,6 +81,7 @@ public class Builder extends Playable {
                 finalDamage
         ));
     }
+
 
     @JsonIgnore
 
