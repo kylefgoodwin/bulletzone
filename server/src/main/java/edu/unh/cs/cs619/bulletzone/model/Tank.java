@@ -151,6 +151,10 @@ public class Tank extends Playable {
         }
     }
 
+    @Override
+    public boolean canAcceptSoldier(){return true;}
+
+
     @JsonIgnore
     @Override
     public int getIntValue() {

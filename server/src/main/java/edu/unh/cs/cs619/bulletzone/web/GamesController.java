@@ -107,7 +107,7 @@ class GamesController {
     @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/fire", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     ResponseEntity<BooleanWrapper> fire(@PathVariable long playableId, @PathVariable int playableType)
-            throws TankDoesNotExistException, LimitExceededException {
+            throws TankDoesNotExistException, LimitExceededException, PlayableDoesNotExistException {
         return new ResponseEntity<BooleanWrapper>(
                 new BooleanWrapper(gameRepository.fire(playableId, playableType, 1)),
                 HttpStatus.OK
@@ -117,7 +117,7 @@ class GamesController {
     @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/fire/{bulletType}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     ResponseEntity<BooleanWrapper> fire(@PathVariable long playableId, @PathVariable int playableType, @PathVariable int bulletType)
-            throws TankDoesNotExistException, LimitExceededException {
+            throws TankDoesNotExistException, LimitExceededException, PlayableDoesNotExistException {
         return new ResponseEntity<BooleanWrapper>(
                 new BooleanWrapper(gameRepository.fire(playableId, playableType, bulletType)),
                 HttpStatus.OK

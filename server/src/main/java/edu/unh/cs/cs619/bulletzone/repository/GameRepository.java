@@ -26,7 +26,7 @@ public interface GameRepository {
             throws TankDoesNotExistException, IllegalTransitionException, LimitExceededException, PlayableDoesNotExistException;
 
     boolean fire(long playableId, int playableType, int strength)
-            throws TankDoesNotExistException, LimitExceededException;
+            throws TankDoesNotExistException, LimitExceededException, PlayableDoesNotExistException;
 
     boolean build(long playableId, int playableType, String entity)
             throws TankDoesNotExistException, LimitExceededException;

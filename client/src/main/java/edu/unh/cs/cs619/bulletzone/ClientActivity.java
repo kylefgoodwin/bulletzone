@@ -535,7 +535,13 @@ public class ClientActivity extends Activity {
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
             buttonEjectSoldier.setEnabled(false);
+        } else if (playableType == 4){
+            buttonBuild.setEnabled(false);
+            buttonDismantle.setEnabled(false);
+            selectImprovement.setEnabled(false);
+            buttonEjectSoldier.setEnabled(false);
         }
+
         playableType = position + 1;
     }
 
