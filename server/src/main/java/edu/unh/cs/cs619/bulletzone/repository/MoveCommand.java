@@ -151,6 +151,20 @@ public class MoveCommand implements Command {
                     playable.setLastMoveTime(millis + moveDelay);
                     return true;
                 }
+            } else if (nextField.getEntity().isImprovement()) {
+                if (nextField.getEntity().isWall()) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isIndestructibleWall()) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isMiningFacility()) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isFactory()) {
+                    playable.setDirection(direction);
+                    return false;
+                }
 //                Improvement improvement = (Improvement) nextField.getEntity();
 //                if (!playable.handleImprovements(improvement, millis)) {
 //                    return false;

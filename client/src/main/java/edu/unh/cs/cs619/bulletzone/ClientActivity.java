@@ -174,7 +174,7 @@ public class ClientActivity extends Activity {
     private int improvementType = 0;
     private long userId = -1;
 
-    private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier"));
+    private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier", "Ship", "Factory"));
     private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility", "road", "deck", "bridge", "factory", "tank", "builder", "soldier"));
     private long lastEventTimestamp = 0;
     private Set<Long> processedItemEvents = new HashSet<>();

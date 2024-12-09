@@ -97,7 +97,7 @@ class GamesController {
     @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/build/{entity}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     ResponseEntity<BooleanWrapper> build(@PathVariable long playableId, @PathVariable int playableType, @PathVariable String entity)
-            throws TankDoesNotExistException, LimitExceededException {
+            throws TankDoesNotExistException, PlayableDoesNotExistException, LimitExceededException {
         return new ResponseEntity<BooleanWrapper>(
                 new BooleanWrapper(gameRepository.build(playableId, playableType, entity)),
                 HttpStatus.OK

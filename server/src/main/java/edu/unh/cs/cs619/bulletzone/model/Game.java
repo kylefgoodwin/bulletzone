@@ -104,7 +104,7 @@ public final class Game {
 
     public void addPlayable(long playerId, Playable playable, String ip) {
         synchronized (playables) {
-            Playable[] playablesArray = playables.computeIfAbsent(playerId, k -> new Playable[4]);
+            Playable[] playablesArray = playables.computeIfAbsent(playerId, k -> new Playable[5]);
             int type = playable.getPlayableType();
             if (type >= 1 && type < playablesArray.length) {
                 playablesArray[type] = playable;
@@ -248,6 +248,47 @@ public final class Game {
 
     public void removeSoldier(long soldierId) {
         removePlayable(soldierId, 3); // Remove soldier (type 3)
+    }
+
+    public void addFactory(String ip, Factory factory) {
+        synchronized (playables) {
+            addPlayable(factory.getId(), factory, ip);
+            playerCredits.put(factory.getId(), 1000.0); // Initialize credits for new soldier
+            playerAccounts.putIfAbsent(factory.getId(), new BankAccount(factory.getId()));
+        }
+        EventBus.getDefault().post(new SpawnEvent(factory.getIntValue(), factory.getPosition()));
+    }
+
+    public Factory getFactory(long soldierId) {
+        Playable[] playablesArray = playables.get(soldierId);
+        return (Factory) (playablesArray != null ? playablesArray[5] : null);
+    }
+
+    public Factory getFactory(String ip) {
+        Long playerId = playersIP.get(ip);
+        return playerId != null ? getFactory(playerId) : null;
+    }
+
+    public Map<Long, Factory> getFactories() {
+        Map<Long, Factory> allFactories = new HashMap<>();
+
+        // Iterate over each player ID in the playables map
+        for (Long playerId : playables.keySet()) {
+            Playable[] playablesArray = playables.get(playerId);
+            if (playablesArray != null) {
+                // Check if the playable at index 3 is a Soldier
+                Playable playable = playablesArray[5];
+                if (playable != null && playable.getPlayableType() == 5) {
+                    allFactories.put(playerId, (Factory) playable); // Add the player ID and the soldier to the map
+                }
+            }
+        }
+
+        return allFactories; // Return the map of player IDs to soldiers
+    }
+
+    public void removeFactory(long factoryId) {
+        removePlayable(factoryId, 5); // Remove soldier (type 3)
     }
 
     public List<Optional<FieldEntity>> getGrid() {

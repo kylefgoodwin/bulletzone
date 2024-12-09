@@ -238,22 +238,12 @@ public class InMemoryGameRepository implements GameRepository {
 
     @Override
     public boolean build(long playableId, int playableType, String entity)
-            throws TankDoesNotExistException {
+            throws TankDoesNotExistException, PlayableDoesNotExistException {
         synchronized (this.monitor) {
-            if (playableType == 2) {
-                Playable playable = game.getBuilders().get(playableId);
-                if (playable == null) {
-                    //Log.i(TAG, "Cannot find user with id: " + tankId);
-                    throw new TankDoesNotExistException(playableId);
-                }
-                BuildCommand buildCommand = new BuildCommand(playableId, playableType, game, entity);
-                return buildCommand.execute();
-            } else if (playableType == 5) {
-                Playable playable = game.getFactories().get(playableId);
-                if (playable == null) {
-                    //Log.i(TAG, "Cannot find user with id: " + tankId);
-                    throw new TankDoesNotExistException(playableId);
-                }
+            playableType = determinePlayableType(game, playableId, playableType);
+            if (playableType == 2 || playableType == 5) {
+                Playable playable = game.getPlayable(playableId, playableType);
+                if (playable == null) { throw new PlayableDoesNotExistException(playableId, playable.getPlayableType()); }
                 BuildCommand buildCommand = new BuildCommand(playableId, playableType, game, entity);
                 return buildCommand.execute();
             } else {

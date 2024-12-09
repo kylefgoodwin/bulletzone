@@ -24,8 +24,10 @@ import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.MiningFacility;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Road;
+import edu.unh.cs.cs619.bulletzone.model.Soldier;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
+import edu.unh.cs.cs619.bulletzone.model.PlayableDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
@@ -58,9 +60,10 @@ public class BuildCommand implements Command {
     /**
      * @return true if block is built
      * @throws TankDoesNotExistException if builder doesn't exist
+     * @throws PlayableDoesNotExistException
      */
     @Override
-    public boolean execute() throws TankDoesNotExistException {
+    public boolean execute() throws TankDoesNotExistException, PlayableDoesNotExistException {
         Builder builder = game.getBuilders().get(builderId);
         if (builder == null) {
             throw new TankDoesNotExistException(builderId);
@@ -252,12 +255,17 @@ public class BuildCommand implements Command {
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
                     Factory factory = new Factory(builderId, Direction.Up, builder.getIp());
+                    // Place the soldier on the grid
+                    int oldPos = builder.getPosition();
+                    nextField.setFieldEntity(factory);
+                    factory.setParent(nextField);
+                    int newPos = factory.getPosition();
+                    game.addFactory(builder.getIp(), factory);
                     game.getHolderGrid().get(nextIndex).setFieldEntity(factory);
                     double credits = -250.0;
 //                    balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopBuilding();
-                    EventBus.getDefault().post(new SpawnEvent(factory.getIntValue(), nextIndex));
                     return true;
                 } else {
                     System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
@@ -307,15 +315,18 @@ public class BuildCommand implements Command {
 //                    balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopBuilding();
-                    EventBus.getDefault().post(new SpawnEvent(tank.getIntValue(), nextIndex));
                     return true;
                 } else {
                     System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
                     return false;
                 }
-            } else if (Objects.equals(entity, "indestructibleWall")) {
+            } else if (Objects.equals(entity, "builder")) {
 
-                if (balance.getBalance() >= 150.0) {
+                if (balance.getBalance() >= 500.0 && playableType == 5) {
+                    Playable playable = game.getBuilders().get(builderId);
+                    if (playable == null) {
+                        throw new TankDoesNotExistException(builderId);
+                    }
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -323,21 +334,45 @@ public class BuildCommand implements Command {
                         System.out.println("Building...");
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
-                    Wall indestructibleWall = new Wall();
-                    game.getHolderGrid().get(nextIndex).setFieldEntity(indestructibleWall);
-                    double credits = -150.0;
+                    Builder builder2;
+
+                    if ((game.getBuilder(builderId)) != null) {
+                        return false;
+                    }
+
+                    builder2 = new Builder(builderId, Direction.Up, builder.getIp());
+
+                    Random random = new Random();
+                    int x;
+                    int y;
+
+                    // This may run for forever.. If there is no free space. XXX
+                    for (; ; ) {
+                        x = random.nextInt(FIELD_DIM);
+                        y = random.nextInt(FIELD_DIM);
+                        FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
+                        if (!fieldElement.isPresent()) {
+                            fieldElement.setFieldEntity(builder2);
+                            builder2.setParent(fieldElement);
+                            break;
+                        }
+                    }
+
+                    game.addBuilder(playable.getIp(), builder2);
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(builder2);
+                    double credits = -500.0;
 //                    balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopBuilding();
-                    EventBus.getDefault().post(new SpawnEvent(indestructibleWall.getIntValue(), nextIndex));
                     return true;
-                } else {
-                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
-                    return false;
                 }
-            } else if (Objects.equals(entity, "indestructibleWall")) {
+            } else if (Objects.equals(entity, "soldier")) {
 
-                if (balance.getBalance() >= 150.0) {
+                if (balance.getBalance() >= 200.0 && playableType == 5) {
+                    Playable playable = game.getSoldiers().get(builderId);
+                    if (playable == null) {
+                        throw new TankDoesNotExistException(builderId);
+                    }
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -345,13 +380,36 @@ public class BuildCommand implements Command {
                         System.out.println("Building...");
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
-                    Wall indestructibleWall = new Wall();
-                    game.getHolderGrid().get(nextIndex).setFieldEntity(indestructibleWall);
-                    double credits = -150.0;
+                    Soldier soldier;
+
+                    if ((game.getSoldier(builderId)) != null) {
+                        return false;
+                    }
+
+                    soldier = new Soldier(builderId, Direction.Up, builder.getIp());
+
+                    Random random = new Random();
+                    int x;
+                    int y;
+
+                    // This may run for forever.. If there is no free space. XXX
+                    for (; ; ) {
+                        x = random.nextInt(FIELD_DIM);
+                        y = random.nextInt(FIELD_DIM);
+                        FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
+                        if (!fieldElement.isPresent()) {
+                            fieldElement.setFieldEntity(soldier);
+                            soldier.setParent(fieldElement);
+                            break;
+                        }
+                    }
+
+                    game.addSoldier(playable.getIp(), soldier);
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(soldier);
+                    double credits = -200.0;
 //                    balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopBuilding();
-                    EventBus.getDefault().post(new SpawnEvent(indestructibleWall.getIntValue(), nextIndex));
                     return true;
                 } else {
                     System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");

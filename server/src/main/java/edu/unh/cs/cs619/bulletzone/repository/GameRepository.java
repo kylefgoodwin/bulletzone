@@ -29,7 +29,7 @@ public interface GameRepository {
             throws TankDoesNotExistException, LimitExceededException, PlayableDoesNotExistException;
 
     boolean build(long playableId, int playableType, String entity)
-            throws TankDoesNotExistException, LimitExceededException;
+            throws TankDoesNotExistException, PlayableDoesNotExistException, LimitExceededException;
 
     boolean ejectPowerUp(long playableId)
             throws TankDoesNotExistException;
