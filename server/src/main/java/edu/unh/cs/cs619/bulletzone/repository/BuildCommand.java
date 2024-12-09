@@ -9,12 +9,16 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import edu.unh.cs.cs619.bulletzone.datalayer.account.BankAccount;
+import edu.unh.cs.cs619.bulletzone.model.Bridge;
 import edu.unh.cs.cs619.bulletzone.model.Builder;
+import edu.unh.cs.cs619.bulletzone.model.Deck;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
+import edu.unh.cs.cs619.bulletzone.model.Factory;
 import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.MiningFacility;
+import edu.unh.cs.cs619.bulletzone.model.Road;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
@@ -163,6 +167,94 @@ public class BuildCommand implements Command {
                     return false;
                 }
 
+            } else if (Objects.equals(entity, "road")) {
+
+                if (balance.getBalance() >= 40.0) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Road road = new Road();
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(road);
+                    double credits = -40.0;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    EventBus.getDefault().post(new SpawnEvent(road.getIntValue(), nextIndex));
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
+                    return false;
+                }
+            } else if (Objects.equals(entity, "deck")) {
+
+                if (balance.getBalance() >= 80.0) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Deck deck = new Deck();
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(deck);
+                    double credits = -80.0;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    EventBus.getDefault().post(new SpawnEvent(deck.getIntValue(), nextIndex));
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
+                    return false;
+                }
+            } else if (Objects.equals(entity, "bridge")) {
+
+                if (balance.getBalance() >= 120.0) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Bridge bridge = new Bridge();
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(bridge);
+                    double credits = -120.0;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    EventBus.getDefault().post(new SpawnEvent(bridge.getIntValue(), nextIndex));
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
+                    return false;
+                }
+            } else if (Objects.equals(entity, "factory")) {
+
+                if (balance.getBalance() >= 250.0) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Factory factory = new Factory();
+                    game.getHolderGrid().get(nextIndex).setFieldEntity(factory);
+                    double credits = -250.0;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    EventBus.getDefault().post(new SpawnEvent(factory.getIntValue(), nextIndex));
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
+                    return false;
+                }
             }
         } else {
             int fieldIndex = currentField.getPosition();
@@ -189,7 +281,7 @@ public class BuildCommand implements Command {
             }
             FieldEntity entityInNextField = nextField.getEntity();
 
-            if (entityInNextField.isWall() || entityInNextField.isMiningFacility() || entityInNextField.isIndestructibleWall()) {
+            if (entityInNextField.isImprovement()) {
                 if (entityInNextField.isWall()) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
@@ -205,7 +297,6 @@ public class BuildCommand implements Command {
                     double credits = 80.0;
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
-                    stopCreditTask();
                     builder.stopDismantling();
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex, 0));
                     return true;
@@ -244,7 +335,74 @@ public class BuildCommand implements Command {
                     double credits = 150.0;
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
-                    stopCreditTask();
+                    builder.stopDismantling();
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                } else if (entityInNextField.isRoad()){
+                    builder.startDismantling();
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        if (!builder.isDismantling()) {
+                            return false;
+                        }
+                        System.out.println("Dismantling road...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    nextField.clearField();
+                    double credits = 40.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopDismantling();
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                } else if (entityInNextField.isDeck()){
+                    builder.startDismantling();
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        if (!builder.isDismantling()) {
+                            return false;
+                        }
+                        System.out.println("Dismantling deck...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    nextField.clearField();
+                    double credits = 80.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopDismantling();
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                } else if (entityInNextField.isBridge()){
+                    builder.startDismantling();
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        if (!builder.isDismantling()) {
+                            return false;
+                        }
+                        System.out.println("Dismantling bridge...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    nextField.clearField();
+                    double credits = 120.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopDismantling();
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                } else if (entityInNextField.isFactory()){
+                    builder.startDismantling();
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    while (builder.getLastBuildTime() - millis < built) {
+                        if (!builder.isDismantling()) {
+                            return false;
+                        }
+                        System.out.println("Dismantling factory...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    nextField.clearField();
+                    double credits = 250.0;
+                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
                     builder.stopDismantling();
                     EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex, 0));
                 }

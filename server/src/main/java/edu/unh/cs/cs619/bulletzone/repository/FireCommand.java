@@ -5,11 +5,15 @@ import org.springframework.stereotype.Component;
 
 import java.util.TimerTask;
 
+import edu.unh.cs.cs619.bulletzone.model.Bridge;
 import edu.unh.cs.cs619.bulletzone.model.Bullet;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
+import edu.unh.cs.cs619.bulletzone.model.Factory;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
+import edu.unh.cs.cs619.bulletzone.model.Improvement;
 import edu.unh.cs.cs619.bulletzone.model.Item;
+import edu.unh.cs.cs619.bulletzone.model.MiningFacility;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
@@ -73,6 +77,26 @@ public class FireCommand {
         try {
             if (nextField.isPresent()) {
                 nextField.getEntity().hit(bullet.getDamage());
+                // COME BACK TO THIS TO FIX ARMOR VALUE //
+                if (nextField.isImprovementPresent()){
+                    Improvement improvement = (Improvement) nextField.getEntity();
+                    if (improvement.isBridge()) {
+                        Bridge bridge = (Bridge) nextField.getEntity();
+                        if (bridge.getIntValue() == 903) {
+                            game.getHolderGrid().get(bridge.getPos()).clearField();
+                        }
+                    } else if (improvement.isFactory()) {
+                        Factory f = (Factory) nextField.getEntity();
+                        if (f.getIntValue() == 930) {
+                            game.getHolderGrid().get(f.getPos()).clearField();
+                        }
+                    } else if (improvement.isMiningFacility()) {
+                        MiningFacility m = (MiningFacility) nextField.getEntity();
+                        if (m.getIntValue() == 920) {
+                            game.getHolderGrid().get(m.getPos()).clearField();
+                        }
+                    }
+                }
 
                 //Handle damaging playable
                 if (nextField.getEntity().isPlayable()) {

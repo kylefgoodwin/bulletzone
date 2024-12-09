@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.GridView;
@@ -47,10 +48,13 @@ import java.util.Set;
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
 import edu.unh.cs.cs619.bulletzone.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
+import edu.unh.cs.cs619.bulletzone.events.MiningCreditsEvent;
 import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
 import edu.unh.cs.cs619.bulletzone.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.events.TerrainUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.events.UIUpdateEvent;
+import edu.unh.cs.cs619.bulletzone.model.BoardCell;
+import edu.unh.cs.cs619.bulletzone.model.TankItem;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
 import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
 import edu.unh.cs.cs619.bulletzone.util.ClientActivityShakeDriver;
@@ -169,9 +173,10 @@ public class ClientActivity extends Activity {
     private long userId = -1;
 
     private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier"));
-    private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility"));
+    private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility", "road", "deck", "bridge", "factory"));
     private long lastEventTimestamp = 0;
     private Set<Long> processedItemEvents = new HashSet<>();
+    private Set<Long> processedMiningEvents = new HashSet<>();
     private Set<Long> processedEventIds = new HashSet<>();
     private Handler repairKitHandler = new Handler(Looper.getMainLooper());
     private long repairKitEndTime = 0;
@@ -288,6 +293,32 @@ public class ClientActivity extends Activity {
         selectPlayable.setAdapter(new ArrayAdapter<>(this,
                 androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, playableSelections));
         simBoardView.attach(gridView, tGridView, playableId);
+
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                BoardCell cell = simBoardView.getCellAtPosition(i);
+
+                TankItem entity;
+                switch (cell.getCellType()) {
+                    case "Tank":
+                        entity = (TankItem) cell;
+                        clientController.postLifeAsync(entity.getTankID(), 1, ClientActivity.this);
+                        break;
+                    case "Builder":
+                        entity = (TankItem) cell;
+                        clientController.postLifeAsync(entity.getTankID(), 2, ClientActivity.this);
+                        break;
+                    case "Soldier":
+                        entity = (TankItem) cell;
+                        clientController.postLifeAsync(entity.getTankID(), 3, ClientActivity.this);
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+        });
     }
 
     @Background
@@ -483,7 +514,6 @@ public class ClientActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             gridPollTask.doPoll(eventProcessor);
         }
-        tankEventController.startMiningFacility(userId, playableId);
     }
 
     @ItemSelect({R.id.selectPlayable})
@@ -507,7 +537,13 @@ public class ClientActivity extends Activity {
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
             buttonEjectSoldier.setEnabled(false);
+        } else if (playableType == 4){
+            buttonBuild.setEnabled(false);
+            buttonDismantle.setEnabled(false);
+            selectImprovement.setEnabled(false);
+            buttonEjectSoldier.setEnabled(false);
         }
+
         playableType = position + 1;
     }
 
@@ -560,7 +596,26 @@ public class ClientActivity extends Activity {
             } else if (improvementType == 2) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
                 tankEventController.removeCredits(userId, 300.0, playerData.setCurEntity("miningFacility"));
-                tankEventController.startMiningFacility(userId, playableId);
+                fetchAndUpdateBalance();
+            } else if (improvementType == 3) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("road"));
+
+                tankEventController.removeCredits(userId, 40.0, playerData.setCurEntity("road"));
+                fetchAndUpdateBalance();
+            } else if (improvementType == 4) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("deck"));
+
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("deck"));
+                fetchAndUpdateBalance();
+            } else if (improvementType == 5) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("bridge"));
+
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("bridge"));
+                fetchAndUpdateBalance();
+            } else if (improvementType == 6) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("factory"));
+
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("factory"));
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds
@@ -584,6 +639,26 @@ public class ClientActivity extends Activity {
             } else if (improvementType == 2) {
                 tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
                 tankEventController.addCredits(userId, 300.0);
+                fetchAndUpdateBalance();
+            } else if (improvementType == 3) {
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("road"));
+
+                tankEventController.addCredits(userId, 40.0);
+                fetchAndUpdateBalance();
+            } else if (improvementType == 4) {
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("deck"));
+
+                tankEventController.addCredits(userId, 80.0);
+                fetchAndUpdateBalance();
+            } else if (improvementType == 5) {
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("bridge"));
+
+                tankEventController.addCredits(userId, 120.0);
+                fetchAndUpdateBalance();
+            } else if (improvementType == 6) {
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("factory"));
+
+                tankEventController.addCredits(userId, 250.0);
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds
@@ -901,6 +976,36 @@ public class ClientActivity extends Activity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMiningCredits(MiningCreditsEvent event) {
+        // Create a unique identifier for this event
+        long eventId = event.getTimeStamp() + event.getOwnerId();
+
+        // Check for duplicate events
+//        if (event.getTimeStamp() <= lastEventTimestamp || processedMiningEvents.contains(eventId)) {
+//            Log.d(TAG, "Skipping duplicate mining credit event");
+//            return;
+//        }
+
+        // Mark the event as processed by adding it to the sets
+        lastEventTimestamp = event.getTimeStamp();
+        processedMiningEvents.add(eventId);
+
+        // Logging for debugging
+        Log.d(TAG, "Mining credit event received. User ID: " + event.getOwnerId() +
+                ", Credits: " + event.getCreditAmount());
+
+        // Show a toast to inform the user
+        String message = String.format("Mining Facility generated %.2f credits!", event.getCreditAmount());
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+
+        // Update the balance in the UI
+        fetchAndUpdateBalance();
+
+        // Optionally add the event ID to another set if needed
+        processedEventIds.add(eventId);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onItemPickup(ItemPickupEvent event) {
         // Create a unique identifier for this event
         long eventId = event.getTimeStamp() + event.getItemType();
@@ -1082,20 +1187,25 @@ public class ClientActivity extends Activity {
         Log.d(TAG, "Terrain Update Event received: Hilly: " + event.isHilly() +
                 " Forest: " + event.isForest() +
                 " Rocky: " + event.isRocky() +
-                " PlayableType: " + playableType);
+                " PlayableType: " + playableType +
+                " From: " + event.getFromPosition() +
+                " To: " + event.getToPosition());
 
         // Set the playable type first
         playerData.setCurId(playableType);
 
-        // Then update terrain state
-        playerData.setTerrainState(
-                event.isHilly(),
-                event.isForest(),
-                event.isRocky()
-        );
+        // Only update terrain state if we actually moved
+        if (event.isPositionChanged()) {
+            // Update terrain state
+            playerData.setTerrainState(
+                    event.isHilly(),
+                    event.isForest(),
+                    event.isRocky()
+            );
 
-        // Update UI
-        updateStatsDisplay();
+            // Update UI
+            updateStatsDisplay();
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

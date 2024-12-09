@@ -110,6 +110,23 @@ public class GameEventProcessor {
                 if (event instanceof HitEvent) {
                     mediaPlayer.start();
                 }
+                if (event instanceof MoveEvent) {
+                    MoveEvent moveEvent = (MoveEvent) event;
+                    if (moveEvent.getTankID() != -1) {
+                        // Only apply move if we own this soldier
+                        if (moveEvent.getTankID() == PlayerData.getPlayerData().getTankId()) {
+                            event.applyTo(playerLayer);
+                        }
+                        return;
+                    }
+                } else if (event instanceof RemoveEvent) {
+                    RemoveEvent removeEvent = (RemoveEvent) event;
+                    // Skip remove if we own this soldier
+                    if (removeEvent.getTankID() == PlayerData.getPlayerData().getTankId()) {
+                        return;
+                    }
+                }
+
                 event.applyTo(playerLayer);
                 Log.d(TAG, "Successfully applied event: " + event);
             } catch (Exception e) {

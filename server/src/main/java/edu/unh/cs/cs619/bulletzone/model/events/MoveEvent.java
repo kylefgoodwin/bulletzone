@@ -21,6 +21,7 @@ public class MoveEvent extends GameEvent {
         this.rawServerValue = rawServerValue;
         this.oldPosition = pos;
         this.newPosition = newPos;
+        this.tankID = -1;
     }
 
     @Override
@@ -39,5 +40,9 @@ public class MoveEvent extends GameEvent {
 
     public void setTankID(int tankID) {
         this.tankID = tankID;
+    }
+
+    public int getTankID() {
+        return this.tankID;
     }
 }

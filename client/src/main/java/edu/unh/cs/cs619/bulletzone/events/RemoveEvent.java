@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 import edu.unh.cs.cs619.bulletzone.PlayerData;
 
-public class RemoveEvent extends GameEvent  implements Serializable {
+public class RemoveEvent extends GameEvent implements Serializable {
     @JsonProperty
     private int rawServerValue;
     @JsonProperty
@@ -29,15 +29,23 @@ public class RemoveEvent extends GameEvent  implements Serializable {
 
     @Override
     public void applyTo(int[][] board) {
-        // For soldier hides in forrest mechanic:
-        // if playerData.getTankID == tankID (id of soldier that is hiding)
-        //      then do nothing, don't change the value @ position
-        // else
-        //      do change the value @ position
         if (PlayerData.getPlayerData().getTankId() != soldierRemove) {
             board[position / 16][position % 16] = 0;
         }
         board[position / 16][position % 16] = 0;
+    }
+
+    // Add these getters
+    public int getTankID() {
+        return tankID;
+    }
+
+    public int getRawServerValue() {
+        return rawServerValue;
+    }
+
+    public int getPosition() {
+        return position;
     }
 
     @Override
@@ -46,5 +54,4 @@ public class RemoveEvent extends GameEvent  implements Serializable {
                 " at " + position +
                 super.toString();
     }
-
 }

@@ -34,6 +34,10 @@ public class Terrain extends FieldEntity {
         return type == 3;
     }
 
+    public boolean isWater(){
+        return type == 4;
+    }
+
 
     @Override
     public FieldEntity copy() {

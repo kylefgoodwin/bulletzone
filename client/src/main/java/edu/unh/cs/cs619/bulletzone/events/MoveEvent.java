@@ -1,5 +1,7 @@
 package edu.unh.cs.cs619.bulletzone.events;
 
+import android.util.Log;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
@@ -25,10 +27,9 @@ public class MoveEvent extends GameEvent implements Serializable {
 
     @Override
     void applyTo(int[][] board) {
-        if (PlayerData.getPlayerData().getTankId() == tankID) {
-            board[oldPosition / 16][oldPosition % 16] = 0;
-            board[newPosition / 16][newPosition % 16] = rawServerValue;
-        }
+//        Log.d("Move Event", "MOVING");
+        board[oldPosition / 16][oldPosition % 16] = 0;
+        board[newPosition / 16][newPosition % 16] = rawServerValue;
     }
 
     @Override
@@ -37,5 +38,13 @@ public class MoveEvent extends GameEvent implements Serializable {
                 " from " + oldPosition +
                 " to " + newPosition +
                 super.toString();
+    }
+
+    public void setTankID(int tankID) {
+        this.tankID = tankID;
+    }
+
+    public int getTankID() {
+        return this.tankID;
     }
 }
