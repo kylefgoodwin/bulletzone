@@ -15,14 +15,10 @@ import edu.unh.cs.cs619.bulletzone.model.Improvement;
 import edu.unh.cs.cs619.bulletzone.model.Item;
 import edu.unh.cs.cs619.bulletzone.model.MiningFacility;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
-import edu.unh.cs.cs619.bulletzone.model.Tank;
-import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
-import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
-import edu.unh.cs.cs619.bulletzone.model.events.TurnEvent;
 
 @Component
 public class FireCommand {
@@ -119,14 +115,14 @@ public class FireCommand {
                 } else if (nextField.getEntity().isItem()) {
                     Item item = (Item) nextField.getEntity();
                     nextField.clearField();
-                    EventBus.getDefault().post(new RemoveEvent(item.getIntValue(), item.getPosition()));
+                    EventBus.getDefault().post(new RemoveEvent(item.getIntValue(), item.getPosition(), 0));
                 }
 
                 if (isVisible) {
                     currentField.clearField();
                 }
 
-                EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition(), 0));
                 trackActiveBullets[bullet.getBulletId()] = 0;
                 playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
                 timerTask.cancel();
@@ -138,7 +134,7 @@ public class FireCommand {
                         if (isVisible) {
                             currentField.clearField();
                         }
-                        EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                        EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition(), 0));
                         trackActiveBullets[bullet.getBulletId()] = 0;
                         playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
                         timerTask.cancel();

@@ -3,8 +3,11 @@ package edu.unh.cs.cs619.bulletzone.events;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
+import java.io.Serializable;
+
 @JsonTypeName("terrain")
-public class TerrainUpdateEvent extends GameEvent {
+public class TerrainUpdateEvent extends GameEvent implements Serializable {
+    private static final long serialVersionUID = 1L;
     @JsonProperty
     private boolean hilly;
     @JsonProperty

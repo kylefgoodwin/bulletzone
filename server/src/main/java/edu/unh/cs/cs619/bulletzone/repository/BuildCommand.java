@@ -2,9 +2,7 @@ package edu.unh.cs.cs619.bulletzone.repository;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -300,7 +298,7 @@ public class BuildCommand implements Command {
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopDismantling();
-                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex, 0));
                     return true;
                 }
                 // If it's an indestructible wall or mining facility, dismantle it if the rules allow
@@ -321,7 +319,7 @@ public class BuildCommand implements Command {
                     game.modifyBalance(builderId, credits);
                     stopCreditTask();
                     builder.stopDismantling();
-                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex, 0));
                 } else if (entityInNextField.isIndestructibleWall()){
                     builder.startDismantling();
                     long millis = System.currentTimeMillis();
@@ -338,7 +336,7 @@ public class BuildCommand implements Command {
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopDismantling();
-                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex, 0));
                 } else if (entityInNextField.isRoad()){
                     builder.startDismantling();
                     long millis = System.currentTimeMillis();
@@ -355,7 +353,7 @@ public class BuildCommand implements Command {
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopDismantling();
-                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex, 0));
                 } else if (entityInNextField.isDeck()){
                     builder.startDismantling();
                     long millis = System.currentTimeMillis();
@@ -372,7 +370,7 @@ public class BuildCommand implements Command {
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopDismantling();
-                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex, 0));
                 } else if (entityInNextField.isBridge()){
                     builder.startDismantling();
                     long millis = System.currentTimeMillis();
@@ -389,7 +387,7 @@ public class BuildCommand implements Command {
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopDismantling();
-                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex, 0));
                 } else if (entityInNextField.isFactory()){
                     builder.startDismantling();
                     long millis = System.currentTimeMillis();
@@ -406,7 +404,7 @@ public class BuildCommand implements Command {
                     balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopDismantling();
-                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex));
+                    EventBus.getDefault().post(new RemoveEvent(entityInNextField.getIntValue(), nextIndex, 0));
                 }
 
                 return true;

@@ -52,8 +52,6 @@ public class ReplayInstanceActivity extends Activity {
     @Bean
     protected ReplayEventProcessor replayEventProcessor;
 
-    ReplayData replayData = ReplayData.getReplayData();
-
     int replayPaused = -1;
     int replaySpeed = 0;
 

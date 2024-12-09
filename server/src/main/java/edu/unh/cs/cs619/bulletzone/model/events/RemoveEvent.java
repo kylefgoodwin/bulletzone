@@ -11,11 +11,15 @@ public class RemoveEvent extends GameEvent {
     @JsonProperty
     private int tankID;
 
+    @JsonProperty
+    private long soldierRemove = 0;
+
     public RemoveEvent() {}
 
-    public RemoveEvent(int rawServerValue, int pos) {
+    public RemoveEvent(int rawServerValue, int pos, long soldierRemove) {
         this.rawServerValue = rawServerValue;
         this.position = pos;
+        this.soldierRemove = soldierRemove;
     }
 
     @Override
@@ -32,6 +36,13 @@ public class RemoveEvent extends GameEvent {
 
     public void setTankID(int tankID) {
         this.tankID = tankID;
+    }
+
+    public long getSoldierRemove() {
+        return soldierRemove;
+    }
+    public int getTankID() {
+        return tankID;
     }
 
 }

@@ -29,6 +29,7 @@ public class ReplayActivity extends Activity {
     private static final String TAG = "ReplayActivity";
 
     ReplayData replayData = ReplayData.getReplayData();
+    PlayerData playerData = PlayerData.getPlayerData();
 
     private FileHelper fileHelper;
 
@@ -39,6 +40,7 @@ public class ReplayActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        playerData.setContext(getApplicationContext());
         fileHelper = new FileHelper(getApplicationContext());
         replayDataList = fileHelper.loadReplayList("Replays");
         replayIntent = new Intent(this, ReplayInstanceActivity_.class);
