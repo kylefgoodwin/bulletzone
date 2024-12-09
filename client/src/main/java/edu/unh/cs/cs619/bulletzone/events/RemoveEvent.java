@@ -23,9 +23,6 @@ public class RemoveEvent extends GameEvent implements Serializable {
     public long getSoldierRemove() {
         return soldierRemove;
     }
-    public int getTankID() {
-        return tankID;
-    }
 
     @Override
     public void applyTo(int[][] board) {

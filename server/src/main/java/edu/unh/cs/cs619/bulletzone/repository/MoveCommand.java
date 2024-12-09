@@ -104,7 +104,7 @@ public class MoveCommand implements Command {
                 // Check if soldier is moving into forest
                 if (playableType == 3 && isTerrainField && t != null && t.isForest()) {
                     // First remove the soldier for other players
-                    RemoveEvent removeEvent = new RemoveEvent(playable.getIntValue(), currentField.getPosition());
+                    RemoveEvent removeEvent = new RemoveEvent(playable.getIntValue(), currentField.getPosition(), 0);
                     removeEvent.setTankID((int)playableId);
                     EventBus.getDefault().post(removeEvent);
 
@@ -449,7 +449,7 @@ public class MoveCommand implements Command {
 
     private void handleSoldierHiding(FieldHolder currentField, FieldHolder nextField, Playable playable, Direction direction, long moveDelay) {
         // Create RemoveEvent for other players
-        RemoveEvent removeEvent = new RemoveEvent(playable.getIntValue(), currentField.getPosition());
+        RemoveEvent removeEvent = new RemoveEvent(playable.getIntValue(), currentField.getPosition(), 0);
         removeEvent.setTankID((int)playableId);
         EventBus.getDefault().post(removeEvent);
 
