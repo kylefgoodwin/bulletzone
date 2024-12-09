@@ -178,7 +178,7 @@ public class MoveCommand implements Command {
                 return true;
             }
             // Soldier re-entry
-            else if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
+            else if (nextField.getEntity().isPlayable() && (playableType == 2 || (playableType == 0 && game.getTanks().get(playableId).gethasSoldier()))) {
                 if (game.getTanks().get((playableId)).getPosition() == nextField.getPosition()) {
                     game.removeSoldier(playableId);
                     game.getTanks().get(playableId).sethasSoldier(false);

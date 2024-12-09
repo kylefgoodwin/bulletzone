@@ -65,7 +65,7 @@ public class BuildCommand implements Command {
     @Override
     public boolean execute() throws TankDoesNotExistException, PlayableDoesNotExistException {
         Playable builder = null;
-        if (playableType == 2) {
+        if (playableType == 1) {
             builder = game.getBuilders().get(builderId);
         } else {
             builder = game.getFactories().get(builderId);
@@ -277,7 +277,7 @@ public class BuildCommand implements Command {
                     System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
                     return false;
                 }
-            } else if (Objects.equals(entity, "tank") && playableType == 5) {
+            } else if (Objects.equals(entity, "tank") && playableType == 4) {
 
                 if (balance.getBalance() >= 600.0) {
                     Playable playable = game.getTanks().get(builderId);
@@ -328,7 +328,7 @@ public class BuildCommand implements Command {
                 }
             } else if (Objects.equals(entity, "builder")) {
 
-                if (balance.getBalance() >= 500.0 && playableType == 5) {
+                if (balance.getBalance() >= 500.0 && playableType == 4) {
                     Playable playable = game.getBuilders().get(builderId);
                     if (playable == null) {
                         throw new TankDoesNotExistException(builderId);
@@ -374,7 +374,7 @@ public class BuildCommand implements Command {
                 }
             } else if (Objects.equals(entity, "soldier")) {
 
-                if (balance.getBalance() >= 200.0 && playableType == 5) {
+                if (balance.getBalance() >= 200.0 && playableType == 4) {
                     Playable playable = game.getSoldiers().get(builderId);
                     if (playable == null) {
                         throw new TankDoesNotExistException(builderId);

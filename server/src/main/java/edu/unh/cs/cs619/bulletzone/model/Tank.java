@@ -14,7 +14,7 @@ public class Tank extends Playable {
     public Tank(long id, Direction direction, String ip) {
         super(id, direction, ip);
         life = 100;
-        playableType = 1;
+        playableType = 0;
 
         numberOfBullets = 0;
         allowedFireInterval = BASE_FIRE_INTERVAL;

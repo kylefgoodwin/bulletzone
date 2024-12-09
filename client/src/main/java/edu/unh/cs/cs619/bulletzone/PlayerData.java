@@ -309,7 +309,7 @@ public class PlayerData {
         fireInterval = 1500;
 
         // Apply terrain effects
-        if (playableType == 1) { // Tank
+        if (playableType == 0) { // Tank
             if (isHilly) {
                 moveInterval = (int)(moveInterval * 1.5); // 50% slower movement
             }
@@ -317,11 +317,11 @@ public class PlayerData {
                 moveInterval = moveInterval * 2; // 100% slower movement
                 fireInterval = (int)(fireInterval * 1.5); // 50% slower firing
             }
-        } else if (playableType == 2) { // Builder
+        } else if (playableType == 1) { // Builder
             if (isRocky) {
                 moveInterval = (int)(moveInterval * 1.5); // 50% slower movement
             }
-        } else if (playableType == 3) { // Soldier
+        } else if (playableType == 2) { // Soldier
             if (isForest) {
                 moveInterval = (int)(moveInterval * 1.25); // 25% slower movement
             }

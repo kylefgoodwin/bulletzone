@@ -82,7 +82,7 @@ public final class Game {
     // Method to get the playable (tank, builder, or soldier) by player ID and type
     public Playable getPlayable(long playerId, int playableType) {
         Playable[] playablesArray = playables.get(playerId);
-        if (playablesArray != null && playableType >= 1 && playableType < playablesArray.length) {
+        if (playablesArray != null && playableType >= 0 && playableType < playablesArray.length) {
             return playablesArray[playableType];
         }
         return null; // Return null if not found
@@ -106,7 +106,7 @@ public final class Game {
         synchronized (playables) {
             Playable[] playablesArray = playables.computeIfAbsent(playerId, k -> new Playable[5]);
             int type = playable.getPlayableType();
-            if (type >= 1 && type < playablesArray.length) {
+            if (type >= 0 && type < playablesArray.length) {
                 playablesArray[type] = playable;
             }
 
@@ -122,7 +122,7 @@ public final class Game {
     public void removePlayable(long playerId, int playableType) {
         synchronized (playables) {
             Playable[] playablesArray = playables.get(playerId);
-            if (playablesArray != null && playableType >= 1 && playableType < playablesArray.length) {
+            if (playablesArray != null && playableType >= 0 && playableType < playablesArray.length) {
                 playablesArray[playableType] = null; // Remove the playable
                 playables.put(playerId, playablesArray);
             }
@@ -140,7 +140,7 @@ public final class Game {
 
     public Tank getTank(long tankId) {
         Playable[] playablesArray = playables.get(tankId);
-        return (Tank) (playablesArray != null ? playablesArray[1] : null);
+        return (Tank) (playablesArray != null ? playablesArray[0] : null);
     }
 
     public Tank getTank(String ip) {
@@ -155,8 +155,8 @@ public final class Game {
             Playable[] playablesArray = playables.get(playerId);
             if (playablesArray != null) {
                 // Check if the playable at index 1 is a Tank
-                Playable playable = playablesArray[1];
-                if (playable != null && playable.getPlayableType() == 1) {
+                Playable playable = playablesArray[0];
+                if (playable != null && playable.getPlayableType() == 0) {
                     allTanks.put(playerId, (Tank) playable); // Add the player ID and the tank to the map
                 }
             }
@@ -165,7 +165,7 @@ public final class Game {
     }
 
     public void removeTank(long tankId){
-        removePlayable(tankId, 1); // Remove tank (type 1)
+        removePlayable(tankId, 0); // Remove tank (type 1)
     }
 
     public void addBuilder(String ip, Builder builder) {
@@ -180,7 +180,7 @@ public final class Game {
 
     public Builder getBuilder(long builderId) {
         Playable[] playablesArray = playables.get(builderId);
-        return (Builder) (playablesArray != null ? playablesArray[2] : null);
+        return (Builder) (playablesArray != null ? playablesArray[1] : null);
     }
 
     public Builder getBuilder(String ip){
@@ -196,8 +196,8 @@ public final class Game {
             Playable[] playablesArray = playables.get(playerId);
             if (playablesArray != null) {
                 // Check if the playable at index 2 is a Builder
-                Playable playable = playablesArray[2];
-                if (playable != null && playable.getPlayableType() == 2) {
+                Playable playable = playablesArray[1];
+                if (playable != null && playable.getPlayableType() == 1) {
                     allBuilders.put(playerId, (Builder) playable); // Add the player ID and the builder to the map
                 }
             }
@@ -206,7 +206,7 @@ public final class Game {
     }
 
     public void removeBuilder(long builderId) {
-        removePlayable(builderId, 2); // Remove builder (type 2)
+        removePlayable(builderId, 1); // Remove builder (type 2)
     }
 
     public void addSoldier(String ip, Soldier soldier) {
@@ -220,7 +220,7 @@ public final class Game {
 
     public Soldier getSoldier(long soldierId) {
         Playable[] playablesArray = playables.get(soldierId);
-        return (Soldier) (playablesArray != null ? playablesArray[3] : null);
+        return (Soldier) (playablesArray != null ? playablesArray[2] : null);
     }
 
     public Soldier getSoldier(String ip) {
@@ -236,8 +236,8 @@ public final class Game {
             Playable[] playablesArray = playables.get(playerId);
             if (playablesArray != null) {
                 // Check if the playable at index 3 is a Soldier
-                Playable playable = playablesArray[3];
-                if (playable != null && playable.getPlayableType() == 3) {
+                Playable playable = playablesArray[2];
+                if (playable != null && playable.getPlayableType() == 2) {
                     allSoldiers.put(playerId, (Soldier) playable); // Add the player ID and the soldier to the map
                 }
             }
@@ -247,7 +247,7 @@ public final class Game {
     }
 
     public void removeSoldier(long soldierId) {
-        removePlayable(soldierId, 3); // Remove soldier (type 3)
+        removePlayable(soldierId, 2); // Remove soldier (type 3)
     }
 
     public void addShip(String ip, Ship ship) {
@@ -261,7 +261,7 @@ public final class Game {
 
     public Ship getShip(long shipId) {
         Playable[] playablesArray = playables.get(shipId);
-        return (Ship) (playablesArray != null ? playablesArray[4] : null);
+        return (Ship) (playablesArray != null ? playablesArray[3] : null);
     }
 
     public Ship getShip(String ip) {
@@ -277,8 +277,8 @@ public final class Game {
             Playable[] playablesArray = playables.get(playerId);
             if (playablesArray != null) {
                 // Check if the playable at index 3 is a Soldier
-                Playable playable = playablesArray[4];
-                if (playable != null && playable.getPlayableType() == 4) {
+                Playable playable = playablesArray[3];
+                if (playable != null && playable.getPlayableType() == 3) {
                     allShips.put(playerId, (Ship) playable); // Add the player ID and the soldier to the map
                 }
             }
@@ -288,7 +288,7 @@ public final class Game {
     }
 
     public void removeShip(long shipId) {
-        removePlayable(shipId, 4); // Remove soldier (type 3)
+        removePlayable(shipId, 3); // Remove soldier (type 3)
     }
 
     public void addFactory(String ip, Factory factory) {
@@ -302,7 +302,7 @@ public final class Game {
 
     public Factory getFactory(long factoryId) {
         Playable[] playablesArray = playables.get(factoryId);
-        return (Factory) (playablesArray != null ? playablesArray[5] : null);
+        return (Factory) (playablesArray != null ? playablesArray[4] : null);
     }
 
     public Factory getFactory(String ip) {
@@ -318,8 +318,8 @@ public final class Game {
             Playable[] playablesArray = playables.get(playerId);
             if (playablesArray != null) {
                 // Check if the playable at index 3 is a Soldier
-                Playable playable = playablesArray[5];
-                if (playable != null && playable.getPlayableType() == 5) {
+                Playable playable = playablesArray[4];
+                if (playable != null && playable.getPlayableType() == 4) {
                     allFactories.put(playerId, (Factory) playable); // Add the player ID and the soldier to the map
                 }
             }
@@ -329,7 +329,7 @@ public final class Game {
     }
 
     public void removeFactory(long factoryId) {
-        removePlayable(factoryId, 5); // Remove soldier (type 3)
+        removePlayable(factoryId, 4); // Remove soldier (type 3)
     }
 
     public List<Optional<FieldEntity>> getGrid() {

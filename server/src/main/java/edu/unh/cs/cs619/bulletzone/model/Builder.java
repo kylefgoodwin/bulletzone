@@ -18,7 +18,7 @@ public class Builder extends Playable {
     public Builder(long id, Direction direction, String ip) {
         super(id, direction, ip);
         life = 80; // Builders start with 80 life points
-        playableType = 2;
+        playableType = 1;
 
         numberOfBullets = 0;
         allowedFireInterval = 1000;  // Minimum 1 second between shots

@@ -9,7 +9,7 @@ public class Factory extends Playable {
     public Factory(long id, Direction direction, String ip) {
         super(id, direction, ip); // 930 represents the value for a factory
         life = 50; // Builders start with 80 life points
-        playableType = 5;
+        playableType = 4;
     }
 
     @Override

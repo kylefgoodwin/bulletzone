@@ -135,14 +135,14 @@ public class InMemoryGameRepository implements GameRepository {
 
             Playable playable = null;
 
-            if (playableType == 1) {
+            if (playableType == 0) {
                 playable = game.getTanks().get(playableId);
                 if(playable.gethasSoldier()){
                     playable = game.getSoldiers().get(playableId);
                 }
             }
 
-            if (playable == null && playableType == 2) {
+            if (playable == null && playableType == 1) {
                 playable = game.getBuilders().get(playableId);
                 if (playable.isBuilding()) {
                     System.out.println("Builder cannot turn while building.");
@@ -154,7 +154,7 @@ public class InMemoryGameRepository implements GameRepository {
                 }
             }
 
-            if (playable == null && playableType == 3) {
+            if (playable == null && playableType == 2) {
                 playable = game.getTanks().get(playableId);
                 if(playable.gethasSoldier()){
                     playable = game.getSoldiers().get(playableId);
@@ -182,9 +182,9 @@ public class InMemoryGameRepository implements GameRepository {
             throws TankDoesNotExistException, IllegalTransitionException, LimitExceededException, PlayableDoesNotExistException {
         synchronized (this.monitor) {
 
-            playableType = determinePlayableType(game, playableId, playableType);
+//            playableType = determinePlayableType(game, playableId, playableType);
             Playable playable = game.getPlayable(playableId, playableType);
-            if (playable == null) { throw new PlayableDoesNotExistException(playableId, playable.getPlayableType()); }
+            if (playable == null) { throw new PlayableDoesNotExistException(playableId, playableType); }
             long millis = System.currentTimeMillis();
             MoveCommand moveCommand = new MoveCommand(playable, playableType, game, direction, millis);
             return moveCommand.execute();
@@ -242,12 +242,12 @@ public class InMemoryGameRepository implements GameRepository {
             throws TankDoesNotExistException, PlayableDoesNotExistException {
         synchronized (this.monitor) {
             playableType = determinePlayableType(game, playableId, playableType);
-            if (playableType == 2) {
+            if (playableType == 1) {
                 Builder playable = game.getBuilder(playableId);
                 if (playable == null) { throw new PlayableDoesNotExistException(playableId, playable.getPlayableType()); }
                 BuildCommand buildCommand = new BuildCommand(playableId, playableType, game, entity);
                 return buildCommand.execute();
-            } else if (playableType == 5) {
+            } else if (playableType == 4) {
                 Factory playable = game.getFactory(playableId);
                 if (playable == null) { throw new PlayableDoesNotExistException(playableId, playable.getPlayableType()); }
                 BuildCommand buildCommand = new BuildCommand(playableId, playableType, game, entity);
