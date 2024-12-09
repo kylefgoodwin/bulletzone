@@ -51,11 +51,9 @@ public class InMemoryGameRepository implements GameRepository {
     private final AtomicLong idGenerator = new AtomicLong();
     private final Object monitor = new Object();
     private Game game = null;
-    private final int[] bulletDamage = {5, 10, 30};
-    private final int[] bulletDelay = {500, 1000, 1500};
     private final int[] trackActiveBullets = {0, 0, 0, 0, 0, 0};
     private final Timer itemSpawnTimer = new Timer();
-    private static final int ITEM_SPAWN_INTERVAL = 15000; // 15 seconds
+    private static final int MAX_POWERUPS = 10;
     private static final Random random = new Random();
 
     private final FireCommand fireCommand;
@@ -287,16 +285,19 @@ public class InMemoryGameRepository implements GameRepository {
             this.game = new Game();
             createFieldHolderGrid(game);
             gameBoardBuilder.setupGame(game);
-            // Spawn test items immediately
-            spawnTestPowerUps();
             startItemSpawner();
         }
     }
 
-    private void spawnTestPowerUps() {
-        // Spawn Deflector Shield
-        spawnSpecificItem(4);  // Shield
-        spawnSpecificItem(5);  // Repair Kit
+    private boolean canSpawnMorePowerUps() {
+        int currentPowerUps = 0;
+        for (int i = 0; i < FIELD_DIM * FIELD_DIM; i++) {
+            FieldHolder holder = game.getHolderGrid().get(i);
+            if (holder.isPresent() && holder.getEntity().isItem()) {
+                currentPowerUps++;
+            }
+        }
+        return currentPowerUps < MAX_POWERUPS;
     }
 
     private void spawnSpecificItem(int itemType) {
@@ -358,6 +359,10 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     private void spawnRandomItem() {
+        if (!canSpawnMorePowerUps()) {
+            return;
+        }
+
         System.out.println("Attempting to spawn random item...");
 
         for (int attempts = 0; attempts < 10; attempts++) {
@@ -368,7 +373,7 @@ public class InMemoryGameRepository implements GameRepository {
                 // Weighted random selection with equal chances for testing
                 int rand = random.nextInt(5) + 1;  // 1-5
 
-                Item item = new Item(rand);  // Create item with type 1-5
+                Item item = new Item(rand);
                 fieldElement.setFieldEntity(item);
                 item.setParent(fieldElement);
 
@@ -417,6 +422,10 @@ public class InMemoryGameRepository implements GameRepository {
             Tank tank = game.getTanks().get(tankId);
             if (tank == null) {
                 throw new TankDoesNotExistException(tankId);
+            }
+
+            if (!canSpawnMorePowerUps()) {
+                return false;
             }
 
             return tank.tryEjectPowerUp(tank.getParent());

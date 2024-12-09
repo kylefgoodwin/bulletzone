@@ -25,7 +25,7 @@ import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
 
 @Rest(rootUrl = "http://10.2.1.33:8080/games",
 //@Rest(rootUrl = "http://stman1.cs.unh.edu:6192/games",
-//@Rest(rootUrl = "http://stman1.cs.unh.edu:61902/games",
+//@Rest(rootUrl = "http://stman1.cs.unh.edu:61942/games",
         converters = {StringHttpMessageConverter.class, MappingJackson2HttpMessageConverter.class}
         // TODO: disable intercepting and logging
         // , interceptors = { HttpLoggerInterceptor.class }
@@ -96,3 +96,4 @@ public interface BulletZoneRestClient extends RestClientErrorHandling {
 //    @Get("/{playableId}/isFacilityActive")
 //    BooleanWrapper isFacilityActive(@Path long playableId);
 }
+

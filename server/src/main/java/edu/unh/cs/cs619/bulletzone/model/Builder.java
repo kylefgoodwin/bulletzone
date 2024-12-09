@@ -36,7 +36,30 @@ public class Builder extends Playable {
         lastMoveTime = 0;
         moveMultiplier = 1;
 
-        powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        this.powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval, PlayableType.BUILDER);
+    }
+
+    @Override
+    public boolean handleTerrainConstraints(Terrain terrain, long millis) {
+        if (terrain.isRocky() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 1.5))) {
+            return false;
+        }
+        if (terrain.isForest()) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean handleImprovements(Improvement improvement, long millis) {
+        if (improvement.isRoad() && millis < (getLastMoveTime() + (getAllowedMoveInterval() / 2))) {
+            return false;
+        } else if (improvement.isBridge() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        } else if (improvement.isDeck() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        }
+        return true;
     }
 
     @Override

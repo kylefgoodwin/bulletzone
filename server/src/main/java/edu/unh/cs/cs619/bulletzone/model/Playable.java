@@ -119,7 +119,7 @@ public abstract class Playable extends FieldEntity {
         return lastMoveTime;
     }
 
-    public long getAllowedMoveInterval() {
+    public int getAllowedMoveInterval() {
         return allowedMoveInterval;
     }
 
@@ -270,6 +270,8 @@ public abstract class Playable extends FieldEntity {
     }
 
     public abstract boolean handleTerrainConstraints(Terrain terrain, long millis);
+
+    public abstract boolean handleImprovements(Improvement improvement, long millis);
 
     public boolean canBuild(){ return false; }
     public boolean canEjectSoldier(){ return false; }

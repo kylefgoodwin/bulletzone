@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.GridView;
@@ -51,6 +52,8 @@ import edu.unh.cs.cs619.bulletzone.events.MiningCreditsEvent;
 import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
 import edu.unh.cs.cs619.bulletzone.events.TerrainUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.events.UIUpdateEvent;
+import edu.unh.cs.cs619.bulletzone.model.BoardCell;
+import edu.unh.cs.cs619.bulletzone.model.TankItem;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
 import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
 import edu.unh.cs.cs619.bulletzone.util.ClientActivityShakeDriver;
@@ -85,12 +88,6 @@ public class ClientActivity extends Activity {
 
     @ViewById
     protected TextView balanceTextView;
-
-    @ViewById
-    protected TextView statusTextView;
-
-    @ViewById
-    protected TextView eventBusStatus;
 
     @ViewById
     protected TextView activeEffects;
@@ -174,8 +171,8 @@ public class ClientActivity extends Activity {
     private int improvementType = 0;
     private long userId = -1;
 
-    private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier", "Ship"));
-    private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility"));
+    private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier"));
+    private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility", "road", "deck", "bridge", "factory"));
     private long lastEventTimestamp = 0;
     private Set<Long> processedItemEvents = new HashSet<>();
     private Set<Long> processedMiningEvents = new HashSet<>();
@@ -294,6 +291,32 @@ public class ClientActivity extends Activity {
         selectPlayable.setAdapter(new ArrayAdapter<>(this,
                 androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, playableSelections));
         simBoardView.attach(gridView, tGridView, playableId);
+
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                BoardCell cell = simBoardView.getCellAtPosition(i);
+
+                TankItem entity;
+                switch (cell.getCellType()) {
+                    case "Tank":
+                        entity = (TankItem) cell;
+                        clientController.postLifeAsync(entity.getTankID(), 1, ClientActivity.this);
+                        break;
+                    case "Builder":
+                        entity = (TankItem) cell;
+                        clientController.postLifeAsync(entity.getTankID(), 2, ClientActivity.this);
+                        break;
+                    case "Soldier":
+                        entity = (TankItem) cell;
+                        clientController.postLifeAsync(entity.getTankID(), 3, ClientActivity.this);
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+        });
     }
 
     @Background
@@ -572,6 +595,26 @@ public class ClientActivity extends Activity {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
                 tankEventController.removeCredits(userId, 300.0, playerData.setCurEntity("miningFacility"));
                 fetchAndUpdateBalance();
+            } else if (improvementType == 3) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("road"));
+
+                tankEventController.removeCredits(userId, 40.0, playerData.setCurEntity("road"));
+                fetchAndUpdateBalance();
+            } else if (improvementType == 4) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("deck"));
+
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("deck"));
+                fetchAndUpdateBalance();
+            } else if (improvementType == 5) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("bridge"));
+
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("bridge"));
+                fetchAndUpdateBalance();
+            } else if (improvementType == 6) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("factory"));
+
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("factory"));
+                fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds
                 Log.e("onButtonBuild", "Invalid improvement type index: " + improvementType);
@@ -594,6 +637,26 @@ public class ClientActivity extends Activity {
             } else if (improvementType == 2) {
                 tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
                 tankEventController.addCredits(userId, 300.0);
+                fetchAndUpdateBalance();
+            } else if (improvementType == 3) {
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("road"));
+
+                tankEventController.addCredits(userId, 40.0);
+                fetchAndUpdateBalance();
+            } else if (improvementType == 4) {
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("deck"));
+
+                tankEventController.addCredits(userId, 80.0);
+                fetchAndUpdateBalance();
+            } else if (improvementType == 5) {
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("bridge"));
+
+                tankEventController.addCredits(userId, 120.0);
+                fetchAndUpdateBalance();
+            } else if (improvementType == 6) {
+                tankEventController.dismantleAsync(userId, playableId, playableType, playerData.setCurEntity("factory"));
+
+                tankEventController.addCredits(userId, 250.0);
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds

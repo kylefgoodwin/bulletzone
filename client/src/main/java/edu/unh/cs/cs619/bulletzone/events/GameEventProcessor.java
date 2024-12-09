@@ -9,6 +9,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import edu.unh.cs.cs619.bulletzone.PlayerData;
 import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
 @EBean
@@ -101,6 +102,23 @@ public class GameEventProcessor {
             lastEventTimestamp = event.getTimeStamp();
 
             try {
+                if (event instanceof MoveEvent) {
+                    MoveEvent moveEvent = (MoveEvent) event;
+                    if (moveEvent.getTankID() != -1) {
+                        // Only apply move if we own this soldier
+                        if (moveEvent.getTankID() == PlayerData.getPlayerData().getTankId()) {
+                            event.applyTo(playerLayer);
+                        }
+                        return;
+                    }
+                } else if (event instanceof RemoveEvent) {
+                    RemoveEvent removeEvent = (RemoveEvent) event;
+                    // Skip remove if we own this soldier
+                    if (removeEvent.getTankID() == PlayerData.getPlayerData().getTankId()) {
+                        return;
+                    }
+                }
+
                 event.applyTo(playerLayer);
                 Log.d(TAG, "Successfully applied event: " + event);
             } catch (Exception e) {
