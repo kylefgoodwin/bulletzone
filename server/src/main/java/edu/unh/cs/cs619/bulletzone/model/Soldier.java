@@ -105,7 +105,7 @@ public class Soldier extends Playable {
         }
     }
 
-    @JsonIgnore
+@JsonIgnore
 
     @Override
     public int getIntValue() {
