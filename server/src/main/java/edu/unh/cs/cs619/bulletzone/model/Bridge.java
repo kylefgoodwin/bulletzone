@@ -6,8 +6,9 @@ public class Bridge extends Improvement {
     int pos;
 
     // Constructor for an indestructible bridge
-    public Bridge() {
+    public Bridge(int destructValue, int pos) {
         super(903);
+        this.pos = pos;
     }
 
     @Override

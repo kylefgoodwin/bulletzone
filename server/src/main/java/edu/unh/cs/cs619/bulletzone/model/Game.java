@@ -29,6 +29,8 @@ public final class Game {
     private final ConcurrentMap<String, Long> playersIPBuilders = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, Soldier> soldiers = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Long> playersIPSoldiers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, Factory> factories = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Long> playersIPFactory = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, Double> playerCredits = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, BankAccount> playerAccounts = new ConcurrentHashMap<>();
 
@@ -88,6 +90,41 @@ public final class Game {
             playerAccounts.putIfAbsent(soldier.getId(), new BankAccount(soldier.getId()));
         }
         EventBus.getDefault().post(new SpawnEvent(soldier.getIntValue(), soldier.getPosition()));
+    }
+
+    public void addFactory(String ip, Factory factory) {
+        synchronized (factories) {
+            factories.put(factory.getId(), factory);
+            playersIPFactory.put(ip, factory.getId());
+            playerCredits.put(factory.getId(), 1000.0);
+            playerAccounts.putIfAbsent(factory.getId(), new BankAccount(factory.getId()));
+        }
+        EventBus.getDefault().post(new SpawnEvent(factory.getIntValue(), factory.getPosition()));
+    }
+
+    public Factory getFactory(Long factoryId) {
+        return factories.get(factoryId);
+    }
+
+    public Factory getFactory(String ip) {
+        if (playersIPFactory.containsKey(ip)) {
+            return factories.get(playersIPFactory.get(ip));
+        }
+        return null;
+    }
+
+    public ConcurrentMap<Long, Factory> getFactories() {
+        return factories;
+    }
+
+    public void removeFactory(long factoryId){
+        synchronized (tanks) {
+            Factory f = factories.remove(factoryId);
+            if (f != null) {
+                playersIPFactory.remove(f.getIp());
+                playerCredits.remove(factoryId);
+            }
+        }
     }
 
     // Method to add credits to a player's bank account

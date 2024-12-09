@@ -298,7 +298,15 @@ public class InMemoryGameRepository implements GameRepository {
                     //Log.i(TAG, "Cannot find user with id: " + tankId);
                     throw new TankDoesNotExistException(playableId);
                 }
-                BuildCommand buildCommand = new BuildCommand(playableId, game, entity);
+                BuildCommand buildCommand = new BuildCommand(playableId, playableType, game, entity);
+                return buildCommand.execute();
+            } else if (playableType == 5) {
+                Playable playable = game.getFactories().get(playableId);
+                if (playable == null) {
+                    //Log.i(TAG, "Cannot find user with id: " + tankId);
+                    throw new TankDoesNotExistException(playableId);
+                }
+                BuildCommand buildCommand = new BuildCommand(playableId, playableType, game, entity);
                 return buildCommand.execute();
             } else {
                 System.out.println("Player is not controlling the builder, building blocked.");

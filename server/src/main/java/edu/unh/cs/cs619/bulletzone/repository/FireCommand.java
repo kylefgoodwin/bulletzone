@@ -79,28 +79,8 @@ public class FireCommand {
         boolean isVisible = currentField.isPresent() && (currentField.getEntity() == bullet);
 
         try {
-            if (nextField.isPresent()) {
+            if (nextField.isPresent() && !nextField.getEntity().isImprovement()) {
                 nextField.getEntity().hit(bullet.getDamage());
-                // COME BACK TO THIS TO FIX ARMOR VALUE //
-                if (nextField.isImprovementPresent()){
-                    Improvement improvement = (Improvement) nextField.getEntity();
-                    if (improvement.isBridge()) {
-                        Bridge bridge = (Bridge) nextField.getEntity();
-                        if (bridge.getIntValue() == 903) {
-                            game.getHolderGrid().get(bridge.getPos()).clearField();
-                        }
-                    } else if (improvement.isFactory()) {
-                        Factory f = (Factory) nextField.getEntity();
-                        if (f.getIntValue() == 930) {
-                            game.getHolderGrid().get(f.getPos()).clearField();
-                        }
-                    } else if (improvement.isMiningFacility()) {
-                        MiningFacility m = (MiningFacility) nextField.getEntity();
-                        if (m.getIntValue() == 920) {
-                            game.getHolderGrid().get(m.getPos()).clearField();
-                        }
-                    }
-                }
 
                 //Handle damaging playable
                 if (nextField.getEntity().isPlayable()) {
@@ -130,6 +110,61 @@ public class FireCommand {
                 trackActiveBullets[bullet.getBulletId()] = 0;
                 playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
                 timerTask.cancel();
+            } else if (nextField.isPresent() && nextField.getEntity().isImprovement()){
+                nextField.getEntity().hit(bullet.getDamage());
+                if (nextField.getEntity().isBridge()) {
+                    Bridge bridge = (Bridge) nextField.getEntity();
+                    game.getHolderGrid().get(bridge.getPos()).clearField();
+                    if (isVisible) {
+                        currentField.clearField();
+                    }
+                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                    trackActiveBullets[bullet.getBulletId()] = 0;
+                    playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
+                    timerTask.cancel();
+                } else if (nextField.getEntity().isFactory()) {
+                    Factory f = (Factory) nextField.getEntity();
+                    game.getHolderGrid().get(f.getPos()).clearField();
+                    if (isVisible) {
+                        currentField.clearField();
+                    }
+                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                    trackActiveBullets[bullet.getBulletId()] = 0;
+                    playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
+                    timerTask.cancel();
+                } else if (nextField.getEntity().isMiningFacility()) {
+                    MiningFacility m = (MiningFacility) nextField.getEntity();
+                    game.getHolderGrid().get(m.getPos()).clearField();
+                    if (isVisible) {
+                        currentField.clearField();
+                    }
+                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                    trackActiveBullets[bullet.getBulletId()] = 0;
+                    playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
+                    timerTask.cancel();
+                } else {
+                    if (isVisible) {
+                        currentField.clearField();
+                    }
+                    nextField.bulletStoreEntity();
+
+
+
+                    int oldPos = bullet.getPosition();
+                    nextField.setFieldEntity(bullet);
+                    if (currentField.bulletPassedImprovement()) {
+                        currentField.bulletRestoreEntity();
+                    }
+                    bullet.setParent(nextField);
+                    int newPos = bullet.getPosition();
+                    if (oldPos == playable.getPosition()) {
+                        System.out.println("Spawning");
+                        EventBus.getDefault().post(new MoveEvent(bullet.getIntValue(), newPos, newPos));
+                    } else {
+                        System.out.println("Moving");
+                        EventBus.getDefault().post(new MoveEvent(bullet.getIntValue(), oldPos, newPos));
+                    }
+                }
             } else {
 
                 if (nextField.isTerrainPresent()){
@@ -148,6 +183,10 @@ public class FireCommand {
 
                 if (isVisible) {
                     currentField.clearField();
+                }
+
+                if (currentField.bulletPassedImprovement()) {
+                    currentField.bulletRestoreEntity();
                 }
 
                 int oldPos = bullet.getPosition();

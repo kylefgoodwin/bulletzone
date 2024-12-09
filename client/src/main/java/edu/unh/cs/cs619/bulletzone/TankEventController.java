@@ -110,6 +110,21 @@ public class TankEventController {
             if (restClient.getBalance(userId) >= 250.0) {
                 restClient.build(playableId, playableType, entity);
             }
+        } else if (Objects.equals(entity, "tank")) {
+            Log.d(TAG, "Balance (tank)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 600.0) {
+                restClient.build(playableId, playableType, entity);
+            }
+        } else if (Objects.equals(entity, "builder")) {
+            Log.d(TAG, "Balance (builder)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 500.0) {
+                restClient.build(playableId, playableType, entity);
+            }
+        } else if (Objects.equals(entity, "soldier")) {
+            Log.d(TAG, "Balance (soldier)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 200.0) {
+                restClient.build(playableId, playableType, entity);
+            }
         }
     }
     @Background
