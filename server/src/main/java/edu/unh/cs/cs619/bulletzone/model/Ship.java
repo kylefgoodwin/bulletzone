@@ -32,7 +32,7 @@ public class Ship extends Playable {
         allowedTurnInterval = 750; // Ships can turn no faster than once 3/4 second
         lastTurnTime = 0;
 
-        powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval, PlayableType.SHIP);
     }
 
     @Override
@@ -66,6 +66,18 @@ public class Ship extends Playable {
                 powerUpManager.getShieldHealth(),
                 finalDamage
         ));
+    }
+
+    @Override
+    public boolean handleImprovements(Improvement improvement, long millis) {
+        if (improvement.isRoad() && millis < (getLastMoveTime() + (getAllowedMoveInterval() / 2))) {
+            return false;
+        } else if (improvement.isBridge() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        } else if (improvement.isDeck() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        }
+        return true;
     }
 
     @JsonIgnore

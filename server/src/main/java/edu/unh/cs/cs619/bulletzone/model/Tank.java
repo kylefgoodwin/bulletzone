@@ -152,21 +152,8 @@ public class Tank extends Playable {
     }
 
     @Override
-    public boolean handleTerrainConstraints(Terrain terrain, long millis){
-        if (terrain.isHilly() && millis < (getLastMoveTime()+getAllowedMoveInterval()*1.5)) {
-            return false;
-        } else if (terrain.isForest() && millis < (getLastMoveTime()+getAllowedMoveInterval()*2)) {
-            return false;
-        }
-        setLastMoveTime(millis);
-        return true;
-    }
-
-    @Override
     public boolean canAcceptSoldier(){return true;}
 
-    @Override
-    public boolean canEjectSoldier(){return true;}
 
     @JsonIgnore
     @Override

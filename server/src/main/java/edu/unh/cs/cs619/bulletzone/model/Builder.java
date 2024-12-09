@@ -82,16 +82,6 @@ public class Builder extends Playable {
         ));
     }
 
-    @Override
-    public boolean handleTerrainConstraints(Terrain terrain, long millis){
-        if (terrain.isRocky() && millis < (getLastMoveTime()+getAllowedMoveInterval()*1.5)) {
-            return false;
-        } else if (terrain.isForest()) {
-            return false;
-        }
-        setLastMoveTime(millis);
-        return true;
-    }
 
     @JsonIgnore
 
