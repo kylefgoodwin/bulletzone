@@ -544,9 +544,9 @@ public class ClientActivity extends Activity {
             selectImprovement.setEnabled(false);
             buttonEjectSoldier.setEnabled(false);
         } else if (playableType == 5) {
-            buttonBuild.setEnabled(false);
+            buttonBuild.setEnabled(true);
             buttonDismantle.setEnabled(false);
-            selectImprovement.setEnabled(false);
+            selectImprovement.setEnabled(true);
             buttonEjectSoldier.setEnabled(false);
             buttonDown.setEnabled(false);
             buttonRight.setEnabled(false);

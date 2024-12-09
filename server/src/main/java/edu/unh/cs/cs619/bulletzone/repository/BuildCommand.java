@@ -64,7 +64,13 @@ public class BuildCommand implements Command {
      */
     @Override
     public boolean execute() throws TankDoesNotExistException, PlayableDoesNotExistException {
-        Builder builder = game.getBuilders().get(builderId);
+        Playable builder = null;
+        if (playableType == 2) {
+            builder = game.getBuilders().get(builderId);
+        } else {
+            builder = game.getFactories().get(builderId);
+        }
+
         if (builder == null) {
             throw new TankDoesNotExistException(builderId);
         }

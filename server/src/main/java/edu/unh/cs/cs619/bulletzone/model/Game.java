@@ -250,6 +250,47 @@ public final class Game {
         removePlayable(soldierId, 3); // Remove soldier (type 3)
     }
 
+    public void addShip(String ip, Ship ship) {
+        synchronized (playables) {
+            addPlayable(ship.getId(), ship, ip);
+            playerCredits.put(ship.getId(), 1000.0); // Initialize credits for new soldier
+            playerAccounts.putIfAbsent(ship.getId(), new BankAccount(ship.getId()));
+        }
+        EventBus.getDefault().post(new SpawnEvent(ship.getIntValue(), ship.getPosition()));
+    }
+
+    public Ship getShip(long shipId) {
+        Playable[] playablesArray = playables.get(shipId);
+        return (Ship) (playablesArray != null ? playablesArray[4] : null);
+    }
+
+    public Ship getShip(String ip) {
+        Long playerId = playersIP.get(ip);
+        return playerId != null ? getShip(playerId) : null;
+    }
+
+    public Map<Long, Ship> getShips() {
+        Map<Long, Ship> allShips = new HashMap<>();
+
+        // Iterate over each player ID in the playables map
+        for (Long playerId : playables.keySet()) {
+            Playable[] playablesArray = playables.get(playerId);
+            if (playablesArray != null) {
+                // Check if the playable at index 3 is a Soldier
+                Playable playable = playablesArray[4];
+                if (playable != null && playable.getPlayableType() == 4) {
+                    allShips.put(playerId, (Ship) playable); // Add the player ID and the soldier to the map
+                }
+            }
+        }
+
+        return allShips; // Return the map of player IDs to soldiers
+    }
+
+    public void removeShip(long shipId) {
+        removePlayable(shipId, 4); // Remove soldier (type 3)
+    }
+
     public void addFactory(String ip, Factory factory) {
         synchronized (playables) {
             addPlayable(factory.getId(), factory, ip);
@@ -259,8 +300,8 @@ public final class Game {
         EventBus.getDefault().post(new SpawnEvent(factory.getIntValue(), factory.getPosition()));
     }
 
-    public Factory getFactory(long soldierId) {
-        Playable[] playablesArray = playables.get(soldierId);
+    public Factory getFactory(long factoryId) {
+        Playable[] playablesArray = playables.get(factoryId);
         return (Factory) (playablesArray != null ? playablesArray[5] : null);
     }
 

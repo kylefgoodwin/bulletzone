@@ -17,7 +17,7 @@ public class Ship extends Playable {
     public Ship(long id, Direction direction, String ip) {
         super(id, direction, ip);
         life = 25;  // Soldiers start with 25 life points
-        playableType = 3;
+        playableType = 4;
 
         numberOfBullets = 0;
         allowedFireInterval = 500;  // Minimum 500 ms between shots

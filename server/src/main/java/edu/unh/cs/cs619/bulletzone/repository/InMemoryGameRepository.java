@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.Bullet;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
+import edu.unh.cs.cs619.bulletzone.model.Factory;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.IllegalTransitionException;
@@ -241,8 +242,13 @@ public class InMemoryGameRepository implements GameRepository {
             throws TankDoesNotExistException, PlayableDoesNotExistException {
         synchronized (this.monitor) {
             playableType = determinePlayableType(game, playableId, playableType);
-            if (playableType == 2 || playableType == 5) {
-                Playable playable = game.getPlayable(playableId, playableType);
+            if (playableType == 2) {
+                Builder playable = game.getBuilder(playableId);
+                if (playable == null) { throw new PlayableDoesNotExistException(playableId, playable.getPlayableType()); }
+                BuildCommand buildCommand = new BuildCommand(playableId, playableType, game, entity);
+                return buildCommand.execute();
+            } else if (playableType == 5) {
+                Factory playable = game.getFactory(playableId);
                 if (playable == null) { throw new PlayableDoesNotExistException(playableId, playable.getPlayableType()); }
                 BuildCommand buildCommand = new BuildCommand(playableId, playableType, game, entity);
                 return buildCommand.execute();

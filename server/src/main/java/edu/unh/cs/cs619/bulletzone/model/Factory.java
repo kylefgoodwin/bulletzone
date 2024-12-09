@@ -8,6 +8,8 @@ public class Factory extends Playable {
     // Constructor for an indestructible road
     public Factory(long id, Direction direction, String ip) {
         super(id, direction, ip); // 930 represents the value for a factory
+        life = 50; // Builders start with 80 life points
+        playableType = 5;
     }
 
     @Override
