@@ -16,7 +16,7 @@ public class TurnableShip extends TankItem {
         int typeVal = (val / tankType) * tankType;
         int scaleFactor = 1000;
 
-        resourceID = R.drawable.water;
+        resourceID = R.drawable.ship;
         orientation = (val % 10) - 4;
         cellType = "Ship";
         tankID = (val - typeVal) / scaleFactor;

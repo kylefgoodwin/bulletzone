@@ -884,8 +884,9 @@ public class ClientActivity extends Activity {
             }
 
             // Check for death
-            if (playerData.getTankLife() <= 0 ||
-                    (playerData.getSoldierLife() <= 0 && event.getPlayableType() == 3)) {
+            if (playerData.getTankLife() <= 0) {
+                onButtonEjectSoldier();
+            } else if (playerData.getSoldierLife() <= 0 && event.getPlayableType() == 3) {
                 leaveGame();
             }
         }
@@ -953,6 +954,14 @@ public class ClientActivity extends Activity {
 
         soldierHealthBar.setProgress(playerData.getSoldierLife());
         soldierHealthBar.setLabelText(String.format("Soldier Health: %d/25", playerData.getSoldierLife()));
+    }
+
+    public void setClientController(ClientController client) {
+        clientController = client;
+    }
+
+    public void setSimBoardView(SimBoardView boardView) {
+        simBoardView = boardView;
     }
 
     @UiThread

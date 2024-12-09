@@ -40,6 +40,7 @@ public class GameBoardBuilder {
         addTerrains(List.of(205, 206, 207, 208, 209, 220, 222, 223, 224), 3);
         addTerrains(List.of(182, 183, 184, 187, 188, 189, 199, 200, 201, 202), 2);
         addTerrains(List.of(76, 77, 78, 60, 61, 62, 44, 45, 46), 3);
+        addTerrains(List.of(153, 154, 155, 156, 157, 158, 105, 106, 107, 108, 109, 110, 137, 138, 139, 140, 141, 142, 126, 125, 124, 123, 122, 121), 4);
         build();
     }
     public GameBoardBuilder attachGame(Game game) {

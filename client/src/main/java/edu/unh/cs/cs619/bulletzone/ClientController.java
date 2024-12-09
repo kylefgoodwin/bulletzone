@@ -81,13 +81,16 @@ public class ClientController {
                 }
             }
 
-            // For other units, query server
             int life = restClient.getLife(playableId, playableType).getResult();
             showLifeToast(life, context);
         } catch (Exception e) {
-            Log.e(TAG, "Error getting life", e);
+//            Log.e(TAG, "Error getting life", e);
             showLifeToast(-1, context);
         }
+    }
+
+    public void setRestClient(BulletZoneRestClient restClient) {
+        this.restClient = restClient;
     }
 
     @UiThread
