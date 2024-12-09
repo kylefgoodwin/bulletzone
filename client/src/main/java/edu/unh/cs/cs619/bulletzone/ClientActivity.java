@@ -207,6 +207,7 @@ public class ClientActivity extends Activity {
 
         fileHelper = new FileHelper(getApplicationContext());
         replayData.setInitialTimeStamp(System.currentTimeMillis());
+        playerData.setContext(getApplicationContext());
         shakeDriver = new ClientActivityShakeDriver(this, () -> onButtonFire());
         processedItemEvents = new HashSet<>();
         processedEventIds = new HashSet<>();
