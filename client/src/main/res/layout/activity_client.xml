@@ -263,21 +263,6 @@
             app:progressView_radius="12dp" />
 
         <!-- Status Messages -->
-        <TextView
-            android:id="@+id/statusTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp"
-            android:textColor="#FF0000" />
-
-        <TextView
-            android:id="@+id/eventBusStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="4dp"
-            android:textColor="#FF0000" />
 
         <Spinner
             android:id="@+id/selectPlayable"

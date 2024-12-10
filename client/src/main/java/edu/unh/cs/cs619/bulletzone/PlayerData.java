@@ -1,5 +1,6 @@
 package edu.unh.cs.cs619.bulletzone;
 
+import android.content.Context;
 import android.util.Log;
 
 public class PlayerData {
@@ -46,6 +47,9 @@ public class PlayerData {
     private boolean onHillyTerrain = false;
     private boolean onForestTerrain = false;
     private boolean onRockyTerrain = false;
+
+    // Application Context
+    private Context context;
 
     private PlayerData() {
         resetPlayerData();
@@ -255,6 +259,9 @@ public class PlayerData {
     }
 
     // Existing getters
+    public Context getContext() {
+        return context;
+    }
     public long getTankId() { return tankId; }
     public long getUserId() { return userId; }
     public int getCurrentMap() { return currentMap; }
@@ -301,6 +308,9 @@ public class PlayerData {
     public void setImprovement(int i, String improvement) {
         improvements[i] = improvement;
         improvementNumber++;
+    }
+    public void setContext(Context context) {
+        this.context = context;
     }
 
     public void updateTerrainEffects(int playableType, boolean isHilly, boolean isForest, boolean isRocky) {

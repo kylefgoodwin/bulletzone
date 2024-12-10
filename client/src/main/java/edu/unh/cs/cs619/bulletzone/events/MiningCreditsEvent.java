@@ -1,8 +1,11 @@
 package edu.unh.cs.cs619.bulletzone.events;
 
+import java.io.Serializable;
+
 import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
 
-public class MiningCreditsEvent {
+public class MiningCreditsEvent implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final long timeStamp;
     private final long ownerId;
     private final double creditAmount;

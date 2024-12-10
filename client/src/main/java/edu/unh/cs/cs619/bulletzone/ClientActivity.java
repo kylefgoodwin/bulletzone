@@ -50,6 +50,7 @@ import edu.unh.cs.cs619.bulletzone.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.events.MiningCreditsEvent;
 import edu.unh.cs.cs619.bulletzone.events.PowerUpEjectEvent;
+import edu.unh.cs.cs619.bulletzone.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.events.TerrainUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.events.UIUpdateEvent;
 import edu.unh.cs.cs619.bulletzone.model.BoardCell;
@@ -214,6 +215,7 @@ public class ClientActivity extends Activity {
 
         fileHelper = new FileHelper(getApplicationContext());
         replayData.setInitialTimeStamp(System.currentTimeMillis());
+        playerData.setContext(getApplicationContext());
         shakeDriver = new ClientActivityShakeDriver(this, () -> onButtonFire());
         processedItemEvents = new HashSet<>();
         processedEventIds = new HashSet<>();
@@ -718,6 +720,7 @@ public class ClientActivity extends Activity {
         @Click(R.id.buttonEjectSoldier)
     protected void onButtonEjectSoldier() {
         clientController.ejectSoldierAsync(playableId);
+        selectPlayable.setSelection(2);
         buttonEjectSoldier.setEnabled(false);
 //        playerData.setSoldierEjected(true);
     }
@@ -933,8 +936,9 @@ public class ClientActivity extends Activity {
             }
 
             // Check for death
-            if (playerData.getTankLife() <= 0 ||
-                    (playerData.getSoldierLife() <= 0 && event.getPlayableType() == 2)) {
+            if (playerData.getTankLife() <= 0) {
+                onButtonEjectSoldier();
+            } else if (playerData.getSoldierLife() <= 0 && event.getPlayableType() == 3) {
                 leaveGame();
             }
         }
@@ -1002,6 +1006,14 @@ public class ClientActivity extends Activity {
 
         soldierHealthBar.setProgress(playerData.getSoldierLife());
         soldierHealthBar.setLabelText(String.format("Soldier Health: %d/25", playerData.getSoldierLife()));
+    }
+
+    public void setClientController(ClientController client) {
+        clientController = client;
+    }
+
+    public void setSimBoardView(SimBoardView boardView) {
+        simBoardView = boardView;
     }
 
     @UiThread
@@ -1304,6 +1316,15 @@ public class ClientActivity extends Activity {
 
             // Update UI
             updateStatsDisplay();
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRemoveEvent(RemoveEvent event) {
+        Log.d(TAG, "Event Tank ID: " + event.getSoldierRemove() + " | Player Tank ID: "
+                + playerData.getTankId());
+        if (event.getSoldierRemove() == playerData.getTankId()) {
+            selectPlayable.setSelection(0);
         }
     }
 }
