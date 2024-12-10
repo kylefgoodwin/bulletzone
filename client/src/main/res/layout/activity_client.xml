@@ -289,11 +289,33 @@
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
-            <Button
-                android:id="@+id/buttonUp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/up" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/buttonStrafeLeft"
+                    android:layout_width="123dp"
+                    android:layout_height="wrap_content"
+                    android:text="Strafe Left" />
+
+                <Button
+                    android:id="@+id/buttonUp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    android:text="@string/up" />
+
+                <Button
+                    android:id="@+id/buttonStrafeRight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Strafe Right" />
+
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -324,34 +346,82 @@
         </LinearLayout>
 
         <!-- Toggle Button for Units -->
-        <Button
-            android:id="@+id/buttonEjectSoldier"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/ejectsoldier" />
 
         <!-- Build or Dismantle Button -->
-        <Button
-            android:id="@+id/buttonBuild"
-            android:layout_width="wrap_content"
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/build" />
+            android:gravity="right|left"
+            android:orientation="horizontal"
+            android:paddingBottom="8dp">
+
+            <Button
+                android:id="@+id/buttonBuild"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/build" />
+
+            <Button
+                android:id="@+id/buttonDismantle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dismantle" />
+
+            <Button
+                android:id="@+id/buttonEjectSoldier"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ejectsoldier" />
+
+            <Button
+                android:id="@+id/buttonExecute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:text="Execute" />
+
+        </LinearLayout>
 
         <!-- Build or Dismantle Button -->
-        <Button
-            android:id="@+id/buttonDismantle"
-            android:layout_width="wrap_content"
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/dismantle" />
+            android:gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:paddingBottom="8dp">
+
+            <Button
+                android:id="@+id/buttonQueue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:text="Start / Stop Queue" />
+
+            <Button
+                android:id="@+id/buttonSaveCmd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:text="Save Command" />
+
+            <Button
+                android:id="@+id/buttonCustomCmd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:text="Custom Command" />
+
+        </LinearLayout>
 
         <!-- Fire Button -->
+
         <Button
             android:id="@+id/buttonFire"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:text="FIRE" />
 
         <Button
@@ -359,7 +429,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="8dp"
             android:text="Sell Power-ups" />
 
     </LinearLayout>

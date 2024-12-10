@@ -58,7 +58,11 @@ import edu.unh.cs.cs619.bulletzone.model.TankItem;
 import edu.unh.cs.cs619.bulletzone.rest.BZRestErrorhandler;
 import edu.unh.cs.cs619.bulletzone.rest.GridPollerTask;
 import edu.unh.cs.cs619.bulletzone.util.ClientActivityShakeDriver;
+import edu.unh.cs.cs619.bulletzone.util.CompositeCommand;
 import edu.unh.cs.cs619.bulletzone.util.FileHelper;
+import edu.unh.cs.cs619.bulletzone.util.FireCommand;
+import edu.unh.cs.cs619.bulletzone.util.InputCommand;
+import edu.unh.cs.cs619.bulletzone.util.MoveCommand;
 import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
 @EActivity(R.layout.activity_client)
@@ -133,6 +137,9 @@ public class ClientActivity extends Activity {
     protected Button buttonRight;
 
     @ViewById
+    protected  Button buttonCustomCmd;
+
+    @ViewById
     protected ProgressView shieldHealthBar;
 
     @ViewById
@@ -172,6 +179,8 @@ public class ClientActivity extends Activity {
     private int improvementType = 0;
     private long userId = -1;
 
+
+    private ArrayList<InputCommand> commandQueue = new ArrayList<>();
     private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier"));
     private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility", "road", "deck", "bridge", "factory"));
     private long lastEventTimestamp = 0;
@@ -183,6 +192,9 @@ public class ClientActivity extends Activity {
     private Runnable repairKitUpdateRunnable;
     private Handler repairKitHealingHandler = new Handler(Looper.getMainLooper());
     private Runnable repairKitHealingRunnable;
+    private boolean queueing = false;
+
+    private CompositeCommand customCommand;
 
 
 
@@ -244,11 +256,9 @@ public class ClientActivity extends Activity {
         if (simBoardView != null) {
             simBoardView.detach();
         }
-
         if (eventProcessor != null) {
             eventProcessor.stop();
         }
-
         if (shakeDriver != null) {
             shakeDriver.stop();
         }
@@ -289,6 +299,9 @@ public class ClientActivity extends Activity {
         updateStatsDisplay();
 
         SystemClock.sleep(500);
+
+        buttonCustomCmd.setEnabled(false);
+
         selectImprovement.setAdapter(new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, improvementSelections));
         selectPlayable.setAdapter(new ArrayAdapter<>(this,
                 androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, playableSelections));
@@ -537,7 +550,7 @@ public class ClientActivity extends Activity {
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
             buttonEjectSoldier.setEnabled(false);
-        } else if (playableType == 4){
+        } else if (playableType == 4){ // Ship
             buttonBuild.setEnabled(false);
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
@@ -555,29 +568,109 @@ public class ClientActivity extends Activity {
 
     @Click({R.id.buttonUp, R.id.buttonDown, R.id.buttonLeft, R.id.buttonRight})
     protected void onButtonMove(View view) {
-        byte direction;
-        switch (view.getId()) {
-            case R.id.buttonUp:
-                direction = 0;
-                break;
-            case R.id.buttonDown:
-                direction = 4;
-                break;
-            case R.id.buttonLeft:
-                direction = 6;
-                break;
-            case R.id.buttonRight:
-                direction = 2;
-                break;
-            default:
-                return;
+        if (!queueing) {
+            byte direction;
+            switch (view.getId()) {
+                case R.id.buttonUp:
+                    direction = 0;
+                    break;
+                case R.id.buttonDown:
+                    direction = 4;
+                    break;
+                case R.id.buttonLeft:
+                    direction = 6;
+                    break;
+                case R.id.buttonRight:
+                    direction = 2;
+                    break;
+                default:
+                    return;
+            }
+            tankEventController.turnOrMove(view.getId(), playableId, playableType, direction);
+        } else {
+            byte direction;
+            switch (view.getId()) {
+                case R.id.buttonUp:
+                    direction = 0;
+                    break;
+                case R.id.buttonDown:
+                    direction = 4;
+                    break;
+                case R.id.buttonLeft:
+                    direction = 6;
+                    break;
+                case R.id.buttonRight:
+                    direction = 2;
+                    break;
+                default:
+                    return;
+            }
+            commandQueue.add(new MoveCommand(direction, view.getId(), playableType, playableId,
+                    tankEventController));
         }
-        tankEventController.turnOrMove(view.getId(), playableId, playableType, direction);
+    }
+
+    @Click({R.id.buttonStrafeLeft, R.id.buttonStrafeRight})
+    protected void onButtonStrafe(View view) {
+        switch (view.getId()) {
+            case R.id.buttonStrafeLeft:
+                tankEventController.strafeLeft(view.getId(), playableId, playableType);
+                break;
+            case R.id.buttonStrafeRight:
+                tankEventController.strafeRight(view.getId(), playableId, playableType);
+                break;
+        }
+    }
+
+    @Click(R.id.buttonQueue)
+    protected void onButtonQueue() {
+        if (!queueing) {
+            queueing = true;
+        } else if (queueing) {
+            queueing = false;
+        }
+    }
+
+    @Click(R.id.buttonCustomCmd)
+    protected void onButtonCustomCmd() {
+        if (!queueing) {
+            customCommand.operation();
+        } else if (queueing) {
+            commandQueue.add(customCommand.clone());
+        }
+    }
+
+    @Click(R.id.buttonSaveCmd)
+    protected void onButtonSave() {
+        customCommand = new CompositeCommand(commandQueue);
+        buttonCustomCmd.setText(customCommand.toString());
+        if (!buttonCustomCmd.isEnabled()) {
+            buttonCustomCmd.setEnabled(true);
+        }
+        commandQueue.clear();
+    }
+
+    @Click(R.id.buttonExecute)
+    protected void onButtonExecute() {
+        new Thread(() -> {
+            try {
+                for (InputCommand command : commandQueue) {
+                    command.operation();
+                    Thread.sleep(playerData.getMoveInterval());
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).start();
     }
 
     @Click(R.id.buttonFire)
     protected void onButtonFire() {
-        tankEventController.fire(playableId, playableType);
+        if (!queueing) {
+            tankEventController.fire(playableId, playableType);
+        } else if (queueing){
+            commandQueue.add(new FireCommand(playableId, playableType, tankEventController));
+        }
     }
 
     @Click(R.id.buttonBuild)

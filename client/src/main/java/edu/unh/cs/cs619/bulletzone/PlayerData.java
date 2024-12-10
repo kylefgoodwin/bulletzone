@@ -3,6 +3,10 @@ package edu.unh.cs.cs619.bulletzone;
 import android.content.Context;
 import android.util.Log;
 
+import java.util.ArrayList;
+
+import edu.unh.cs.cs619.bulletzone.util.InputCommand;
+
 public class PlayerData {
     private static final String TAG = "PlayerData";
     private static PlayerData instance = null;

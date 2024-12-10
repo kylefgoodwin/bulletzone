@@ -284,6 +284,32 @@ public class TankEventController {
     }
 
     @Background
+    public void strafeLeft(int currentButtonId, long playableId, int playableType) {
+        if (lastPressedButtonId != -1 && onePointTurn(currentButtonId)) {
+            this.turnAsync(playableId, playableType, (byte) 6);
+            this.moveAsync(playableId, playableType, (byte) 6);
+            this.moveAsync(playableId, playableType, (byte) 6);
+        } else {
+            this.moveAsync(playableId, playableType, (byte) 6);
+            this.moveAsync(playableId, playableType, (byte) 6);
+        }
+        lastPressedButtonId = currentButtonId;
+    }
+
+    @Background
+    public void strafeRight(int currentButtonId, long playableId, int playableType) {
+        if (lastPressedButtonId != -1 && onePointTurn(currentButtonId)) {
+            this.turnAsync(playableId, playableType, (byte) 2);
+            this.moveAsync(playableId, playableType, (byte) 2);
+            this.moveAsync(playableId, playableType, (byte) 2);
+        } else {
+            this.moveAsync(playableId, playableType, (byte) 2);
+            this.moveAsync(playableId, playableType, (byte) 2);
+        }
+        lastPressedButtonId = currentButtonId;
+    }
+
+    @Background
     public void fire(long playableId, int playableType) {
         restClient.fire(playableId, playableType);
     }
