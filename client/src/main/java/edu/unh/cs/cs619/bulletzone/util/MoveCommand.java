@@ -3,6 +3,9 @@ package edu.unh.cs.cs619.bulletzone.util;
 import edu.unh.cs.cs619.bulletzone.PlayerData;
 import edu.unh.cs.cs619.bulletzone.TankEventController;
 
+/**
+ * Made by Alec Rydeen, Leaf command class
+ */
 public class MoveCommand extends InputCommand {
 
     byte direction;

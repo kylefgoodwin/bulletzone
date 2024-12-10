@@ -4,6 +4,9 @@ import java.util.ArrayList;
 
 import edu.unh.cs.cs619.bulletzone.PlayerData;
 
+/**
+ * Made by Alec Rydeen, Composite command class
+ */
 public class CompositeCommand extends InputCommand {
 
     private ArrayList<InputCommand> children = new ArrayList<>();
