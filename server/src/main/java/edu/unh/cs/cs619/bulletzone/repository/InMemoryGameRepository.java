@@ -3,7 +3,7 @@ package edu.unh.cs.cs619.bulletzone.repository;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 //import org.apache.commons.lang3.tuple.Triple;
-import org.apache.commons.lang3.tuple.Triple;
+//import org.apache.commons.lang3.tuple.Triple;
 import org.javatuples.Triplet;
 import org.greenrobot.eventbus.EventBus;
 import org.javatuples.Pair;
@@ -72,7 +72,7 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     @Override
-    public Triple<Tank, Builder, Ship> join(String ip) {
+    public Triplet<Tank, Builder, Ship> join(String ip) {
         synchronized (this.monitor) {
             Tank tank;
             Builder builder;
@@ -84,7 +84,7 @@ public class InMemoryGameRepository implements GameRepository {
             if ((tank = game.getTank(ip)) != null
                     && (builder = game.getBuilder(ip)) != null
                     && (ship = game.getShip(ip)) != null) {
-                return Triple.with(tank, builder, ship);
+                return Triplet.with(tank, builder, ship);
             }
 
             Long id = this.idGenerator.getAndIncrement();
@@ -149,7 +149,7 @@ public class InMemoryGameRepository implements GameRepository {
             game.addBuilder(ip, builder);
             game.addShip(ip, ship);
 
-            return Triple.with(tank, builder, ship);
+            return Triplet.with(tank, builder, ship);
         }
     }
 

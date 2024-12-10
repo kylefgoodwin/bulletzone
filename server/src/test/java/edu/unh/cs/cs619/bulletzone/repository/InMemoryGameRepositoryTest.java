@@ -1,5 +1,7 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
+import org.apache.commons.lang3.tuple.Triple;
+import org.javatuples.Triplet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,6 +33,7 @@ import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.IllegalTransitionException;
 import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
+import edu.unh.cs.cs619.bulletzone.model.Ship;
 import edu.unh.cs.cs619.bulletzone.model.Soldier;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.Game;
@@ -57,12 +60,13 @@ public class InMemoryGameRepositoryTest {
     @Test
     public void testJoin() throws Exception {
         // Execute join operation
-        Pair<Tank, Builder> result = repo.join(tankIp);
+        Triplet<Tank, Builder, Ship> result = repo.join(tankIp);
 
         // Verify that the result is not null and both Tank and Builder are returned
         Assert.assertNotNull(result);
         Tank tank = result.getValue0();
         Builder builder = result.getValue1();
+        Ship ship = result.getValue2();
 
         Assert.assertNotNull(tank);
         Assert.assertNotNull(builder);
@@ -195,7 +199,7 @@ public class InMemoryGameRepositoryTest {
         Assert.assertEquals(Direction.Up, tank.getDirection());
 
         // Act
-        MoveCommand moveCommand = new MoveCommand(tank, 1, game, Direction.Down, System.currentTimeMillis());
+        MoveCommand moveCommand = new MoveCommand(tank, 0, game, Direction.Down, System.currentTimeMillis());
         boolean result = moveCommand.execute();
 
         // Assert
@@ -221,7 +225,7 @@ public class InMemoryGameRepositoryTest {
         Assert.assertEquals(Direction.Up, tank.getDirection());
 
         // Act
-        MoveCommand moveCommand = new MoveCommand(tank, 1, game, Direction.Down, System.currentTimeMillis());
+        MoveCommand moveCommand = new MoveCommand(tank, 0, game, Direction.Down, System.currentTimeMillis());
         boolean result = moveCommand.execute();
 
         // Assert
@@ -247,7 +251,7 @@ public class InMemoryGameRepositoryTest {
         Assert.assertEquals(Direction.Up, builder.getDirection());
 
         // Act
-        MoveCommand moveCommand = new MoveCommand(builder, 2, game, Direction.Down, System.currentTimeMillis());
+        MoveCommand moveCommand = new MoveCommand(builder, 1, game, Direction.Down, System.currentTimeMillis());
         boolean result = moveCommand.execute();
 
         // Assert
@@ -272,7 +276,7 @@ public class InMemoryGameRepositoryTest {
         Assert.assertEquals(Direction.Up, builder.getDirection());
 
         // Act
-        MoveCommand moveCommand = new MoveCommand(builder, 2, game, Direction.Down, System.currentTimeMillis());
+        MoveCommand moveCommand = new MoveCommand(builder, 1, game, Direction.Down, System.currentTimeMillis());
         boolean result = moveCommand.execute();
 
         // Assert
@@ -298,7 +302,7 @@ public class InMemoryGameRepositoryTest {
         Assert.assertEquals(Direction.Up, soldier.getDirection());
 
         // Act
-        MoveCommand moveCommand = new MoveCommand(soldier, 3, game, Direction.Down, System.currentTimeMillis());
+        MoveCommand moveCommand = new MoveCommand(soldier, 2, game, Direction.Down, System.currentTimeMillis());
         boolean result = moveCommand.execute();
 
         // Assert
@@ -322,7 +326,7 @@ public class InMemoryGameRepositoryTest {
         Assert.assertEquals(Direction.Up, soldier.getDirection());
 
         // Act
-        MoveCommand moveCommand = new MoveCommand(soldier, 3, game, Direction.Down, System.currentTimeMillis());
+        MoveCommand moveCommand = new MoveCommand(soldier, 2, game, Direction.Down, System.currentTimeMillis());
         boolean result = moveCommand.execute();
 
         // Assert

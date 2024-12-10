@@ -2,7 +2,7 @@ package edu.unh.cs.cs619.bulletzone.web;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.javatuples.Pair;
-import org.javatuples.Triple;
+import org.javatuples.Triplet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +57,7 @@ class GamesController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     ResponseEntity<LongWrapper> join(HttpServletRequest request) {
-        Triple<Tank, Builder, Ship> ret;
+        Triplet<Tank, Builder, Ship> ret;
         Playable tank;
         Playable builder;
         Playable ship;
