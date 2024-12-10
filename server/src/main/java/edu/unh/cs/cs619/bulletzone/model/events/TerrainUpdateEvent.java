@@ -12,6 +12,8 @@ public class TerrainUpdateEvent extends GameEvent {
     @JsonProperty
     private final boolean rocky;
     @JsonProperty
+    private final boolean water;
+    @JsonProperty
     private final int playableType;
     @JsonProperty
     private final boolean positionChanged;
@@ -20,11 +22,12 @@ public class TerrainUpdateEvent extends GameEvent {
     @JsonProperty
     private final int toPosition;
 
-    public TerrainUpdateEvent(boolean hilly, boolean forest, boolean rocky, int playableType,
+    public TerrainUpdateEvent(boolean hilly, boolean forest, boolean rocky, boolean water, int playableType,
                               int fromPosition, int toPosition) {
         this.hilly = hilly;
         this.forest = forest;
         this.rocky = rocky;
+        this.water = water;
         this.playableType = playableType;
         this.fromPosition = fromPosition;
         this.toPosition = toPosition;

@@ -148,6 +148,11 @@ public class GridPollerTask {
                                 userHasFacility.put(ownerId, true); // Mark that the user owns this facility
 
                             }
+                            // Check for mining facility
+                            if (value == 930) {
+                                ItemLocation factory = new ItemLocation(value, i, j);
+
+                            }
                         }
                     }
 

@@ -79,7 +79,7 @@ public class Soldier extends Playable {
         }
         EventBus.getDefault().post(new HitEvent(
                 (int) id,
-                3,
+                2,
                 powerUpManager.getShieldHealth(),
                 finalDamage
         ));

@@ -1,6 +1,8 @@
 package edu.unh.cs.cs619.bulletzone.web;
 
+import org.apache.commons.lang3.tuple.Triple;
 import org.javatuples.Pair;
+import org.javatuples.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,7 @@ import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.PlayableDoesNotExistException;
-import edu.unh.cs.cs619.bulletzone.util.PlayableWrapper;
+import edu.unh.cs.cs619.bulletzone.model.Ship;
 import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import com.google.common.base.Preconditions;
@@ -55,13 +57,15 @@ class GamesController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     ResponseEntity<LongWrapper> join(HttpServletRequest request) {
-        Pair<Tank, Builder> ret;
+        Triple<Tank, Builder, Ship> ret;
         Playable tank;
         Playable builder;
+        Playable ship;
         try {
             ret = gameRepository.join(request.getRemoteAddr());
             tank = ret.getValue0();
             builder = ret.getValue1();
+            ship = ret.getValue2();
             log.info("Player joined: Id={} IP={}", tank.getId(), request.getRemoteAddr());
 
             return new ResponseEntity<LongWrapper>(

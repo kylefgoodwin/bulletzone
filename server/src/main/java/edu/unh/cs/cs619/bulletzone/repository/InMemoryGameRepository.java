@@ -2,6 +2,9 @@ package edu.unh.cs.cs619.bulletzone.repository;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+//import org.apache.commons.lang3.tuple.Triple;
+import org.apache.commons.lang3.tuple.Triple;
+import org.javatuples.Triplet;
 import org.greenrobot.eventbus.EventBus;
 import org.javatuples.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +27,9 @@ import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.PlayableDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
+import edu.unh.cs.cs619.bulletzone.model.Ship;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
+import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
 @Component
@@ -67,55 +72,87 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     @Override
-    public Pair<Tank, Builder> join(String ip) {
+    public Triple<Tank, Builder, Ship> join(String ip) {
         synchronized (this.monitor) {
             Tank tank;
             Builder builder;
+            Ship ship;
             if (game == null) {
                 this.create();
             }
 
-            if ((tank = game.getTank(ip)) != null && (builder = game.getBuilder(ip)) != null) {
-                return Pair.with(tank, builder);
+            if ((tank = game.getTank(ip)) != null
+                    && (builder = game.getBuilder(ip)) != null
+                    && (ship = game.getShip(ip)) != null) {
+                return Triple.with(tank, builder, ship);
             }
 
-            Long Id = this.idGenerator.getAndIncrement();
+            Long id = this.idGenerator.getAndIncrement();
 
-            tank = new Tank(Id, Direction.Up, ip);
-            builder = new Builder(Id, Direction.Up, ip);
+            tank = new Tank(id, Direction.Up, ip);
+            builder = new Builder(id, Direction.Up, ip);
+            ship = new Ship(id, Direction.Up, ip);
 
             Random random = new Random();
             int x;
             int y;
 
-            // This may run for forever.. If there is no free space. XXX
-            for (; ; ) {
+            // Place Tank
+            for (;;) {
                 x = random.nextInt(FIELD_DIM);
                 y = random.nextInt(FIELD_DIM);
                 FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
                 if (!fieldElement.isPresent()) {
-                    fieldElement.setFieldEntity(tank);
-                    tank.setParent(fieldElement);
-                    break;
+                    boolean isTerrainField = fieldElement.isTerrainPresent();
+                    Terrain t = isTerrainField ? (Terrain) fieldElement.getTerrainEntityHolder() : null;
+                    if (!t.isWater()) {
+                        fieldElement.setFieldEntity(tank);
+                        tank.setParent(fieldElement);
+                        break;
+                    }
                 }
             }
 
-            for (; ; ) {
+            // Place Builder
+            for (;;) {
                 x = random.nextInt(FIELD_DIM);
                 y = random.nextInt(FIELD_DIM);
                 FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
                 if (!fieldElement.isPresent()) {
-                    fieldElement.setFieldEntity(builder);
-                    builder.setParent(fieldElement);
-                    break;
+                    boolean isTerrainField = fieldElement.isTerrainPresent();
+                    Terrain t = isTerrainField ? (Terrain) fieldElement.getTerrainEntityHolder() : null;
+                    if (!t.isWater()) {
+                        fieldElement.setFieldEntity(builder);
+                        builder.setParent(fieldElement);
+                        break;
+                    }
+                }
+            }
+
+            // Place Ship
+            for (;;) {
+                x = random.nextInt(FIELD_DIM);
+                y = random.nextInt(FIELD_DIM);
+                FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
+                if (!fieldElement.isPresent()) {
+                    boolean isTerrainField = fieldElement.isTerrainPresent();
+                    Terrain t = isTerrainField ? (Terrain) fieldElement.getTerrainEntityHolder() : null;
+                    if (t.isWater()) {
+                        fieldElement.setFieldEntity(ship);
+                        ship.setParent(fieldElement);
+                        break;
+                    }
                 }
             }
 
             game.addTank(ip, tank);
             game.addBuilder(ip, builder);
-            return Pair.with(tank, builder);
+            game.addShip(ip, ship);
+
+            return Triple.with(tank, builder, ship);
         }
     }
+
 
     @Override
     public Game getGame() {
@@ -243,12 +280,12 @@ public class InMemoryGameRepository implements GameRepository {
         synchronized (this.monitor) {
             playableType = determinePlayableType(game, playableId, playableType);
             if (playableType == 1) {
-                Builder playable = game.getBuilder(playableId);
+                Playable playable = game.getBuilder(playableId);
                 if (playable == null) { throw new PlayableDoesNotExistException(playableId, playable.getPlayableType()); }
                 BuildCommand buildCommand = new BuildCommand(playableId, playableType, game, entity);
                 return buildCommand.execute();
             } else if (playableType == 4) {
-                Factory playable = game.getFactory(playableId);
+                Playable playable = game.getFactory(playableId);
                 if (playable == null) { throw new PlayableDoesNotExistException(playableId, playable.getPlayableType()); }
                 BuildCommand buildCommand = new BuildCommand(playableId, playableType, game, entity);
                 return buildCommand.execute();

@@ -123,10 +123,10 @@ public class FireCommand {
                     playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
                     timerTask.cancel();
                 } else if (nextField.getEntity().isFactory()) {
-                    Factory f = (Factory) nextField.getEntity();
-                    game.getHolderGrid().get(f.getPos()).clearField();
-                    if (isVisible) {
-                        currentField.clearField();
+                    Playable p = (Playable) nextField.getEntity();
+                    System.out.println("Playable is hit, life: " + p.getLife());
+                    if (p.getLife() <= 0) {
+                        handleRemovingPlayable(currentField, p, p.getPlayableType(), game);
                     }
                     EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
                     trackActiveBullets[bullet.getBulletId()] = 0;

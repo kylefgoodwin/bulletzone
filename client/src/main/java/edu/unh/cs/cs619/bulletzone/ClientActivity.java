@@ -528,21 +528,41 @@ public class ClientActivity extends Activity {
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
             buttonEjectSoldier.setEnabled(true);
+            buttonDown.setEnabled(true);
+            buttonRight.setEnabled(true);
+            buttonLeft.setEnabled(true);
+            buttonUp.setEnabled(true);
+            buttonFire.setEnabled(true);
         } else if (playableType == 1) {
             buttonBuild.setEnabled(true);
             buttonDismantle.setEnabled(true);
             selectImprovement.setEnabled(true);
             buttonEjectSoldier.setEnabled(false);
+            buttonDown.setEnabled(true);
+            buttonRight.setEnabled(true);
+            buttonLeft.setEnabled(true);
+            buttonUp.setEnabled(true);
+            buttonFire.setEnabled(true);
         } else if (playableType == 2) {
             buttonBuild.setEnabled(false);
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
             buttonEjectSoldier.setEnabled(false);
+            buttonDown.setEnabled(true);
+            buttonRight.setEnabled(true);
+            buttonLeft.setEnabled(true);
+            buttonUp.setEnabled(true);
+            buttonFire.setEnabled(true);
         } else if (playableType == 3){
             buttonBuild.setEnabled(false);
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
             buttonEjectSoldier.setEnabled(false);
+            buttonDown.setEnabled(true);
+            buttonRight.setEnabled(true);
+            buttonLeft.setEnabled(true);
+            buttonUp.setEnabled(true);
+            buttonFire.setEnabled(true);
         } else if (playableType == 4) {
             buttonBuild.setEnabled(true);
             buttonDismantle.setEnabled(false);
@@ -1206,6 +1226,59 @@ public class ClientActivity extends Activity {
         // Start the healing immediately
         repairKitHealingHandler.post(repairKitHealingRunnable);
     }
+
+//    private void handleFactoryRepair() {
+//        if (repairKitHealingRunnable != null) {
+//            repairKitHealingHandler.removeCallbacks(repairKitHealingRunnable);
+//        }
+//
+//        isMoving = false; // Reset movement flag before starting repair
+//
+//        repairKitHealingRunnable = new Runnable() {
+//            @Override
+//            public void run() {
+//                if (isMoving) {
+//                    // Stop healing if the unit has moved
+//                    repairKitHealingHandler.removeCallbacks(this);
+//                    return;
+//                }
+//
+//                if (playerData.getRepairKitCount() > 0 && playerData.getTankLife() < 100) {
+//                    // Make server-side repair request first
+//                    clientController.repairAsync(playerData.getTankId());
+//
+//                    // Small delay to allow server response
+//                    try {
+//                        Thread.sleep(50);
+//                    } catch (InterruptedException e) {
+//                        Thread.currentThread().interrupt();
+//                    }
+//
+//                    // Update local health and UI
+//                    int currentHealth = playerData.getTankLife();
+//                    int newHealth = Math.min(100, currentHealth + 1);
+//                    playerData.setTankLife(newHealth);
+//
+//                    runOnUiThread(() -> {
+//                        if (tankHealthBar != null) {
+//                            tankHealthBar.setProgress(newHealth);
+//                            tankHealthBar.setLabelText(String.format("Tank Health: %d/100", newHealth));
+//                            tankHealthBar.invalidate();
+//                        }
+//                    });
+//
+//                    // Schedule next healing tick if still needed
+//                    if (playerData.getRepairKitCount() > 0 && newHealth < 100 && !isMoving) {
+//                        repairKitHealingHandler.postDelayed(this, 1000);
+//                    }
+//                }
+//            }
+//        };
+//
+//        // Start the healing immediately
+//        repairKitHealingHandler.post(repairKitHealingRunnable);
+//    }
+
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onTerrainUpdate(TerrainUpdateEvent event) {
