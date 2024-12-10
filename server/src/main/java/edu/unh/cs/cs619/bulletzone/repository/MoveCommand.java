@@ -196,7 +196,7 @@ public class MoveCommand implements Command {
             else if (nextField.getEntity().isFactory() && (game.getFactories().get(playableId) != null)) {
                 if (game.getFactories().get((playableId)).getPosition() == nextField.getPosition()) {
                     currentField.clearField();
-                    EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition()));
+                    EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition(), 0));
 
                     return false;
                 }

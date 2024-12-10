@@ -118,7 +118,7 @@ public class FireCommand {
                     if (isVisible) {
                         currentField.clearField();
                     }
-                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition(), 0));
                     trackActiveBullets[bullet.getBulletId()] = 0;
                     playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
                     timerTask.cancel();
@@ -128,7 +128,7 @@ public class FireCommand {
                     if (p.getLife() <= 0) {
                         handleRemovingPlayable(currentField, p, p.getPlayableType(), game);
                     }
-                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition(), 0));
                     trackActiveBullets[bullet.getBulletId()] = 0;
                     playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
                     timerTask.cancel();
@@ -138,7 +138,7 @@ public class FireCommand {
                     if (isVisible) {
                         currentField.clearField();
                     }
-                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition(), 0));
                     trackActiveBullets[bullet.getBulletId()] = 0;
                     playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
                     timerTask.cancel();
