@@ -75,54 +75,67 @@ public class TankEventController {
     public void buildAsync(long userId, long playableId, int playableType, String entity) {
         if (Objects.equals(entity, "destructibleWall")) {
             Log.d(TAG, "Balance (destructibleWall)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 80.0 ) {
+            if (restClient.getBalance(userId) >= 80.0 && playableType != 3) {
                 restClient.build(playableId, playableType, entity);
             }
         } else if (Objects.equals(entity, "indestructibleWall")) {
             Log.d(TAG, "Balance (indestructibleWall)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 150.0 ) {
+            if (restClient.getBalance(userId) >= 150.0 && playableType != 3) {
                 restClient.build(playableId, playableType, entity);
             }
         } else if (Objects.equals(entity, "miningFacility")) {
             Log.d(TAG, "Balance (miningFacility)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 300.0 ) {
+            if (restClient.getBalance(userId) >= 300.0 && playableType != 3) {
                 restClient.build(playableId, playableType, entity);
             }
             miningFacilityCount++;
 
         } else if (Objects.equals(entity, "road")) {
             Log.d(TAG, "Balance (road)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 40.0) {
+            if (restClient.getBalance(userId) >= 40.0 && playableType != 3) {
                 restClient.build(playableId, playableType, entity);
             }
         } else if (Objects.equals(entity, "deck")) {
             Log.d(TAG, "Balance (deck)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 80.0) {
+            if (restClient.getBalance(userId) >= 80.0 && playableType != 3) {
                 restClient.build(playableId, playableType, entity);
             }
         } else if (Objects.equals(entity, "bridge")) {
             Log.d(TAG, "Balance (bridge)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 120.0) {
+            if (restClient.getBalance(userId) >= 120.0 && playableType != 3) {
                 restClient.build(playableId, playableType, entity);
             }
         } else if (Objects.equals(entity, "factory")) {
             Log.d(TAG, "Balance (factory)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 250.0) {
+            if (restClient.getBalance(userId) >= 250.0 && playableType != 3) {
+                restClient.build(playableId, playableType, entity);
+            } else if (playableType == 3) {
                 restClient.build(playableId, playableType, entity);
             }
         } else if (Objects.equals(entity, "tank")) {
             Log.d(TAG, "Balance (tank)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 600.0) {
+            if (restClient.getBalance(userId) >= 600.0 && playableType != 3) {
+                restClient.build(playableId, playableType, entity);
+            } else if (playableType == 3) {
                 restClient.build(playableId, playableType, entity);
             }
         } else if (Objects.equals(entity, "builder")) {
             Log.d(TAG, "Balance (builder)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 500.0) {
+            if (restClient.getBalance(userId) >= 500.0 && playableType != 3) {
+                restClient.build(playableId, playableType, entity);
+            } else if (playableType == 3) {
                 restClient.build(playableId, playableType, entity);
             }
         } else if (Objects.equals(entity, "soldier")) {
             Log.d(TAG, "Balance (soldier)" + restClient.getBalance(userId));
-            if (restClient.getBalance(userId) >= 200.0) {
+            if (restClient.getBalance(userId) >= 200.0 && playableType != 3) {
+                restClient.build(playableId, playableType, entity);
+            } else if (playableType == 3) {
+                restClient.build(playableId, playableType, entity);
+            }
+        } else if (Objects.equals(entity, "ship")) {
+            Log.d(TAG, "Balance (ship)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 400.0 && playableType != 3) {
                 restClient.build(playableId, playableType, entity);
             }
         }

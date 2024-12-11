@@ -25,7 +25,7 @@ import edu.unh.cs.cs619.bulletzone.util.ReplayDataFlat;
         @JsonSubTypes.Type(name = "UI", value = UIUpdateEvent.class),
         @JsonSubTypes.Type(name = "terrain", value = TerrainUpdateEvent.class),
         @JsonSubTypes.Type(name = "Healing", value = HealingEvent.class),
-        @JsonSubTypes.Type(name = "powerUpEject", value = HealingEvent.class)
+        @JsonSubTypes.Type(name = "powerUpEject", value = PowerUpEjectEvent.class)
 })
 public abstract class GameEvent implements Serializable {
     private static final long serialVersionUID = 1L;

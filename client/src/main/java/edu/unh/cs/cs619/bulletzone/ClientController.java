@@ -142,6 +142,18 @@ public class ClientController {
                 if (newLifeSoldier >= 0) {
                     PlayerData.getPlayerData().setSoldierLife(newLifeSoldier);
                 }
+            } else if (playableType == 3) {
+                int oldLife = PlayerData.getPlayerData().getShipLife();
+
+//                if (PlayerData.getPlayerData().isRepairKitActive() && oldLife < 100) {
+//                    repairAsync(playableId);
+//                    SystemClock.sleep(50);
+//                }
+
+                int newShipLife = restClient.getLife(playableId, playableType).getResult();
+                if (newShipLife >= 0) {
+                    PlayerData.getPlayerData().setShipLife(newShipLife);
+                }
             }
         } catch (Exception e) {
             Log.e(TAG, "Error getting life: " + e.getMessage());

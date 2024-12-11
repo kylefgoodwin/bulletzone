@@ -120,6 +120,9 @@ public class ClientActivity extends Activity {
     protected Button buttonDismantle;
 
     @ViewById
+    protected Button buttonCheat;
+
+    @ViewById
     protected Button buttonEjectSoldier;
 
     @ViewById
@@ -178,7 +181,7 @@ public class ClientActivity extends Activity {
     private long userId = -1;
 
     private ArrayList<?> playableSelections = new ArrayList<>(Arrays.asList("Tank", "Builder", "Soldier", "Ship", "Factory"));
-    private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility", "road", "deck", "bridge", "factory", "tank", "builder", "soldier"));
+    private ArrayList<String> improvementSelections = new ArrayList<>(Arrays.asList("destructibleWall", "indestructibleWall", "miningFacility", "road", "deck", "bridge", "factory", "tank", "builder", "soldier", "ship"));
     private long lastEventTimestamp = 0;
     private Set<Long> processedItemEvents = new HashSet<>();
     private Set<Long> processedMiningEvents = new HashSet<>();
@@ -188,6 +191,7 @@ public class ClientActivity extends Activity {
     private Runnable repairKitUpdateRunnable;
     private Handler repairKitHealingHandler = new Handler(Looper.getMainLooper());
     private Runnable repairKitHealingRunnable;
+    private boolean isMoving;
 
 
 
@@ -529,6 +533,7 @@ public class ClientActivity extends Activity {
         // Logic block to enable / disable buttons depending on selected playable type
         if (playableType == 0) {
             buttonBuild.setEnabled(false);
+            buttonCheat.setEnabled(false);
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
             buttonEjectSoldier.setEnabled(true);
@@ -539,6 +544,7 @@ public class ClientActivity extends Activity {
             buttonFire.setEnabled(true);
         } else if (playableType == 1) {
             buttonBuild.setEnabled(true);
+            buttonCheat.setEnabled(false);
             buttonDismantle.setEnabled(true);
             selectImprovement.setEnabled(true);
             buttonEjectSoldier.setEnabled(false);
@@ -549,6 +555,7 @@ public class ClientActivity extends Activity {
             buttonFire.setEnabled(true);
         } else if (playableType == 2) {
             buttonBuild.setEnabled(false);
+            buttonCheat.setEnabled(false);
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(false);
             buttonEjectSoldier.setEnabled(false);
@@ -558,9 +565,10 @@ public class ClientActivity extends Activity {
             buttonUp.setEnabled(true);
             buttonFire.setEnabled(true);
         } else if (playableType == 3){
-            buttonBuild.setEnabled(false);
+            buttonBuild.setEnabled(true);
+            buttonCheat.setEnabled(true);
             buttonDismantle.setEnabled(false);
-            selectImprovement.setEnabled(false);
+            selectImprovement.setEnabled(true);
             buttonEjectSoldier.setEnabled(false);
             buttonDown.setEnabled(true);
             buttonRight.setEnabled(true);
@@ -569,6 +577,7 @@ public class ClientActivity extends Activity {
             buttonFire.setEnabled(true);
         } else if (playableType == 4) {
             buttonBuild.setEnabled(true);
+            buttonCheat.setEnabled(false);
             buttonDismantle.setEnabled(false);
             selectImprovement.setEnabled(true);
             buttonEjectSoldier.setEnabled(false);
@@ -667,6 +676,37 @@ public class ClientActivity extends Activity {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("soldier"));
 
                 tankEventController.removeCredits(userId, 200.00, playerData.setCurEntity("soldier"));
+                fetchAndUpdateBalance();
+            } else if (improvementType == 10 && playableType == 4) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("ship"));
+
+                tankEventController.removeCredits(userId, 400.0, playerData.setCurEntity("ship"));
+                fetchAndUpdateBalance();
+            } else {
+                // Handle the case where improvementType is out of bounds
+                Log.e("onButtonBuild", "Invalid improvement type index: " + improvementType);
+
+            }
+        }
+    }
+
+    @Click(R.id.buttonCheat)
+    protected void onButtonCheat() {
+        if (improvementType >= 0 && improvementType < improvementSelections.size()) {
+            if (improvementType == 7 && playableType == 3) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("tank"));
+
+                tankEventController.removeCredits(userId, 1000.0, playerData.setCurEntity("tank"));
+                fetchAndUpdateBalance();
+            } else if (improvementType == 8 && playableType == 3) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("builder"));
+
+                tankEventController.removeCredits(userId, 1000.0, playerData.setCurEntity("builder"));
+                fetchAndUpdateBalance();
+            } else if (improvementType == 9 && playableType == 3) {
+                tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("soldier"));
+
+                tankEventController.removeCredits(userId, 1000.0, playerData.setCurEntity("soldier"));
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds
@@ -1130,10 +1170,10 @@ public class ClientActivity extends Activity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void updateUIOnMove(UIUpdateEvent event) {
         Log.d(TAG, "Updating UI based on most recent move: " + event.toString());
-//        buttonUp.setEnabled(event.getCanMoveUp());
-//        buttonDown.setEnabled(event.getCanMoveDown());
-//        buttonLeft.setEnabled(event.getCanMoveLeft());
-//        buttonRight.setEnabled(event.getCanMoveRight());
+        buttonUp.setEnabled(event.getCanMoveUp());
+        buttonDown.setEnabled(event.getCanMoveDown());
+        buttonLeft.setEnabled(event.getCanMoveLeft());
+        buttonRight.setEnabled(event.getCanMoveRight());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -1331,16 +1371,4 @@ public class ClientActivity extends Activity {
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onHealingEvent(HealingEvent event) {
-        Log.d(TAG, "Event | Player Tank ID: "
-                + playerData.getTankId());
-        if (event.getFactoryHealing() == playerData.getTankId()) {
-            repairKitEndTime = System.currentTimeMillis() + 120000; // 120 seconds
-            repairKitStatus.setVisibility(View.VISIBLE);
-            repairKitTimer.setVisibility(View.VISIBLE);
-            updateRepairKitTimer();
-            handleRepairKitHealing(); // Start the healing process
-        }
-    }
 }

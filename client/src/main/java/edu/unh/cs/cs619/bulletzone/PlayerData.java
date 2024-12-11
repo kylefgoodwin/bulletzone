@@ -25,6 +25,7 @@ public class PlayerData {
     // Health and status
     private boolean soldierEjected = false;
     private int tankLife = 100;
+    private int shipLife = 100;
     private int builderLife = 80;
     private int soldierLife = 25;
     private long initialTimeStamp;
@@ -74,6 +75,7 @@ public class PlayerData {
         improvementNumber = 0;
         soldierEjected = false;
         tankLife = 100;
+        shipLife = 100;
         builderLife = 80;
         soldierLife = 25;
         tankMap = new int[5];
@@ -280,6 +282,7 @@ public class PlayerData {
     public int getTankLife() { return tankLife; }
     public int getBuilderLife() { return builderLife; }
     public int getSoldierLife() { return soldierLife; }
+    public int getShipLife() { return shipLife; }
     public int getDeflectorShieldCount() { return deflectorShieldCount; }
     public int getRepairKitCount() { return repairKitCount; }
     public int getShieldHealth() { return shieldHealth; }
@@ -393,6 +396,7 @@ public class PlayerData {
     public void setTankLife(int tankLife) { this.tankLife = tankLife; }
     public void setBuilderLife(int builderLife) { this.builderLife = builderLife; }
     public void setSoldierLife(int soldierLife) { this.soldierLife = soldierLife; }
+    public void setShipLife(int shipLife) { this.shipLife = shipLife; }
     public void setMoveInterval(int interval) { this.moveInterval = interval; }
     public void setFireInterval(int interval) { this.fireInterval = interval; }
     public void setInitialTimeStamp(long timeStamp) { this.initialTimeStamp = timeStamp; }

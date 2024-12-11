@@ -75,7 +75,12 @@ public class MoveCommand implements Command {
         FieldHolder currentField = playable.getParent();
         FieldHolder nextField = currentField.getNeighbor(direction);
         checkNotNull(currentField.getNeighbor(direction), "Neighbor is not available");
-        EventBus.getDefault().post(new HealingEvent(playable.getIntValue(), currentField.getPosition(), -1));
+//        if (game.getFactories().get(playableId).getHealing()) {
+//            game.getFactories().get(playableId).setHealing(false);
+//            EventBus.getDefault().post(new HealingEvent(playable.getIntValue(), currentField.getPosition(), -1));
+//            game.setHealing(false);
+//        }
+
         // Handle turning first (don't emit terrain events for turns)
         if (currentDirection != direction) {
             // For opposite and perpendicular directions
@@ -167,6 +172,12 @@ public class MoveCommand implements Command {
                 } else if (nextField.getEntity().isFactory()) {
                     playable.setDirection(direction);
                     return false;
+                } else if (nextField.getEntity().isDeck() && playableType == 3) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isRoad() && playableType == 3) {
+                    playable.setDirection(direction);
+                    return false;
                 }
 //                Improvement improvement = (Improvement) nextField.getEntity();
 //                if (!playable.handleImprovements(improvement, millis)) {
@@ -193,13 +204,13 @@ public class MoveCommand implements Command {
                     return false;
                 }
             } // Factory repair
-            else if (nextField.getEntity().isPlayable() && (game.getFactories().get((playableId)).getPosition() == nextField.getPosition() && (!game.getFactories().get(playableId).getHealing()))) {
-                int userID = playable.getUserId();
-                game.getFactories().get(playableId).setHealing(true);
-                EventBus.getDefault().post(new HealingEvent(playable.getIntValue(), currentField.getPosition(), playableId));
-                game.setHealing(true);
-                return false;
-            }
+//            else if (nextField.getEntity().isPlayable() && (game.getFactories().get((playableId)).getPosition() == nextField.getPosition() && (!game.getFactories().get(playableId).getHealing()))) {
+//                int userID = playable.getUserId();
+//                game.getFactories().get(playableId).setHealing(true);
+//                EventBus.getDefault().post(new HealingEvent(playable.getIntValue(), currentField.getPosition(), playableId));
+//                game.setHealing(true);
+//                return false;
+//            }
 
             // Handle item pickup with terrain event
             if (nextField.getEntity().isItem()) {

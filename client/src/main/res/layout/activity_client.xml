@@ -346,6 +346,14 @@
             android:layout_marginTop="8dp"
             android:text="@string/dismantle" />
 
+        <!-- Cheat Button -->
+        <Button
+            android:id="@+id/buttonCheat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/cheat" />
+
         <!-- Fire Button -->
         <Button
             android:id="@+id/buttonFire"

@@ -1,6 +1,7 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
 import org.greenrobot.eventbus.EventBus;
+import org.javatuples.Pair;
 
 import java.util.Map;
 import java.util.Objects;
@@ -69,8 +70,10 @@ public class BuildCommand implements Command {
         Playable builder = null;
         if (playableType == 1) {
             builder = game.getBuilders().get(builderId);
-        } else {
+        } else if (playableType == 4){
             builder = game.getFactories().get(builderId);
+        } else {
+            builder = game.getShips().get(builderId);
         }
 
         if (builder == null) {
@@ -188,7 +191,9 @@ public class BuildCommand implements Command {
 
             } else if (Objects.equals(entity, "road")) {
 
-                if (balance.getBalance() >= 40.0 && playableType == 1) {
+                boolean isTerrainField = nextField.isTerrainPresent();
+                Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
+                if (balance.getBalance() >= 40.0 && (isTerrainField && t != null && !t.isWater()) && playableType == 1 ) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -211,7 +216,7 @@ public class BuildCommand implements Command {
             } else if (Objects.equals(entity, "deck")) {
                 boolean isTerrainField = nextField.isTerrainPresent();
                 Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
-                if (balance.getBalance() >= 80.0 && playableType == 1 && t.isWater()) {
+                if (balance.getBalance() >= 80.0 && (isTerrainField && t != null && t.isWater()) && playableType == 1 ) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -234,7 +239,7 @@ public class BuildCommand implements Command {
             } else if (Objects.equals(entity, "bridge") ) {
                 boolean isTerrainField = nextField.isTerrainPresent();
                 Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
-                if (balance.getBalance() >= 120.0 && playableType == 1 && t.isWater()) {
+                if (balance.getBalance() >= 120.0 && (isTerrainField && t != null && t.isWater()) && playableType == 1 ) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -281,9 +286,9 @@ public class BuildCommand implements Command {
                     System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
                     return false;
                 }
-            } else if (Objects.equals(entity, "tank") && playableType == 4) {
+            } else if (Objects.equals(entity, "tank")) {
 
-                if (balance.getBalance() >= 600.0) {
+                if (balance.getBalance() >= 600.0 && playableType == 4) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -319,6 +324,52 @@ public class BuildCommand implements Command {
 
                     game.addTank(builder.getIp(), tank);
                     double credits = -600.0;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    return true;
+                } else if (playableType == 3) {
+                    if (balance.getBalance() < 1000.0) {
+                        game.modifyBalance(builderId, 1000);
+                    }
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Tank tank;
+
+                    if ((game.getTank(builderId)) != null) {
+                        return false;
+                    }
+
+                    tank = new Tank(builderId, Direction.Up, builder.getIp());
+
+                    Random random = new Random();
+                    int x;
+                    int y;
+
+                    // Place Tank
+                    for (;;) {
+                        x = random.nextInt(FIELD_DIM);
+                        y = random.nextInt(FIELD_DIM);
+                        FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
+                        if (!fieldElement.isPresent()) {
+                            boolean isTerrainField = fieldElement.isTerrainPresent();
+                            Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
+                            if (isTerrainField && t != null && !t.isWater()) {
+                                fieldElement.setFieldEntity(tank);
+                                tank.setParent(fieldElement);
+                                break;
+                            }
+
+                        }
+                    }
+
+                    game.addTank(builder.getIp(), tank);
+                    double credits = -1000;
 //                    balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopBuilding();
@@ -369,6 +420,55 @@ public class BuildCommand implements Command {
                     game.modifyBalance(builderId, credits);
                     builder.stopBuilding();
                     return true;
+                } else if (playableType == 3) {
+                    if (balance.getBalance() < 1000.0) {
+                        game.modifyBalance(builderId, 1000);
+                    }
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Builder builder2;
+
+                    if ((game.getBuilder(builderId)) != null) {
+                        return false;
+                    }
+
+                    builder2 = new Builder(builderId, Direction.Up, builder.getIp());
+
+                    Random random = new Random();
+                    int x;
+                    int y;
+
+                    // Place Builder
+                    for (;;) {
+                        x = random.nextInt(FIELD_DIM);
+                        y = random.nextInt(FIELD_DIM);
+                        FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
+                        if (!fieldElement.isPresent()) {
+                            boolean isTerrainField = fieldElement.isTerrainPresent();
+                            Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
+                            if (isTerrainField && t != null && !t.isWater()) {
+                                fieldElement.setFieldEntity(builder2);
+                                builder2.setParent(fieldElement);
+                                break;
+                            }
+
+                        }
+                    }
+
+                    game.addBuilder(builder.getIp(), builder2);
+                    double credits = -1000;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
+                    return false;
                 }
             } else if (Objects.equals(entity, "soldier")) {
 
@@ -407,9 +507,54 @@ public class BuildCommand implements Command {
                         }
                     }
 
-
                     game.addSoldier(builder.getIp(), soldier);
                     double credits = -200.0;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    return true;
+                } else if (playableType == 3) {
+                    if (balance.getBalance() < 1000.0) {
+                        game.modifyBalance(builderId, 1000);
+                    }
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Soldier soldier;
+
+                    if ((game.getSoldier(builderId)) != null) {
+                        return false;
+                    }
+
+                    soldier = new Soldier(builderId, Direction.Up, builder.getIp());
+
+                    Random random = new Random();
+                    int x;
+                    int y;
+
+                    // Place Soldier
+                    for (;;) {
+                        x = random.nextInt(FIELD_DIM);
+                        y = random.nextInt(FIELD_DIM);
+                        FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
+                        if (!fieldElement.isPresent()) {
+                            boolean isTerrainField = fieldElement.isTerrainPresent();
+                            Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
+                            if (isTerrainField && t != null && !t.isWater()) {
+                                fieldElement.setFieldEntity(soldier);
+                                soldier.setParent(fieldElement);
+                                break;
+                            }
+
+                        }
+                    }
+
+                    game.addSoldier(builder.getIp(), soldier);
+                    double credits = -1000;
 //                    balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopBuilding();
@@ -418,9 +563,9 @@ public class BuildCommand implements Command {
                     System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
                     return false;
                 }
-            } else if (Objects.equals(entity, "ship") && playableType == 4) {
+            } else if (Objects.equals(entity, "ship")) {
 
-                if (balance.getBalance() >= 400.0) {
+                if (balance.getBalance() >= 400.0 && playableType == 4) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -435,21 +580,24 @@ public class BuildCommand implements Command {
                     }
 
                     ship = new Ship(builderId, Direction.Up, builder.getIp());
-                    // Check if the destination field is empty
-                    if (!nextField.isPresent()) {
-                        // Place soldier in the intended neighboring field
-                        int oldPos = builder.getPosition();
-                        nextField.setFieldEntity(ship);
-                        ship.setParent(nextField);
-                        int newPos = ship.getPosition();
-                    } else {
-                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
-                        if (emptyNeighbor.isPresent()) {
-                            FieldHolder alternativeField = emptyNeighbor.get();
-                            int oldPos = builder.getPosition();
-                            alternativeField.setFieldEntity(ship);
-                            ship.setParent(alternativeField);
-                            int newPos = ship.getPosition();
+                    Random random = new Random();
+                    int x;
+                    int y;
+
+                    // Place Ship
+                    for (;;) {
+                        x = random.nextInt(FIELD_DIM);
+                        y = random.nextInt(FIELD_DIM);
+                        FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
+                        if (!fieldElement.isPresent()) {
+                            boolean isTerrainField = fieldElement.isTerrainPresent();
+                            Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
+                            if (isTerrainField && t != null && t.isWater()) {
+                                fieldElement.setFieldEntity(ship);
+                                ship.setParent(fieldElement);
+                                break;
+                            }
+
                         }
                     }
 
