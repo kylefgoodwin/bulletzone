@@ -21,6 +21,7 @@ import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
+import edu.unh.cs.cs619.bulletzone.model.events.HealingEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TerrainUpdateEvent;
@@ -70,12 +71,11 @@ public class MoveCommand implements Command {
         if (millis < playable.getLastMoveTime()) {
             return false;
         }
-
         Direction currentDirection = playable.getDirection();
         FieldHolder currentField = playable.getParent();
         FieldHolder nextField = currentField.getNeighbor(direction);
         checkNotNull(currentField.getNeighbor(direction), "Neighbor is not available");
-
+        EventBus.getDefault().post(new HealingEvent(playable.getIntValue(), currentField.getPosition(), -1));
         // Handle turning first (don't emit terrain events for turns)
         if (currentDirection != direction) {
             // For opposite and perpendicular directions
@@ -192,14 +192,13 @@ public class MoveCommand implements Command {
                     game.setSoldierEjected(false);
                     return false;
                 }
-            } // Factory entry
-            else if (nextField.getEntity().isFactory() && (game.getFactories().get(playableId) != null)) {
-                if (game.getFactories().get((playableId)).getPosition() == nextField.getPosition()) {
-                    currentField.clearField();
-                    EventBus.getDefault().post(new RemoveEvent(playable.getIntValue(), currentField.getPosition(), 0));
-
-                    return false;
-                }
+            } // Factory repair
+            else if (nextField.getEntity().isPlayable() && (game.getFactories().get((playableId)).getPosition() == nextField.getPosition() && (!game.getFactories().get(playableId).getHealing()))) {
+                int userID = playable.getUserId();
+                game.getFactories().get(playableId).setHealing(true);
+                EventBus.getDefault().post(new HealingEvent(playable.getIntValue(), currentField.getPosition(), playableId));
+                game.setHealing(true);
+                return false;
             }
 
             // Handle item pickup with terrain event

@@ -4,6 +4,7 @@ import static java.lang.Thread.sleep;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.health.connect.HealthConnectException;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
@@ -46,6 +47,7 @@ import java.util.Random;
 import java.util.Set;
 
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
+import edu.unh.cs.cs619.bulletzone.events.HealingEvent;
 import edu.unh.cs.cs619.bulletzone.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
 import edu.unh.cs.cs619.bulletzone.events.MiningCreditsEvent;
@@ -1325,6 +1327,19 @@ public class ClientActivity extends Activity {
                 + playerData.getTankId());
         if (event.getSoldierRemove() == playerData.getTankId()) {
             selectPlayable.setSelection(0);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onHealingEvent(HealingEvent event) {
+        Log.d(TAG, "Event | Player Tank ID: "
+                + playerData.getTankId());
+        if (event.getFactoryHealing() == playerData.getTankId()) {
+            repairKitEndTime = System.currentTimeMillis() + 120000; // 120 seconds
+            repairKitStatus.setVisibility(View.VISIBLE);
+            repairKitTimer.setVisibility(View.VISIBLE);
+            updateRepairKitTimer();
+            handleRepairKitHealing(); // Start the healing process
         }
     }
 }

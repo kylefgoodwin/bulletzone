@@ -32,6 +32,7 @@ public final class Game {
     private final ConcurrentMap<Long, BankAccount> playerAccounts = new ConcurrentHashMap<>();
 
     private boolean isSoldierEjected = false;
+    private boolean isHealing = false;
 
     public Game() {
         this.id = 0;
@@ -67,6 +68,14 @@ public final class Game {
 
     public boolean getSolderEjected() {
         return this.isSoldierEjected;
+    }
+
+    public void setHealing(boolean isHealing) {
+        this.isHealing = isHealing;
+    }
+
+    public boolean getHealing() {
+        return this.isHealing;
     }
 
     // Method to add credits to a player's bank account

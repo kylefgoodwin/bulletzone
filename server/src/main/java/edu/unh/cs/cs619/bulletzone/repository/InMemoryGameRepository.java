@@ -72,26 +72,23 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     @Override
-    public Triplet<Tank, Builder, Ship> join(String ip) {
+    public Pair<Tank, Builder> join(String ip) {
         synchronized (this.monitor) {
             Tank tank;
             Builder builder;
-            Ship ship;
             if (game == null) {
                 this.create();
             }
 
             if ((tank = game.getTank(ip)) != null
-                    && (builder = game.getBuilder(ip)) != null
-                    && (ship = game.getShip(ip)) != null) {
-                return Triplet.with(tank, builder, ship);
+                    && (builder = game.getBuilder(ip)) != null) {
+                return Pair.with(tank, builder);
             }
 
             Long id = this.idGenerator.getAndIncrement();
 
             tank = new Tank(id, Direction.Up, ip);
             builder = new Builder(id, Direction.Up, ip);
-            ship = new Ship(id, Direction.Up, ip);
 
             Random random = new Random();
             int x;
@@ -103,13 +100,9 @@ public class InMemoryGameRepository implements GameRepository {
                 y = random.nextInt(FIELD_DIM);
                 FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
                 if (!fieldElement.isPresent()) {
-                    boolean isTerrainField = fieldElement.isTerrainPresent();
-                    Terrain t = isTerrainField ? (Terrain) fieldElement.getTerrainEntityHolder() : null;
-                    if (!t.isWater()) {
-                        fieldElement.setFieldEntity(tank);
-                        tank.setParent(fieldElement);
-                        break;
-                    }
+                    fieldElement.setFieldEntity(tank);
+                    tank.setParent(fieldElement);
+                    break;
                 }
             }
 
@@ -119,37 +112,17 @@ public class InMemoryGameRepository implements GameRepository {
                 y = random.nextInt(FIELD_DIM);
                 FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
                 if (!fieldElement.isPresent()) {
-                    boolean isTerrainField = fieldElement.isTerrainPresent();
-                    Terrain t = isTerrainField ? (Terrain) fieldElement.getTerrainEntityHolder() : null;
-                    if (!t.isWater()) {
-                        fieldElement.setFieldEntity(builder);
-                        builder.setParent(fieldElement);
-                        break;
-                    }
-                }
-            }
 
-            // Place Ship
-            for (;;) {
-                x = random.nextInt(FIELD_DIM);
-                y = random.nextInt(FIELD_DIM);
-                FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
-                if (!fieldElement.isPresent()) {
-                    boolean isTerrainField = fieldElement.isTerrainPresent();
-                    Terrain t = isTerrainField ? (Terrain) fieldElement.getTerrainEntityHolder() : null;
-                    if (t.isWater()) {
-                        fieldElement.setFieldEntity(ship);
-                        ship.setParent(fieldElement);
-                        break;
-                    }
+                    fieldElement.setFieldEntity(builder);
+                    builder.setParent(fieldElement);
+                    break;
                 }
             }
 
             game.addTank(ip, tank);
             game.addBuilder(ip, builder);
-            game.addShip(ip, ship);
 
-            return Triplet.with(tank, builder, ship);
+            return Pair.with(tank, builder);
         }
     }
 
@@ -219,7 +192,7 @@ public class InMemoryGameRepository implements GameRepository {
             throws TankDoesNotExistException, IllegalTransitionException, LimitExceededException, PlayableDoesNotExistException {
         synchronized (this.monitor) {
 
-//            playableType = determinePlayableType(game, playableId, playableType);
+            playableType = determinePlayableType(game, playableId, playableType);
             Playable playable = game.getPlayable(playableId, playableType);
             if (playable == null) { throw new PlayableDoesNotExistException(playableId, playableType); }
             long millis = System.currentTimeMillis();

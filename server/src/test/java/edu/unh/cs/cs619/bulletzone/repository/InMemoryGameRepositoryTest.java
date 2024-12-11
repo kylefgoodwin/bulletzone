@@ -60,13 +60,12 @@ public class InMemoryGameRepositoryTest {
     @Test
     public void testJoin() throws Exception {
         // Execute join operation
-        Triplet<Tank, Builder, Ship> result = repo.join(tankIp);
+        Pair<Tank, Builder> result = repo.join(tankIp);
 
         // Verify that the result is not null and both Tank and Builder are returned
         Assert.assertNotNull(result);
         Tank tank = result.getValue0();
         Builder builder = result.getValue1();
-        Ship ship = result.getValue2();
 
         Assert.assertNotNull(tank);
         Assert.assertNotNull(builder);

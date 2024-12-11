@@ -57,15 +57,13 @@ class GamesController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     ResponseEntity<LongWrapper> join(HttpServletRequest request) {
-        Triplet<Tank, Builder, Ship> ret;
+        Pair<Tank, Builder> ret;
         Playable tank;
         Playable builder;
-        Playable ship;
         try {
             ret = gameRepository.join(request.getRemoteAddr());
             tank = ret.getValue0();
             builder = ret.getValue1();
-            ship = ret.getValue2();
             log.info("Player joined: Id={} IP={}", tank.getId(), request.getRemoteAddr());
 
             return new ResponseEntity<LongWrapper>(
