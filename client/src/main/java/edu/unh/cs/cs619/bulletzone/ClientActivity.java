@@ -940,7 +940,7 @@ public class ClientActivity extends Activity {
             // Check for death
             if (playerData.getTankLife() <= 0) {
                 onButtonEjectSoldier();
-            } else if (playerData.getSoldierLife() <= 0 && event.getPlayableType() == 3) {
+            } else if (playerData.getSoldierLife() <= 0 && event.getPlayableType() == 2) {
                 leaveGame();
             }
         }
@@ -1130,10 +1130,10 @@ public class ClientActivity extends Activity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void updateUIOnMove(UIUpdateEvent event) {
         Log.d(TAG, "Updating UI based on most recent move: " + event.toString());
-        buttonUp.setEnabled(event.getCanMoveUp());
-        buttonDown.setEnabled(event.getCanMoveDown());
-        buttonLeft.setEnabled(event.getCanMoveLeft());
-        buttonRight.setEnabled(event.getCanMoveRight());
+//        buttonUp.setEnabled(event.getCanMoveUp());
+//        buttonDown.setEnabled(event.getCanMoveDown());
+//        buttonLeft.setEnabled(event.getCanMoveLeft());
+//        buttonRight.setEnabled(event.getCanMoveRight());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -1313,7 +1313,8 @@ public class ClientActivity extends Activity {
             playerData.setTerrainState(
                     event.isHilly(),
                     event.isForest(),
-                    event.isRocky()
+                    event.isRocky(),
+                    event.isWater()
             );
 
             // Update UI

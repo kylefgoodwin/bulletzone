@@ -17,6 +17,7 @@ import edu.unh.cs.cs619.bulletzone.model.MiningFacility;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
+import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 
@@ -89,6 +90,7 @@ public class FireCommand {
                     if (p.getLife() <= 0) {
                         handleRemovingPlayable(currentField, p, p.getPlayableType(), game);
                     }
+//                    p.hit(playable.getBulletDamage());
                 //Handle hitting wall
                 } else if (nextField.getEntity().isWall()) {
                     Wall w = (Wall) nextField.getEntity();

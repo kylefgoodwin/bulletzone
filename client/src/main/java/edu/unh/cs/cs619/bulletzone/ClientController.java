@@ -29,7 +29,7 @@ public class ClientController {
 
     @RestService
     BulletZoneRestClient restClient;
-
+    private PlayerData playerData = PlayerData.getPlayerData();
     private ReplayData replayData = ReplayData.getReplayData();
     private final Random random = new Random();
 

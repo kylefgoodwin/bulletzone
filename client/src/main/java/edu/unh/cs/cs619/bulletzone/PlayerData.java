@@ -47,6 +47,7 @@ public class PlayerData {
     private boolean onHillyTerrain = false;
     private boolean onForestTerrain = false;
     private boolean onRockyTerrain = false;
+    private boolean onWaterTerrain = false;
 
     // Application Context
     private Context context;
@@ -102,7 +103,7 @@ public class PlayerData {
         updateMovementAndCombatRates();
     }
 
-    public void setTerrainState(boolean hilly, boolean forest, boolean rocky) {
+    public void setTerrainState(boolean hilly, boolean forest, boolean rocky, boolean water) {
         boolean terrainChanged = (onHillyTerrain != hilly || onForestTerrain != forest || onRockyTerrain != rocky);
 
         if (terrainChanged) {
@@ -113,6 +114,7 @@ public class PlayerData {
             onHillyTerrain = hilly;
             onForestTerrain = forest;
             onRockyTerrain = rocky;
+            onWaterTerrain = water;
 
             Log.d(TAG, "New terrain state - Hilly: " + hilly +
                     " Forest: " + forest +

@@ -42,6 +42,7 @@ public class TerrainUpdateEvent extends GameEvent {
     public boolean isHilly() { return hilly; }
     public boolean isForest() { return forest; }
     public boolean isRocky() { return rocky; }
+    public boolean isWater() { return water; }
     public int getPlayableType() { return playableType; }
     public boolean isPositionChanged() { return positionChanged; }
     public int getFromPosition() { return fromPosition; }

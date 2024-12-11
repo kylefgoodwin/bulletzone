@@ -449,14 +449,18 @@ public class InMemoryGameRepository implements GameRepository {
     @Override
     public int getLife(long playableId, int playableType) throws TankDoesNotExistException {
         Playable playable;
-        if (playableType == 1) {
+        if (playableType == 0) {
             playable = game.getTanks().get(playableId);
 //            System.out.println(playableId);
 //            System.out.println(playable.getLife());
-        } else if (playableType == 2) {
+        } else if (playableType == 1) {
             playable = game.getBuilders().get(playableId);
-        } else {
+        } else if (playableType == 2) {
             playable = game.getSoldier(playableId);
+        } else if (playableType == 3) {
+            playable = game.getShip(playableId);
+        } else {
+            playable = game.getFactory(playableId);
             if (playable == null) {
                 if (game.getSolderEjected()) {
                     return 0;
@@ -494,10 +498,10 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     private int determinePlayableType(Game game, long playableId, int playableType){
-        if(!game.getTanks().get(playableId).gethasSoldier() && playableType == 3){
-            playableType = 1;
-        } else if (game.getTanks().get(playableId).gethasSoldier() && playableType == 1){
-            playableType = 3;
+        if(!game.getTanks().get(playableId).gethasSoldier() && playableType == 2){
+            playableType = 0;
+        } else if (game.getTanks().get(playableId).gethasSoldier() && playableType == 0){
+            playableType = 2;
         }
         return playableType;
     }

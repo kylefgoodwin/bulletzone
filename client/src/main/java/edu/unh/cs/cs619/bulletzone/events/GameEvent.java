@@ -22,7 +22,10 @@ import edu.unh.cs.cs619.bulletzone.util.ReplayDataFlat;
         @JsonSubTypes.Type(name = "hit", value = HitEvent.class),
         @JsonSubTypes.Type(name = "turn", value = TurnEvent.class),
         @JsonSubTypes.Type(name = "itemPickup", value = ItemPickupEvent.class),
-        @JsonSubTypes.Type(name = "UI", value = UIUpdateEvent.class)
+        @JsonSubTypes.Type(name = "UI", value = UIUpdateEvent.class),
+        @JsonSubTypes.Type(name = "terrain", value = TerrainUpdateEvent.class),
+        @JsonSubTypes.Type(name = "Healing", value = HealingEvent.class),
+        @JsonSubTypes.Type(name = "powerUpEject", value = HealingEvent.class)
 })
 public abstract class GameEvent implements Serializable {
     private static final long serialVersionUID = 1L;
