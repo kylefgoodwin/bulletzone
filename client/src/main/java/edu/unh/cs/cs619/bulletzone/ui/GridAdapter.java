@@ -205,7 +205,14 @@ public class GridAdapter extends BaseAdapter {
                      } else {
                          imageView.setImageResource(playerCell.getResourceID());
                      }
-                 }else {
+                 } else if (playerCell.getCellType().equals("Ship")) {
+                     int shipIdTest = (playerCell.getRawValue() / 10000) - 1000;
+                     if (shipIdTest == this.tankId) {
+                         imageView.setImageResource(R.drawable.ship);
+                     } else {
+                         imageView.setImageResource(playerCell.getResourceID());
+                     }
+                 } else {
                     if (playerCell.getCellType().equals("Empty")) {
                         imageView.setImageResource(android.R.color.transparent);
                     } else {

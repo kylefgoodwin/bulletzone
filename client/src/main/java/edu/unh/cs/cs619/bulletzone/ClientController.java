@@ -74,6 +74,9 @@ public class ClientController {
                     case 2: // Soldier
                         health = PlayerData.getPlayerData().getSoldierLife();
                         break;
+                    case 3: // Soldier
+                        health = PlayerData.getPlayerData().getShipLife();
+                        break;
                 }
                 if (health != -1) {
                     showLifeToast(health, context);

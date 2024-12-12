@@ -61,7 +61,7 @@ public abstract class FieldEntity {
 
     public boolean isWater(){
         int value = getIntValue();
-        return value >= 4000 && value <= 4004;}
+        return value == 4004;}
 
     public boolean isIndestructibleWall(){return getIntValue() == Integer.MAX_VALUE;}
 }

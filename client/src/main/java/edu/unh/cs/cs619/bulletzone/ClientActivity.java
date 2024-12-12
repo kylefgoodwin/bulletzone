@@ -322,6 +322,10 @@ public class ClientActivity extends Activity {
                         entity = (TankItem) cell;
                         clientController.postLifeAsync(entity.getTankID(), 2, ClientActivity.this);
                         break;
+                    case "Ship":
+                        entity = (TankItem) cell;
+                        clientController.postLifeAsync(entity.getTankID(), 3, ClientActivity.this);
+                        break;
                     default:
                         break;
                 }
@@ -631,56 +635,56 @@ public class ClientActivity extends Activity {
             if (improvementType == 0 && playableType != 4) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("destructibleWall"));
 
-                tankEventController.removeCredits(userId, 80.0, playerData.setCurEntity("destructibleWall"));
+                tankEventController.removeCredits(userId, 80.0, playerData.setCurEntity("destructibleWall"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 1 && playableType != 4) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("indestructibleWall"));
 
-                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("indestructibleWall"));
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("indestructibleWall"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 2 && playableType != 4) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("miningFacility"));
-                tankEventController.removeCredits(userId, 300.0, playerData.setCurEntity("miningFacility"));
+                tankEventController.removeCredits(userId, 300.0, playerData.setCurEntity("miningFacility"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 3 && playableType != 4) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("road"));
 
-                tankEventController.removeCredits(userId, 40.0, playerData.setCurEntity("road"));
+                tankEventController.removeCredits(userId, 40.0, playerData.setCurEntity("road"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 4 && playableType != 4) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("deck"));
 
-                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("deck"));
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("deck"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 5 && playableType != 4) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("bridge"));
 
-                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("bridge"));
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("bridge"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 6 && playableType != 4) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("factory"));
 
-                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("factory"));
+                tankEventController.removeCredits(userId, 150.0, playerData.setCurEntity("factory"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 7 && playableType == 4) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("tank"));
 
-                tankEventController.removeCredits(userId, 600.0, playerData.setCurEntity("tank"));
+                tankEventController.removeCredits(userId, 600.0, playerData.setCurEntity("tank"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 8 && playableType == 4) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("builder"));
 
-                tankEventController.removeCredits(userId, 500.0, playerData.setCurEntity("builder"));
+                tankEventController.removeCredits(userId, 500.0, playerData.setCurEntity("builder"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 9 && playableType == 4) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("soldier"));
 
-                tankEventController.removeCredits(userId, 200.00, playerData.setCurEntity("soldier"));
+                tankEventController.removeCredits(userId, 200.00, playerData.setCurEntity("soldier"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 10 && playableType == 4) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("ship"));
 
-                tankEventController.removeCredits(userId, 400.0, playerData.setCurEntity("ship"));
+                tankEventController.removeCredits(userId, 400.0, playerData.setCurEntity("ship"), playableType);
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds
@@ -696,17 +700,17 @@ public class ClientActivity extends Activity {
             if (improvementType == 7 && playableType == 3) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("tank"));
 
-                tankEventController.removeCredits(userId, 1000.0, playerData.setCurEntity("tank"));
+                tankEventController.removeCredits(userId, 1000.0, playerData.setCurEntity("tank"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 8 && playableType == 3) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("builder"));
 
-                tankEventController.removeCredits(userId, 1000.0, playerData.setCurEntity("builder"));
+                tankEventController.removeCredits(userId, 1000.0, playerData.setCurEntity("builder"), playableType);
                 fetchAndUpdateBalance();
             } else if (improvementType == 9 && playableType == 3) {
                 tankEventController.buildAsync(userId, playableId, playableType, playerData.setCurEntity("soldier"));
 
-                tankEventController.removeCredits(userId, 1000.0, playerData.setCurEntity("soldier"));
+                tankEventController.removeCredits(userId, 1000.0, playerData.setCurEntity("soldier"), playableType);
                 fetchAndUpdateBalance();
             } else {
                 // Handle the case where improvementType is out of bounds

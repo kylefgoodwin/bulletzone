@@ -153,7 +153,7 @@ public class TankEventController {
     }
 
     @Background
-    public void removeCredits(long userId, double amount, String entity) {
+    public void removeCredits(long userId, double amount, String entity, int playableType) {
         Log.d(TAG, "Processing build, amount: " + amount);
         if (Objects.equals(entity, "destructibleWall")) {
             Log.d(TAG, "Balance (destructibleWall)" + restClient.getBalance(userId));
@@ -219,6 +219,112 @@ public class TankEventController {
         } else if (Objects.equals(entity, "factory")) {
             Log.d(TAG, "Balance (factory)" + restClient.getBalance(userId));
             if (restClient.getBalance(userId) >= 250.0 ) {
+                BooleanWrapper result = restClient.deductBalance(userId, amount);
+                if (result != null && result.isResult()) {
+                    Log.d(TAG, "Transaction successful: " + amount + " credits");
+                } else {
+                    Log.e(TAG, "Transaction failed: " + amount + " credits");
+                }
+            }
+        } else if (Objects.equals(entity, "tank")) {
+            Log.d(TAG, "Balance (tank)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 600.0 && playableType != 3) {
+                BooleanWrapper result = restClient.deductBalance(userId, amount);
+                if (result != null && result.isResult()) {
+                    Log.d(TAG, "Transaction successful: " + amount + " credits");
+                } else {
+                    Log.e(TAG, "Transaction failed: " + amount + " credits");
+                }
+            } else if (playableType == 3) {
+                if (restClient.getBalance(userId) >= 1000.0) {
+                    BooleanWrapper result = restClient.deductBalance(userId, amount);
+                    if (result != null && result.isResult()) {
+                        Log.d(TAG, "Transaction successful: " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Transaction failed: " + amount + " credits");
+                    }
+                } else {
+                    BooleanWrapper result1 = restClient.depositBalance(userId, amount);
+                    if (result1 != null && result1.isResult()) {
+                        Log.d(TAG, "Transaction successful: " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Transaction failed: " + amount + " credits");
+                    }
+                    BooleanWrapper result2 = restClient.deductBalance(userId, amount);
+                    if (result2 != null && result2.isResult()) {
+                        Log.d(TAG, "Transaction successful: " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Transaction failed: " + amount + " credits");
+                    }
+                }
+            }
+        } else if (Objects.equals(entity, "builder")) {
+            Log.d(TAG, "Balance (builder)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 500.0 && playableType != 3) {
+                BooleanWrapper result = restClient.deductBalance(userId, amount);
+                if (result != null && result.isResult()) {
+                    Log.d(TAG, "Transaction successful: " + amount + " credits");
+                } else {
+                    Log.e(TAG, "Transaction failed: " + amount + " credits");
+                }
+            } else if (playableType == 3) {
+                if (restClient.getBalance(userId) >= 1000.0) {
+                    BooleanWrapper result = restClient.deductBalance(userId, amount);
+                    if (result != null && result.isResult()) {
+                        Log.d(TAG, "Transaction successful: " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Transaction failed: " + amount + " credits");
+                    }
+                } else {
+                    BooleanWrapper result1 = restClient.depositBalance(userId, amount);
+                    if (result1 != null && result1.isResult()) {
+                        Log.d(TAG, "Transaction successful: " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Transaction failed: " + amount + " credits");
+                    }
+                    BooleanWrapper result2 = restClient.deductBalance(userId, amount);
+                    if (result2 != null && result2.isResult()) {
+                        Log.d(TAG, "Transaction successful: " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Transaction failed: " + amount + " credits");
+                    }
+                }
+            }
+        } else if (Objects.equals(entity, "soldier")) {
+            Log.d(TAG, "Balance (soldier)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 200.0 && playableType != 3) {
+                BooleanWrapper result = restClient.deductBalance(userId, amount);
+                if (result != null && result.isResult()) {
+                    Log.d(TAG, "Transaction successful: " + amount + " credits");
+                } else {
+                    Log.e(TAG, "Transaction failed: " + amount + " credits");
+                }
+            } else if (playableType == 3) {
+                if (restClient.getBalance(userId) >= 1000.0) {
+                    BooleanWrapper result = restClient.deductBalance(userId, amount);
+                    if (result != null && result.isResult()) {
+                        Log.d(TAG, "Transaction successful: " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Transaction failed: " + amount + " credits");
+                    }
+                } else {
+                    BooleanWrapper result1 = restClient.depositBalance(userId, amount);
+                    if (result1 != null && result1.isResult()) {
+                        Log.d(TAG, "Transaction successful: " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Transaction failed: " + amount + " credits");
+                    }
+                    BooleanWrapper result2 = restClient.deductBalance(userId, amount);
+                    if (result2 != null && result2.isResult()) {
+                        Log.d(TAG, "Transaction successful: " + amount + " credits");
+                    } else {
+                        Log.e(TAG, "Transaction failed: " + amount + " credits");
+                    }
+                }
+            }
+        } else if (Objects.equals(entity, "ship")) {
+            Log.d(TAG, "Balance (ship)" + restClient.getBalance(userId));
+            if (restClient.getBalance(userId) >= 400.0 && playableType != 3) {
                 BooleanWrapper result = restClient.deductBalance(userId, amount);
                 if (result != null && result.isResult()) {
                     Log.d(TAG, "Transaction successful: " + amount + " credits");

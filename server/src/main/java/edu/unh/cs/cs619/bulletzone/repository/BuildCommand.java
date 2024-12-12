@@ -99,16 +99,16 @@ public class BuildCommand implements Command {
             int row = fieldIndex / FIELD_DIM;
             int col = fieldIndex % FIELD_DIM;
 
-            // Check if the tank is at the gameboard edges and trying to move out of bounds
-            boolean isAtLeftEdge = (col == 0) && direction == Direction.Left;
-            boolean isAtRightEdge = (col == FIELD_DIM - 1) && direction == Direction.Right;
-            boolean isAtTopEdge = (row == 0) && direction == Direction.Up;
-            boolean isAtBottomEdge = (row == FIELD_DIM - 1) && direction == Direction.Down;
-
-            if (isAtLeftEdge || isAtRightEdge || isAtTopEdge || isAtBottomEdge) {
-                System.out.println("Next field is out of bounds, building blocked.");
-                return false;
-            }
+//            // Check if the tank is at the gameboard edges and trying to move out of bounds
+//            boolean isAtLeftEdge = (col == 0) && direction == Direction.Left;
+//            boolean isAtRightEdge = (col == FIELD_DIM - 1) && direction == Direction.Right;
+//            boolean isAtTopEdge = (row == 0) && direction == Direction.Up;
+//            boolean isAtBottomEdge = (row == FIELD_DIM - 1) && direction == Direction.Down;
+//
+//            if (isAtLeftEdge || isAtRightEdge || isAtTopEdge || isAtBottomEdge) {
+//                System.out.println("Next field is out of bounds, building blocked.");
+//                return false;
+//            }
 
             // Check if the tank is visible on the field (just to prevent weird cases)
             if (!isVisible) {
@@ -347,24 +347,20 @@ public class BuildCommand implements Command {
 
                     tank = new Tank(builderId, Direction.Up, builder.getIp());
 
-                    Random random = new Random();
-                    int x;
-                    int y;
-
-                    // Place Tank
-                    for (;;) {
-                        x = random.nextInt(FIELD_DIM);
-                        y = random.nextInt(FIELD_DIM);
-                        FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
-                        if (!fieldElement.isPresent()) {
-                            boolean isTerrainField = fieldElement.isTerrainPresent();
-                            Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
-                            if (isTerrainField && t != null && !t.isWater()) {
-                                fieldElement.setFieldEntity(tank);
-                                tank.setParent(fieldElement);
-                                break;
-                            }
-
+                    if (!nextField.isPresent()) {
+                        // Place soldier in the intended neighboring field
+                        int oldPos = builder.getPosition();
+                        nextField.setFieldEntity(tank);
+                        tank.setParent(nextField);
+                        int newPos = tank.getPosition();
+                    } else {
+                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
+                        if (emptyNeighbor.isPresent()) {
+                            FieldHolder alternativeField = emptyNeighbor.get();
+                            int oldPos = builder.getPosition();
+                            alternativeField.setFieldEntity(tank);
+                            tank.setParent(alternativeField);
+                            int newPos = tank.getPosition();
                         }
                     }
 
@@ -439,24 +435,20 @@ public class BuildCommand implements Command {
 
                     builder2 = new Builder(builderId, Direction.Up, builder.getIp());
 
-                    Random random = new Random();
-                    int x;
-                    int y;
-
-                    // Place Builder
-                    for (;;) {
-                        x = random.nextInt(FIELD_DIM);
-                        y = random.nextInt(FIELD_DIM);
-                        FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
-                        if (!fieldElement.isPresent()) {
-                            boolean isTerrainField = fieldElement.isTerrainPresent();
-                            Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
-                            if (isTerrainField && t != null && !t.isWater()) {
-                                fieldElement.setFieldEntity(builder2);
-                                builder2.setParent(fieldElement);
-                                break;
-                            }
-
+                    if (!nextField.isPresent()) {
+                        // Place soldier in the intended neighboring field
+                        int oldPos = builder.getPosition();
+                        nextField.setFieldEntity(builder2);
+                        builder2.setParent(nextField);
+                        int newPos = builder2.getPosition();
+                    } else {
+                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
+                        if (emptyNeighbor.isPresent()) {
+                            FieldHolder alternativeField = emptyNeighbor.get();
+                            int oldPos = builder.getPosition();
+                            alternativeField.setFieldEntity(builder2);
+                            builder2.setParent(alternativeField);
+                            int newPos = builder2.getPosition();
                         }
                     }
 
@@ -532,24 +524,22 @@ public class BuildCommand implements Command {
 
                     soldier = new Soldier(builderId, Direction.Up, builder.getIp());
 
-                    Random random = new Random();
-                    int x;
-                    int y;
-
-                    // Place Soldier
-                    for (;;) {
-                        x = random.nextInt(FIELD_DIM);
-                        y = random.nextInt(FIELD_DIM);
-                        FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
-                        if (!fieldElement.isPresent()) {
-                            boolean isTerrainField = fieldElement.isTerrainPresent();
-                            Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
-                            if (isTerrainField && t != null && !t.isWater()) {
-                                fieldElement.setFieldEntity(soldier);
-                                soldier.setParent(fieldElement);
-                                break;
-                            }
-
+                    if (!nextField.isPresent()) {
+                        // Place soldier in the intended neighboring field
+                        int oldPos = builder.getPosition();
+                        nextField.setFieldEntity(soldier);
+                        soldier.setParent(nextField);
+                        int newPos = soldier.getPosition();
+                        builder.sethasSoldier(true);
+                    } else {
+                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
+                        if (emptyNeighbor.isPresent()) {
+                            FieldHolder alternativeField = emptyNeighbor.get();
+                            int oldPos = builder.getPosition();
+                            alternativeField.setFieldEntity(soldier);
+                            soldier.setParent(alternativeField);
+                            int newPos = soldier.getPosition();
+                            builder.sethasSoldier(true);
                         }
                     }
 
@@ -580,24 +570,20 @@ public class BuildCommand implements Command {
                     }
 
                     ship = new Ship(builderId, Direction.Up, builder.getIp());
-                    Random random = new Random();
-                    int x;
-                    int y;
-
-                    // Place Ship
-                    for (;;) {
-                        x = random.nextInt(FIELD_DIM);
-                        y = random.nextInt(FIELD_DIM);
-                        FieldHolder fieldElement = game.getHolderGrid().get(x * FIELD_DIM + y);
-                        if (!fieldElement.isPresent()) {
-                            boolean isTerrainField = fieldElement.isTerrainPresent();
-                            Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
-                            if (isTerrainField && t != null && t.isWater()) {
-                                fieldElement.setFieldEntity(ship);
-                                ship.setParent(fieldElement);
-                                break;
-                            }
-
+                    if (!nextField.isPresent()) {
+                        // Place soldier in the intended neighboring field
+                        int oldPos = builder.getPosition();
+                        nextField.setFieldEntity(ship);
+                        ship.setParent(nextField);
+                        int newPos = ship.getPosition();
+                    } else {
+                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
+                        if (emptyNeighbor.isPresent()) {
+                            FieldHolder alternativeField = emptyNeighbor.get();
+                            int oldPos = builder.getPosition();
+                            alternativeField.setFieldEntity(ship);
+                            ship.setParent(alternativeField);
+                            int newPos = ship.getPosition();
                         }
                     }
 
