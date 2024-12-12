@@ -23,7 +23,6 @@ public class RemoveEvent extends GameEvent implements Serializable {
     public long getSoldierRemove() {
         return soldierRemove;
     }
-
     @Override
     public void applyTo(int[][] board) {
         if (PlayerData.getPlayerData().getTankId() != soldierRemove) {

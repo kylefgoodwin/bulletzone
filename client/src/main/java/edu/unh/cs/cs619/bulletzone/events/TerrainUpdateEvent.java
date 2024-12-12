@@ -15,6 +15,8 @@ public class TerrainUpdateEvent extends GameEvent implements Serializable {
     @JsonProperty
     private boolean rocky;
     @JsonProperty
+    private boolean water;
+    @JsonProperty
     private int playableType;
     @JsonProperty
     private boolean positionChanged;
@@ -26,11 +28,12 @@ public class TerrainUpdateEvent extends GameEvent implements Serializable {
     // Default constructor for Jackson
     public TerrainUpdateEvent() {}
 
-    public TerrainUpdateEvent(boolean hilly, boolean forest, boolean rocky, int playableType,
+    public TerrainUpdateEvent(boolean hilly, boolean forest, boolean rocky, boolean water, int playableType,
                               int fromPosition, int toPosition) {
         this.hilly = hilly;
         this.forest = forest;
         this.rocky = rocky;
+        this.water = water;
         this.playableType = playableType;
         this.fromPosition = fromPosition;
         this.toPosition = toPosition;
@@ -46,6 +49,7 @@ public class TerrainUpdateEvent extends GameEvent implements Serializable {
     public boolean isHilly() { return hilly; }
     public boolean isForest() { return forest; }
     public boolean isRocky() { return rocky; }
+    public boolean isWater() { return rocky; }
     public int getPlayableType() { return playableType; }
     public boolean isPositionChanged() { return positionChanged; }
     public int getFromPosition() { return fromPosition; }

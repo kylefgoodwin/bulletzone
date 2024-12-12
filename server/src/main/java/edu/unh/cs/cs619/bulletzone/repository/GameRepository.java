@@ -1,6 +1,8 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
+import org.apache.commons.lang3.tuple.Triple;
 import org.javatuples.Pair;
+import org.javatuples.Triplet;
 
 import edu.unh.cs.cs619.bulletzone.model.Builder;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
@@ -9,7 +11,9 @@ import edu.unh.cs.cs619.bulletzone.model.IllegalTransitionException;
 import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.PlayableDoesNotExistException;
+import edu.unh.cs.cs619.bulletzone.model.Ship;
 import edu.unh.cs.cs619.bulletzone.model.Tank;
+
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
 
@@ -29,7 +33,7 @@ public interface GameRepository {
             throws TankDoesNotExistException, LimitExceededException, PlayableDoesNotExistException;
 
     boolean build(long playableId, int playableType, String entity)
-            throws TankDoesNotExistException, LimitExceededException;
+            throws TankDoesNotExistException, PlayableDoesNotExistException, LimitExceededException;
 
     boolean ejectPowerUp(long playableId)
             throws TankDoesNotExistException;

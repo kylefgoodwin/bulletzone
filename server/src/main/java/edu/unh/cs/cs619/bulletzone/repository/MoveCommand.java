@@ -21,6 +21,7 @@ import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
+import edu.unh.cs.cs619.bulletzone.model.events.HealingEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.TerrainUpdateEvent;
@@ -70,11 +71,15 @@ public class MoveCommand implements Command {
         if (millis < playable.getLastMoveTime()) {
             return false;
         }
-
         Direction currentDirection = playable.getDirection();
         FieldHolder currentField = playable.getParent();
         FieldHolder nextField = currentField.getNeighbor(direction);
         checkNotNull(currentField.getNeighbor(direction), "Neighbor is not available");
+//        if (game.getFactories().get(playableId).getHealing()) {
+//            game.getFactories().get(playableId).setHealing(false);
+//            EventBus.getDefault().post(new HealingEvent(playable.getIntValue(), currentField.getPosition(), -1));
+//            game.setHealing(false);
+//        }
 
         // Handle turning first (don't emit terrain events for turns)
         if (currentDirection != direction) {
@@ -102,7 +107,7 @@ public class MoveCommand implements Command {
                 Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
 
                 // Check if soldier is moving into forest
-                if (playableType == 3 && isTerrainField && t != null && t.isForest()) {
+                if (playableType == 2 && isTerrainField && t != null && t.isForest()) {
                     // First remove the soldier for other players
                     RemoveEvent removeEvent = new RemoveEvent(playable.getIntValue(), currentField.getPosition(), 0);
                     removeEvent.setTankID((int)playableId);
@@ -112,6 +117,7 @@ public class MoveCommand implements Command {
                     TerrainUpdateEvent event = new TerrainUpdateEvent(
                             false,
                             true,  // Keep forest true to maintain proper terrain state
+                            false,
                             false,
                             playableType,
                             currentField.getPosition(),
@@ -133,12 +139,16 @@ public class MoveCommand implements Command {
                     moveDelay = (long) (moveDelay * 1.25);
                     playable.setLastMoveTime(millis + moveDelay);
                     return true;
-                } else {
+                } else if((playableType == 3 && isTerrainField && t != null && !t.isWater()) || (playableType != 3 && isTerrainField && t != null && t.isWater())) {
+                    return false;
+                }
+                else {
                     // Emit normal terrain event
                     TerrainUpdateEvent event = new TerrainUpdateEvent(
                             isTerrainField && t != null && t.isHilly(),
                             isTerrainField && t != null && t.isForest(),
                             isTerrainField && t != null && t.isRocky(),
+                            isTerrainField && t != null && t.isWater(),
                             playableType,
                             currentField.getPosition(),
                             nextField.getPosition()
@@ -149,9 +159,40 @@ public class MoveCommand implements Command {
                     playable.setLastMoveTime(millis + moveDelay);
                     return true;
                 }
+            } else if (nextField.getEntity().isImprovement()) {
+                if (nextField.getEntity().isWall()) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isIndestructibleWall()) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isMiningFacility()) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isFactory()) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isDeck() && playableType == 3) {
+                    playable.setDirection(direction);
+                    return false;
+                } else if (nextField.getEntity().isRoad() && playableType == 3) {
+                    playable.setDirection(direction);
+                    return false;
+                }
+//                Improvement improvement = (Improvement) nextField.getEntity();
+//                if (!playable.handleImprovements(improvement, millis)) {
+//                    return false;
+//                } else {
+//                    moveDelay = (long) (moveDelay / 2);
+//                }
+
+                nextField.storeEntity();
+                moveUnit(currentField, nextField, playable, direction, false);
+                playable.setLastMoveTime(millis + moveDelay / 2);
+                return true;
             }
             // Soldier re-entry
-            else if (nextField.getEntity().isPlayable() && (playableType == 3 || (playableType == 1 && game.getTanks().get(playableId).gethasSoldier()))) {
+            else if (nextField.getEntity().isPlayable() && (playableType == 2 || (playableType == 0 && game.getTanks().get(playableId).gethasSoldier()))) {
                 if (game.getTanks().get((playableId)).getPosition() == nextField.getPosition()) {
                     int userID = playable.getUserId();
                     game.removeSoldier(playableId);
@@ -162,7 +203,14 @@ public class MoveCommand implements Command {
                     game.setSoldierEjected(false);
                     return false;
                 }
-            }
+            } // Factory repair
+//            else if (nextField.getEntity().isPlayable() && (game.getFactories().get((playableId)).getPosition() == nextField.getPosition() && (!game.getFactories().get(playableId).getHealing()))) {
+//                int userID = playable.getUserId();
+//                game.getFactories().get(playableId).setHealing(true);
+//                EventBus.getDefault().post(new HealingEvent(playable.getIntValue(), currentField.getPosition(), playableId));
+//                game.setHealing(true);
+//                return false;
+//            }
 
             // Handle item pickup with terrain event
             if (nextField.getEntity().isItem()) {
@@ -177,6 +225,7 @@ public class MoveCommand implements Command {
                         isTerrainField && t != null && t.isHilly(),
                         isTerrainField && t != null && t.isForest(),
                         isTerrainField && t != null && t.isRocky(),
+                        isTerrainField && t != null && t.isWater(),
                         playableType,
                         currentField.getPosition(),
                         nextField.getPosition()
@@ -315,6 +364,7 @@ public class MoveCommand implements Command {
                 t != null && t.isHilly(),
                 t != null && t.isForest(),
                 t != null && t.isRocky(),
+                t != null && t.isWater(),
                 playableType,
                 currentField.getPosition(),  // fromPosition
                 nextField.getPosition()      // toPosition
@@ -322,21 +372,21 @@ public class MoveCommand implements Command {
         EventBus.getDefault().post(event);
 
         // Check timing constraints for terrain types
-        if (playableType == 1) { //tank
+        if (playableType == 0) { //tank
             if (t.isHilly() && (millis < playable.getLastMoveTime())) {
                 return false;
             } else if (t.isForest() && (millis < playable.getLastMoveTime())) {
                 System.out.println("Moving tank into forest");
                 return false;
             }
-        } else if (playableType == 2) { //builder
+        } else if (playableType == 1) { //builder
             if (t.isRocky() && (millis < playable.getLastMoveTime())) {
                 return false;
             }
             if (t.isForest()) {
                 return false;
             }
-        } else if (playableType == 3) { //soldier
+        } else if (playableType == 2) { //soldier
             if (t.isForest() && (millis < playable.getLastMoveTime())) {
                 return false;
             }
@@ -422,6 +472,10 @@ public class MoveCommand implements Command {
         int oldPos = playable.getPosition();
         currentField.clearField();
         nextField.setFieldEntity(playable);
+        if (currentField.passedImprovement()) {
+
+            currentField.restoreEntity();
+        }
         playable.setParent(nextField);
         playable.setDirection(direction);
 

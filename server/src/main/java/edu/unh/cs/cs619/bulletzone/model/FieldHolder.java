@@ -10,6 +10,8 @@ public class FieldHolder {
 
     private final Map<Direction, FieldHolder> neighbors = new HashMap<>();
     private Optional<FieldEntity> playerEntityHolder = Optional.empty();
+    private Optional<FieldEntity> lastClearedEntity = Optional.empty();
+    private Optional<FieldEntity> bulletPassedEntity = Optional.empty();
     private Optional<FieldEntity> improvementEntityHolder = Optional.empty();
     private Optional<FieldEntity> itemEntityHolder = Optional.empty();
     private Optional<FieldEntity> terrainEntityHolder = Optional.empty();
@@ -80,6 +82,44 @@ public class FieldHolder {
     public void clearField() {
         if (playerEntityHolder.isPresent()) {
             playerEntityHolder = Optional.empty();
+        }
+    }
+
+    /**
+     * Checks if the last cleared entity is a Road.
+     */
+    public boolean passedImprovement() {
+        return lastClearedEntity.isPresent() && (lastClearedEntity.get().isRoad() ||
+                lastClearedEntity.get().isDeck() || lastClearedEntity.get().isBridge());
+    }
+
+    public void storeEntity() {
+        lastClearedEntity = playerEntityHolder; // Store the cleared entity
+    }
+
+    public void restoreEntity() {
+        if (passedImprovement()) {
+            playerEntityHolder = lastClearedEntity;
+            lastClearedEntity = Optional.empty();
+        }
+    }
+
+    /**
+     * Checks if the last cleared entity is a Road.
+     */
+    public boolean bulletPassedImprovement() {
+        return bulletPassedEntity.isPresent() && (bulletPassedEntity.get().isRoad() ||
+                bulletPassedEntity.get().isDeck());
+    }
+
+    public void bulletStoreEntity() {
+        bulletPassedEntity = playerEntityHolder; // Store the cleared entity
+    }
+
+    public void bulletRestoreEntity() {
+        if (bulletPassedImprovement()) {
+            playerEntityHolder = bulletPassedEntity;
+            bulletPassedEntity = Optional.empty();
         }
     }
 

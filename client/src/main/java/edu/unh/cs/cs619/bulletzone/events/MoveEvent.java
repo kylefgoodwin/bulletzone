@@ -25,6 +25,14 @@ public class MoveEvent extends GameEvent implements Serializable {
 
     public MoveEvent() {}
 
+    public MoveEvent(int rawServerValue, int pos, int newPos) {
+        super();
+        this.rawServerValue = rawServerValue;
+        this.oldPosition = pos;
+        this.newPosition = newPos;
+        this.tankID = -1;
+    }
+
     @Override
     void applyTo(int[][] board) {
 //        Log.d("Move Event", "MOVING");

@@ -49,6 +49,7 @@ public abstract class Playable extends FieldEntity {
     protected Direction direction;
 
     protected boolean hasSoldier;
+    protected boolean isHealing;
 
     public Playable(long id, Direction direction, String ip) {
         this.id = id;
@@ -187,6 +188,14 @@ public abstract class Playable extends FieldEntity {
 
     public void sethasSoldier(boolean set){
         hasSoldier = set;
+    }
+
+    public boolean getHealing(){
+        return isHealing;
+    }
+
+    public void setHealing(boolean set){
+        isHealing = set;
     }
 
     public int getBulletDamage() {

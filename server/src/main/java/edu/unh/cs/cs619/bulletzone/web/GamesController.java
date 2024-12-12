@@ -1,6 +1,8 @@
 package edu.unh.cs.cs619.bulletzone.web;
 
+import org.apache.commons.lang3.tuple.Triple;
 import org.javatuples.Pair;
+import org.javatuples.Triplet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,7 @@ import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.PlayableDoesNotExistException;
-import edu.unh.cs.cs619.bulletzone.util.PlayableWrapper;
+import edu.unh.cs.cs619.bulletzone.model.Ship;
 import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import com.google.common.base.Preconditions;
@@ -97,7 +99,7 @@ class GamesController {
     @RequestMapping(method = RequestMethod.PUT, value = "{playableId}/{playableType}/build/{entity}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     ResponseEntity<BooleanWrapper> build(@PathVariable long playableId, @PathVariable int playableType, @PathVariable String entity)
-            throws TankDoesNotExistException, LimitExceededException {
+            throws TankDoesNotExistException, PlayableDoesNotExistException, LimitExceededException {
         return new ResponseEntity<BooleanWrapper>(
                 new BooleanWrapper(gameRepository.build(playableId, playableType, entity)),
                 HttpStatus.OK

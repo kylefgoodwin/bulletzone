@@ -59,6 +59,10 @@ public abstract class FieldEntity {
 
     public boolean isFactory(){return getIntValue() == 920;}
 
+    public boolean isWater(){
+        int value = getIntValue();
+        return value == 4004;}
+
     public boolean isIndestructibleWall(){return getIntValue() == Integer.MAX_VALUE;}
 }
 

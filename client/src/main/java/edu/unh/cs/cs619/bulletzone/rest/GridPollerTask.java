@@ -148,6 +148,11 @@ public class GridPollerTask {
                                 userHasFacility.put(ownerId, true); // Mark that the user owns this facility
 
                             }
+                            // Check for mining facility
+                            if (value == 930) {
+                                ItemLocation factory = new ItemLocation(value, i, j);
+
+                            }
                         }
                     }
 
@@ -258,7 +263,7 @@ public class GridPollerTask {
                     if (currentTime < playerData.getRepairKitExpiration()) {
                         // If health isn't full, send request to server to get updated health
                         if (oldLife < 100) {
-                            clientController.getLifeAsync(tankId, 1);
+                            clientController.getLifeAsync(tankId, 0);
                             Log.d(TAG, "Repair kit active, requesting health update. Current health: " + oldLife);
                         }
                     } else {
@@ -268,16 +273,16 @@ public class GridPollerTask {
                     }
                 } else {
                     // Normal health update when no repair kit
-                    clientController.getLifeAsync(tankId, 1);
+                    clientController.getLifeAsync(tankId, 0);
                 }
 
                 // Update builder and soldier health as needed
                 if (playerData.getBuilderNumber() > 0) {
-                    clientController.getLifeAsync(tankId, 2);
+                    clientController.getLifeAsync(tankId, 1);
                 }
 
                 if (playerData.getSoldierEjected()) {
-                    clientController.getLifeAsync(tankId, 3);
+                    clientController.getLifeAsync(tankId, 2);
                 }
             }
         } catch (Exception e) {

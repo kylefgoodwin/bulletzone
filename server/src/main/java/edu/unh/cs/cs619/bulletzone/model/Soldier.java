@@ -19,7 +19,7 @@ public class Soldier extends Playable {
     public Soldier(long id, Direction direction, String ip) {
         super(id, direction, ip);
         life = 25;  // Soldiers start with 25 life points
-        playableType = 3;
+        playableType = 2;
 
         numberOfBullets = 0;
         allowedFireInterval = 250;  // Minimum 250 ms between shots
@@ -79,7 +79,7 @@ public class Soldier extends Playable {
         }
         EventBus.getDefault().post(new HitEvent(
                 (int) id,
-                3,
+                playableType,
                 powerUpManager.getShieldHealth(),
                 finalDamage
         ));

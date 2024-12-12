@@ -1,8 +1,13 @@
 package edu.unh.cs.cs619.bulletzone.repository;
 
 import org.greenrobot.eventbus.EventBus;
+import org.javatuples.Pair;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -18,8 +23,14 @@ import edu.unh.cs.cs619.bulletzone.model.FieldEntity;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
 import edu.unh.cs.cs619.bulletzone.model.MiningFacility;
+import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Road;
+import edu.unh.cs.cs619.bulletzone.model.Ship;
+import edu.unh.cs.cs619.bulletzone.model.Soldier;
+import edu.unh.cs.cs619.bulletzone.model.Tank;
 import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
+import edu.unh.cs.cs619.bulletzone.model.PlayableDoesNotExistException;
+import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
@@ -27,6 +38,7 @@ import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 public class BuildCommand implements Command {
     Game game;
     long builderId;
+    int playableType;
     String entity;
     private int miningFacilityCount = 0;
     private static final int FIELD_DIM = 16;
@@ -41,19 +53,29 @@ public class BuildCommand implements Command {
      *
      * @param builderId which builder to build
      */
-    public BuildCommand(long builderId, Game game, String entity) {
+    public BuildCommand(long builderId, int playableType, Game game, String entity) {
         this.game = game;
         this.entity = entity;
         this.builderId = builderId;
+        this.playableType = playableType;
     }
 
     /**
      * @return true if block is built
      * @throws TankDoesNotExistException if builder doesn't exist
+     * @throws PlayableDoesNotExistException
      */
     @Override
-    public boolean execute() throws TankDoesNotExistException {
-        Builder builder = game.getBuilders().get(builderId);
+    public boolean execute() throws TankDoesNotExistException, PlayableDoesNotExistException {
+        Playable builder = null;
+        if (playableType == 1) {
+            builder = game.getBuilders().get(builderId);
+        } else if (playableType == 4){
+            builder = game.getFactories().get(builderId);
+        } else {
+            builder = game.getShips().get(builderId);
+        }
+
         if (builder == null) {
             throw new TankDoesNotExistException(builderId);
         }
@@ -77,16 +99,16 @@ public class BuildCommand implements Command {
             int row = fieldIndex / FIELD_DIM;
             int col = fieldIndex % FIELD_DIM;
 
-            // Check if the tank is at the gameboard edges and trying to move out of bounds
-            boolean isAtLeftEdge = (col == 0) && direction == Direction.Left;
-            boolean isAtRightEdge = (col == FIELD_DIM - 1) && direction == Direction.Right;
-            boolean isAtTopEdge = (row == 0) && direction == Direction.Up;
-            boolean isAtBottomEdge = (row == FIELD_DIM - 1) && direction == Direction.Down;
-
-            if (isAtLeftEdge || isAtRightEdge || isAtTopEdge || isAtBottomEdge) {
-                System.out.println("Next field is out of bounds, building blocked.");
-                return false;
-            }
+//            // Check if the tank is at the gameboard edges and trying to move out of bounds
+//            boolean isAtLeftEdge = (col == 0) && direction == Direction.Left;
+//            boolean isAtRightEdge = (col == FIELD_DIM - 1) && direction == Direction.Right;
+//            boolean isAtTopEdge = (row == 0) && direction == Direction.Up;
+//            boolean isAtBottomEdge = (row == FIELD_DIM - 1) && direction == Direction.Down;
+//
+//            if (isAtLeftEdge || isAtRightEdge || isAtTopEdge || isAtBottomEdge) {
+//                System.out.println("Next field is out of bounds, building blocked.");
+//                return false;
+//            }
 
             // Check if the tank is visible on the field (just to prevent weird cases)
             if (!isVisible) {
@@ -97,7 +119,7 @@ public class BuildCommand implements Command {
             int currentIndex = currentField.getPosition();
             int currentValue = currentField.getEntity().getIntValue();
             if (Objects.equals(entity, "destructibleWall")) {
-                if (balance.getBalance() >= 80.0) {
+                if (balance.getBalance() >= 80.0 && playableType == 1) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -117,7 +139,7 @@ public class BuildCommand implements Command {
                     System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
                     return false;
                 }
-            } else if (Objects.equals(entity, "indestructibleWall")) {
+            } else if (Objects.equals(entity, "indestructibleWall") && playableType == 1) {
 
                 if (balance.getBalance() >= 150.0) {
                     long millis = System.currentTimeMillis();
@@ -141,7 +163,7 @@ public class BuildCommand implements Command {
                 }
             } else if (Objects.equals(entity, "miningFacility")) {
 
-                if (balance.getBalance() >= 300.0) {
+                if (balance.getBalance() >= 300.0 && playableType == 1) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -169,7 +191,9 @@ public class BuildCommand implements Command {
 
             } else if (Objects.equals(entity, "road")) {
 
-                if (balance.getBalance() >= 40.0) {
+                boolean isTerrainField = nextField.isTerrainPresent();
+                Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
+                if (balance.getBalance() >= 40.0 && (isTerrainField && t != null && !t.isWater()) && playableType == 1 ) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -190,8 +214,9 @@ public class BuildCommand implements Command {
                     return false;
                 }
             } else if (Objects.equals(entity, "deck")) {
-
-                if (balance.getBalance() >= 80.0) {
+                boolean isTerrainField = nextField.isTerrainPresent();
+                Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
+                if (balance.getBalance() >= 80.0 && (isTerrainField && t != null && t.isWater()) && playableType == 1 ) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -211,9 +236,10 @@ public class BuildCommand implements Command {
                     System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
                     return false;
                 }
-            } else if (Objects.equals(entity, "bridge")) {
-
-                if (balance.getBalance() >= 120.0) {
+            } else if (Objects.equals(entity, "bridge") ) {
+                boolean isTerrainField = nextField.isTerrainPresent();
+                Terrain t = isTerrainField ? (Terrain) nextField.getTerrainEntityHolder() : null;
+                if (balance.getBalance() >= 120.0 && (isTerrainField && t != null && t.isWater()) && playableType == 1 ) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -221,7 +247,7 @@ public class BuildCommand implements Command {
                         System.out.println("Building...");
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
-                    Bridge bridge = new Bridge();
+                    Bridge bridge = new Bridge(903, nextIndex);
                     game.getHolderGrid().get(nextIndex).setFieldEntity(bridge);
                     double credits = -120.0;
 //                    balance.modifyBalance(credits);
@@ -235,7 +261,7 @@ public class BuildCommand implements Command {
                 }
             } else if (Objects.equals(entity, "factory")) {
 
-                if (balance.getBalance() >= 250.0) {
+                if (balance.getBalance() >= 250.0 && playableType == 1) {
                     long millis = System.currentTimeMillis();
                     builder.setLastBuildTime(System.currentTimeMillis());
                     builder.startBuilding();
@@ -243,13 +269,330 @@ public class BuildCommand implements Command {
                         System.out.println("Building...");
                         builder.setLastBuildTime(System.currentTimeMillis());
                     }
-                    Factory factory = new Factory();
+                    Factory factory = new Factory(builderId, Direction.Up, builder.getIp());
+                    // Place the soldier on the grid
+                    int oldPos = builder.getPosition();
+                    nextField.setFieldEntity(factory);
+                    factory.setParent(nextField);
+                    int newPos = factory.getPosition();
+                    game.addFactory(builder.getIp(), factory);
                     game.getHolderGrid().get(nextIndex).setFieldEntity(factory);
                     double credits = -250.0;
 //                    balance.modifyBalance(credits);
                     game.modifyBalance(builderId, credits);
                     builder.stopBuilding();
-                    EventBus.getDefault().post(new SpawnEvent(factory.getIntValue(), nextIndex));
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
+                    return false;
+                }
+            } else if (Objects.equals(entity, "tank")) {
+
+                if (balance.getBalance() >= 600.0 && playableType == 4) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Tank tank;
+
+                    if ((game.getTank(builderId)) != null) {
+                        return false;
+                    }
+
+                    tank = new Tank(builderId, Direction.Up, builder.getIp());
+                    // Check if the destination field is empty
+                    if (!nextField.isPresent()) {
+                        // Place soldier in the intended neighboring field
+                        int oldPos = builder.getPosition();
+                        nextField.setFieldEntity(tank);
+                        tank.setParent(nextField);
+                        int newPos = tank.getPosition();
+                    } else {
+                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
+                        if (emptyNeighbor.isPresent()) {
+                            FieldHolder alternativeField = emptyNeighbor.get();
+                            int oldPos = builder.getPosition();
+                            alternativeField.setFieldEntity(tank);
+                            tank.setParent(alternativeField);
+                            int newPos = tank.getPosition();
+                        }
+                    }
+
+
+                    game.addTank(builder.getIp(), tank);
+                    double credits = -600.0;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    return true;
+                } else if (playableType == 3) {
+                    if (balance.getBalance() < 1000.0) {
+                        game.modifyBalance(builderId, 1000);
+                    }
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Tank tank;
+
+                    if ((game.getTank(builderId)) != null) {
+                        return false;
+                    }
+
+                    tank = new Tank(builderId, Direction.Up, builder.getIp());
+
+                    if (!nextField.isPresent()) {
+                        // Place soldier in the intended neighboring field
+                        int oldPos = builder.getPosition();
+                        nextField.setFieldEntity(tank);
+                        tank.setParent(nextField);
+                        int newPos = tank.getPosition();
+                    } else {
+                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
+                        if (emptyNeighbor.isPresent()) {
+                            FieldHolder alternativeField = emptyNeighbor.get();
+                            int oldPos = builder.getPosition();
+                            alternativeField.setFieldEntity(tank);
+                            tank.setParent(alternativeField);
+                            int newPos = tank.getPosition();
+                        }
+                    }
+
+                    game.addTank(builder.getIp(), tank);
+                    double credits = -1000;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
+                    return false;
+                }
+            } else if (Objects.equals(entity, "builder")) {
+
+                if (balance.getBalance() >= 500.0 && playableType == 4) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Builder builder2;
+
+                    if ((game.getBuilder(builderId)) != null) {
+                        return false;
+                    }
+
+                    builder2 = new Builder(builderId, Direction.Up, builder.getIp());
+                    // Check if the destination field is empty
+                    if (!nextField.isPresent()) {
+                        // Place soldier in the intended neighboring field
+                        int oldPos = builder.getPosition();
+                        nextField.setFieldEntity(builder2);
+                        builder2.setParent(nextField);
+                        int newPos = builder2.getPosition();
+                    } else {
+                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
+                        if (emptyNeighbor.isPresent()) {
+                            FieldHolder alternativeField = emptyNeighbor.get();
+                            int oldPos = builder.getPosition();
+                            alternativeField.setFieldEntity(builder2);
+                            builder2.setParent(alternativeField);
+                            int newPos = builder2.getPosition();
+                        }
+                    }
+
+
+                    game.addBuilder(builder.getIp(), builder2);
+                    double credits = -500.0;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    return true;
+                } else if (playableType == 3) {
+                    if (balance.getBalance() < 1000.0) {
+                        game.modifyBalance(builderId, 1000);
+                    }
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Builder builder2;
+
+                    if ((game.getBuilder(builderId)) != null) {
+                        return false;
+                    }
+
+                    builder2 = new Builder(builderId, Direction.Up, builder.getIp());
+
+                    if (!nextField.isPresent()) {
+                        // Place soldier in the intended neighboring field
+                        int oldPos = builder.getPosition();
+                        nextField.setFieldEntity(builder2);
+                        builder2.setParent(nextField);
+                        int newPos = builder2.getPosition();
+                    } else {
+                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
+                        if (emptyNeighbor.isPresent()) {
+                            FieldHolder alternativeField = emptyNeighbor.get();
+                            int oldPos = builder.getPosition();
+                            alternativeField.setFieldEntity(builder2);
+                            builder2.setParent(alternativeField);
+                            int newPos = builder2.getPosition();
+                        }
+                    }
+
+                    game.addBuilder(builder.getIp(), builder2);
+                    double credits = -1000;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
+                    return false;
+                }
+            } else if (Objects.equals(entity, "soldier")) {
+
+                if (balance.getBalance() >= 200.0 && playableType == 4) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Soldier soldier;
+
+                    if ((game.getSoldier(builderId)) != null) {
+                        return false;
+                    }
+
+                    soldier = new Soldier(builderId, Direction.Up, builder.getIp());
+                    // Check if the destination field is empty
+                    if (!nextField.isPresent()) {
+                        // Place soldier in the intended neighboring field
+                        int oldPos = builder.getPosition();
+                        nextField.setFieldEntity(soldier);
+                        soldier.setParent(nextField);
+                        int newPos = soldier.getPosition();
+                        builder.sethasSoldier(true);
+                    } else {
+                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
+                        if (emptyNeighbor.isPresent()) {
+                            FieldHolder alternativeField = emptyNeighbor.get();
+                            int oldPos = builder.getPosition();
+                            alternativeField.setFieldEntity(soldier);
+                            soldier.setParent(alternativeField);
+                            int newPos = soldier.getPosition();
+                            builder.sethasSoldier(true);
+                        }
+                    }
+
+                    game.addSoldier(builder.getIp(), soldier);
+                    double credits = -200.0;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    return true;
+                } else if (playableType == 3) {
+                    if (balance.getBalance() < 1000.0) {
+                        game.modifyBalance(builderId, 1000);
+                    }
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Soldier soldier;
+
+                    if ((game.getSoldier(builderId)) != null) {
+                        return false;
+                    }
+
+                    soldier = new Soldier(builderId, Direction.Up, builder.getIp());
+
+                    if (!nextField.isPresent()) {
+                        // Place soldier in the intended neighboring field
+                        int oldPos = builder.getPosition();
+                        nextField.setFieldEntity(soldier);
+                        soldier.setParent(nextField);
+                        int newPos = soldier.getPosition();
+                        builder.sethasSoldier(true);
+                    } else {
+                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
+                        if (emptyNeighbor.isPresent()) {
+                            FieldHolder alternativeField = emptyNeighbor.get();
+                            int oldPos = builder.getPosition();
+                            alternativeField.setFieldEntity(soldier);
+                            soldier.setParent(alternativeField);
+                            int newPos = soldier.getPosition();
+                            builder.sethasSoldier(true);
+                        }
+                    }
+
+                    game.addSoldier(builder.getIp(), soldier);
+                    double credits = -1000;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
+                    return true;
+                } else {
+                    System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
+                    return false;
+                }
+            } else if (Objects.equals(entity, "ship")) {
+
+                if (balance.getBalance() >= 400.0 && playableType == 4) {
+                    long millis = System.currentTimeMillis();
+                    builder.setLastBuildTime(System.currentTimeMillis());
+                    builder.startBuilding();
+                    while (builder.getLastBuildTime() - millis < built) {
+                        System.out.println("Building...");
+                        builder.setLastBuildTime(System.currentTimeMillis());
+                    }
+                    Ship ship;
+
+                    if ((game.getShip(builderId)) != null) {
+                        return false;
+                    }
+
+                    ship = new Ship(builderId, Direction.Up, builder.getIp());
+                    if (!nextField.isPresent()) {
+                        // Place soldier in the intended neighboring field
+                        int oldPos = builder.getPosition();
+                        nextField.setFieldEntity(ship);
+                        ship.setParent(nextField);
+                        int newPos = ship.getPosition();
+                    } else {
+                        Optional<FieldHolder> emptyNeighbor = getEmptyNeighbor(currentField);
+                        if (emptyNeighbor.isPresent()) {
+                            FieldHolder alternativeField = emptyNeighbor.get();
+                            int oldPos = builder.getPosition();
+                            alternativeField.setFieldEntity(ship);
+                            ship.setParent(alternativeField);
+                            int newPos = ship.getPosition();
+                        }
+                    }
+
+
+                    game.addShip(builder.getIp(), ship);
+                    double credits = -400.0;
+//                    balance.modifyBalance(credits);
+                    game.modifyBalance(builderId, credits);
+                    builder.stopBuilding();
                     return true;
                 } else {
                     System.out.println("You don't have enough credits: " + balance.getBalance() + ", building blocked.");
@@ -412,6 +755,24 @@ public class BuildCommand implements Command {
         }
 
         return true;
+    }
+
+    /**
+     * Finds open surrounding squares around the tank's current field.
+     *
+     * @param fieldHolder The current field of the tank.
+     * @return A list of open FieldHolders in the surrounding squares.
+     */
+    private Optional<FieldHolder> getEmptyNeighbor(FieldHolder fieldHolder) {
+        Map<Direction, FieldHolder> neighbors = fieldHolder.getNeighborsMap();
+        for (Map.Entry<Direction, FieldHolder> entry : neighbors.entrySet()) {
+            FieldHolder neighbor = entry.getValue();
+            // Check if the neighbor is non-null and has no entity present
+            if (neighbor != null && !neighbor.isPresent()) {
+                return Optional.of(neighbor); // Return the first empty neighbor found
+            }
+        }
+        return Optional.empty(); // No empty neighbors found
     }
 
     private void startCreditTask(Game game, long facilityId) {

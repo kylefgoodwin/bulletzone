@@ -29,6 +29,7 @@ public class PlayerData {
     // Health and status
     private boolean soldierEjected = false;
     private int tankLife = 100;
+    private int shipLife = 100;
     private int builderLife = 80;
     private int soldierLife = 25;
     private long initialTimeStamp;
@@ -51,6 +52,7 @@ public class PlayerData {
     private boolean onHillyTerrain = false;
     private boolean onForestTerrain = false;
     private boolean onRockyTerrain = false;
+    private boolean onWaterTerrain = false;
 
     // Application Context
     private Context context;
@@ -77,6 +79,7 @@ public class PlayerData {
         improvementNumber = 0;
         soldierEjected = false;
         tankLife = 100;
+        shipLife = 100;
         builderLife = 80;
         soldierLife = 25;
         tankMap = new int[5];
@@ -106,7 +109,7 @@ public class PlayerData {
         updateMovementAndCombatRates();
     }
 
-    public void setTerrainState(boolean hilly, boolean forest, boolean rocky) {
+    public void setTerrainState(boolean hilly, boolean forest, boolean rocky, boolean water) {
         boolean terrainChanged = (onHillyTerrain != hilly || onForestTerrain != forest || onRockyTerrain != rocky);
 
         if (terrainChanged) {
@@ -117,6 +120,7 @@ public class PlayerData {
             onHillyTerrain = hilly;
             onForestTerrain = forest;
             onRockyTerrain = rocky;
+            onWaterTerrain = water;
 
             Log.d(TAG, "New terrain state - Hilly: " + hilly +
                     " Forest: " + forest +
@@ -282,6 +286,7 @@ public class PlayerData {
     public int getTankLife() { return tankLife; }
     public int getBuilderLife() { return builderLife; }
     public int getSoldierLife() { return soldierLife; }
+    public int getShipLife() { return shipLife; }
     public int getDeflectorShieldCount() { return deflectorShieldCount; }
     public int getRepairKitCount() { return repairKitCount; }
     public int getShieldHealth() { return shieldHealth; }
@@ -323,7 +328,7 @@ public class PlayerData {
         fireInterval = 1500;
 
         // Apply terrain effects
-        if (playableType == 1) { // Tank
+        if (playableType == 0) { // Tank
             if (isHilly) {
                 moveInterval = (int)(moveInterval * 1.5); // 50% slower movement
             }
@@ -331,11 +336,11 @@ public class PlayerData {
                 moveInterval = moveInterval * 2; // 100% slower movement
                 fireInterval = (int)(fireInterval * 1.5); // 50% slower firing
             }
-        } else if (playableType == 2) { // Builder
+        } else if (playableType == 1) { // Builder
             if (isRocky) {
                 moveInterval = (int)(moveInterval * 1.5); // 50% slower movement
             }
-        } else if (playableType == 3) { // Soldier
+        } else if (playableType == 2) { // Soldier
             if (isForest) {
                 moveInterval = (int)(moveInterval * 1.25); // 25% slower movement
             }
@@ -395,6 +400,7 @@ public class PlayerData {
     public void setTankLife(int tankLife) { this.tankLife = tankLife; }
     public void setBuilderLife(int builderLife) { this.builderLife = builderLife; }
     public void setSoldierLife(int soldierLife) { this.soldierLife = soldierLife; }
+    public void setShipLife(int shipLife) { this.shipLife = shipLife; }
     public void setMoveInterval(int interval) { this.moveInterval = interval; }
     public void setFireInterval(int interval) { this.fireInterval = interval; }
     public void setInitialTimeStamp(long timeStamp) { this.initialTimeStamp = timeStamp; }

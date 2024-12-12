@@ -62,7 +62,7 @@ public class Ship extends Playable {
         }
         EventBus.getDefault().post(new HitEvent(
                 (int) id,
-                4,
+                3,
                 powerUpManager.getShieldHealth(),
                 finalDamage
         ));
