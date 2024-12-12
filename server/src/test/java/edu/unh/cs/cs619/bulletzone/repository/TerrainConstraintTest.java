@@ -29,6 +29,7 @@ import edu.unh.cs.cs619.bulletzone.model.Bullet;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.IllegalTransitionException;
+import edu.unh.cs.cs619.bulletzone.model.Improvement;
 import edu.unh.cs.cs619.bulletzone.model.LimitExceededException;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
 import edu.unh.cs.cs619.bulletzone.model.Ship;
@@ -338,6 +339,171 @@ public class TerrainConstraintTest {
         Assert.assertFalse(result); // Movement should fail due to meadow terrain
         verify(currentField, never()).clearField();
         verify(nextField, never()).setFieldEntity(ship);
+    }
+
+    @Test
+    public void testMoveShipToBridge_Succeeds() throws Exception {
+        // Arrange
+        Ship ship = new Ship(1L, Direction.Up, tankIp);
+        ship.setAllowedMoveInterval(1000); // 1 second delay between moves
+        ship.setLastMoveTime(System.currentTimeMillis());
+
+        FieldHolder currentField = mock(FieldHolder.class);
+        FieldHolder nextField = mock(FieldHolder.class);
+        Terrain waterTerrain = mock(Terrain.class);
+
+        ship.setParent(currentField);
+
+        // Mock behaviors
+        when(currentField.getNeighbor(Direction.Up)).thenReturn(nextField);
+        when(nextField.isTerrainPresent()).thenReturn(true);
+        when(nextField.getEntity().isBridge()).thenReturn(true);
+        when(nextField.getTerrainEntityHolder()).thenReturn(waterTerrain);
+        when(waterTerrain.isWater()).thenReturn(true);
+
+        // Act
+        MoveCommand moveCommand = new MoveCommand(ship, 3, game, Direction.Up, System.currentTimeMillis() + 1001);
+        boolean result = moveCommand.execute();
+
+        // Debugging the result
+        System.out.println("Result of execute(): " + result);
+
+        // Assert
+        Assert.assertTrue("The ship should have moved successfully.", result); // Ship should succeed in moving to the water terrain
+        verify(currentField).clearField();
+        verify(nextField).setFieldEntity(ship);
+    }
+
+    @Test
+    public void testMoveShipToDeck_Fails() throws Exception {
+        // Arrange
+        Ship ship = new Ship(1L, Direction.Up, tankIp);
+        ship.setAllowedMoveInterval(1000); // 1 second delay between moves
+        ship.setLastMoveTime(System.currentTimeMillis());
+
+        FieldHolder currentField = mock(FieldHolder.class);
+        FieldHolder nextField = mock(FieldHolder.class);
+        Terrain waterTerrain = mock(Terrain.class);
+
+        ship.setParent(currentField);
+
+        // Mock behaviors
+        when(currentField.getNeighbor(Direction.Up)).thenReturn(nextField);
+        when(nextField.isTerrainPresent()).thenReturn(true);
+        when(nextField.getEntity().isDeck()).thenReturn(true);
+        when(nextField.getTerrainEntityHolder()).thenReturn(waterTerrain);
+        when(waterTerrain.isWater()).thenReturn(true);
+
+        // Act
+        MoveCommand moveCommand = new MoveCommand(ship, 3, game, Direction.Up, System.currentTimeMillis() + 1001);
+        boolean result = moveCommand.execute();
+
+        // Debugging the result
+        System.out.println("Result of execute(): " + result);
+
+        // Assert
+        Assert.assertFalse(result); // Movement should fail due to meadow terrain
+        verify(currentField, never()).clearField();
+        verify(nextField, never()).setFieldEntity(ship);
+    }
+
+    @Test
+    public void testMoveTankToBridge_Succeeds() throws Exception {
+        // Arrange
+        Tank tank = new Tank(1L, Direction.Up, tankIp);
+        tank.setAllowedMoveInterval(1000); // 1 second delay between moves
+        tank.setLastMoveTime(System.currentTimeMillis());
+
+        FieldHolder currentField = mock(FieldHolder.class);
+        FieldHolder nextField = mock(FieldHolder.class);
+        Terrain waterTerrain = mock(Terrain.class);
+
+        tank.setParent(currentField);
+
+        // Mock behaviors
+        when(currentField.getNeighbor(Direction.Up)).thenReturn(nextField);
+        when(nextField.isTerrainPresent()).thenReturn(true);
+        when(nextField.getEntity().isBridge()).thenReturn(true);
+        when(nextField.getTerrainEntityHolder()).thenReturn(waterTerrain);
+        when(waterTerrain.isWater()).thenReturn(true);
+
+        // Act
+        MoveCommand moveCommand = new MoveCommand(tank, 0, game, Direction.Up, System.currentTimeMillis() + 1001);
+        boolean result = moveCommand.execute();
+
+        // Debugging the result
+        System.out.println("Result of execute(): " + result);
+
+        // Assert
+        Assert.assertTrue("The tank should have moved successfully.", result); // Ship should succeed in moving to the water terrain
+        verify(currentField).clearField();
+        verify(nextField).setFieldEntity(tank);
+    }
+
+    @Test
+    public void testMoveTankToDeck_Succeeds() throws Exception {
+        // Arrange
+        Tank tank = new Tank(1L, Direction.Up, tankIp);
+        tank.setAllowedMoveInterval(1000); // 1 second delay between moves
+        tank.setLastMoveTime(System.currentTimeMillis());
+
+        FieldHolder currentField = mock(FieldHolder.class);
+        FieldHolder nextField = mock(FieldHolder.class);
+        Terrain waterTerrain = mock(Terrain.class);
+
+        tank.setParent(currentField);
+
+        // Mock behaviors
+        when(currentField.getNeighbor(Direction.Up)).thenReturn(nextField);
+        when(nextField.isTerrainPresent()).thenReturn(true);
+        when(nextField.getEntity().isDeck()).thenReturn(true);
+        when(nextField.getTerrainEntityHolder()).thenReturn(waterTerrain);
+        when(waterTerrain.isWater()).thenReturn(true);
+
+        // Act
+        MoveCommand moveCommand = new MoveCommand(tank, 0, game, Direction.Up, System.currentTimeMillis() + 1001);
+        boolean result = moveCommand.execute();
+
+        // Debugging the result
+        System.out.println("Result of execute(): " + result);
+
+        // Assert
+        Assert.assertTrue("The tank should have moved successfully.", result); // Ship should succeed in moving to the water terrain
+        verify(currentField).clearField();
+        verify(nextField).setFieldEntity(tank);
+    }
+
+    @Test
+    public void testMoveTankToRoad_Succeeds() throws Exception {
+        // Arrange
+        Tank tank = new Tank(1L, Direction.Up, tankIp);
+        tank.setAllowedMoveInterval(1000); // 1 second delay between moves
+        tank.setLastMoveTime(System.currentTimeMillis());
+
+        FieldHolder currentField = mock(FieldHolder.class);
+        FieldHolder nextField = mock(FieldHolder.class);
+        Terrain meadowTerrain = mock(Terrain.class);
+
+        tank.setParent(currentField);
+
+        // Mock behaviors
+        when(currentField.getNeighbor(Direction.Up)).thenReturn(nextField);
+        when(nextField.isTerrainPresent()).thenReturn(true);
+        when(nextField.getEntity().isRoad()).thenReturn(true);
+        when(nextField.getTerrainEntityHolder()).thenReturn(meadowTerrain);
+        when(meadowTerrain.isMeadow()).thenReturn(true);
+
+        // Act
+        MoveCommand moveCommand = new MoveCommand(tank, 0, game, Direction.Up, System.currentTimeMillis() + 1001);
+        boolean result = moveCommand.execute();
+
+        // Debugging the result
+        System.out.println("Result of execute(): " + result);
+
+        // Assert
+        Assert.assertTrue("The tank should have moved successfully.", result); // Ship should succeed in moving to the water terrain
+        verify(currentField).clearField();
+        verify(nextField).setFieldEntity(tank);
     }
 
 }
