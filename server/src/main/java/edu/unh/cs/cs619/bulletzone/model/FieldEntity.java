@@ -35,11 +35,12 @@ public abstract class FieldEntity {
     }
 
     public boolean isTerrain(){
-        return getIntValue() >= 4000 && getIntValue() <= 4003;
+        return getIntValue() >= 4000 && getIntValue() <= 4004;
     }
 
-    public boolean isItem(){
-        return getIntValue() >= 3001 && getIntValue() <= 3003;
+    public boolean isItem() {
+        int value = getIntValue();
+        return value >= 3001 && value <= 3005;  // Updated range to include all power-ups
     }
 
     public boolean isPlayable(){
@@ -47,6 +48,20 @@ public abstract class FieldEntity {
     }
 
     public boolean isMiningFacility(){return getIntValue() == 920;}
+
+    public boolean isImprovement(){return getIntValue() == 902 || getIntValue() == 903 || getIntValue() == 920;}
+
+    public boolean isRoad(){return getIntValue() == 902;}
+
+    public boolean isBridge(){return getIntValue() == 903;}
+
+    public boolean isDeck(){return getIntValue() == 904;}
+
+    public boolean isFactory(){return getIntValue() == 920;}
+
+    public boolean isWater(){
+        int value = getIntValue();
+        return value == 4004;}
 
     public boolean isIndestructibleWall(){return getIntValue() == Integer.MAX_VALUE;}
 }

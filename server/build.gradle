@@ -53,6 +53,7 @@ dependencies {
     extraLibs group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.1.2'
     implementation 'org.javatuples:javatuples:1.2'
     implementation 'org.javatuples:javatuples:1.2'
+    implementation 'org.javatuples:javatuples:1.2'
 
     testImplementation 'junit:junit:4.+'
     testImplementation 'org.hamcrest:hamcrest-library:2.2'

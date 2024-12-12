@@ -12,12 +12,16 @@ public class MoveEvent extends GameEvent {
     @JsonProperty
     private int newPosition;
 
+    @JsonProperty
+    private int tankID; // If this is set, it is the tank to show the move to, everyone else should see nothing
+
     public MoveEvent() {}
 
     public MoveEvent(int rawServerValue, int pos, int newPos) {
         this.rawServerValue = rawServerValue;
         this.oldPosition = pos;
         this.newPosition = newPos;
+        this.tankID = -1;
     }
 
     @Override
@@ -32,5 +36,13 @@ public class MoveEvent extends GameEvent {
                 " from " + oldPosition +
                 " to " + newPosition +
                 super.toString();
+    }
+
+    public void setTankID(int tankID) {
+        this.tankID = tankID;
+    }
+
+    public int getTankID() {
+        return this.tankID;
     }
 }

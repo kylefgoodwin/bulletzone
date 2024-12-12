@@ -9,21 +9,35 @@ public class HitEvent extends GameEvent {
     @JsonProperty
     private int playableType;
 
-    public HitEvent() {}
+    @JsonProperty
+    private int shieldHealth;
+
+    @JsonProperty
+    private int damage;
+
+    public HitEvent() {} // Required empty constructor for Jackson
+
+    public HitEvent(int playableId, int playableType, int shieldHealth, int damage) {
+        this.playableId = playableId;
+        this.playableType = playableType;
+        this.shieldHealth = shieldHealth;
+        this.damage = damage;
+    }
 
     @Override
     public void applyTo(int[][] board) {
-
-    }
-
-    public HitEvent(int playableId, int playableType) {
-        this.playableId = playableId;
-        this.playableType = playableType;
+        // No board update needed for hit events
     }
 
     @Override
     public String toString() {
-        return "Player's : " + playableId +  playableType + " Hit " +
-                super.toString();
+        return "Player's : " + playableId + playableType + " Hit with damage " + damage +
+                " (Shield: " + shieldHealth + ") " + super.toString();
     }
+
+    // Getters
+    public int getPlayableId() { return playableId; }
+    public int getPlayableType() { return playableType; }
+    public int getShieldHealth() { return shieldHealth; }
+    public int getDamage() { return damage; }
 }

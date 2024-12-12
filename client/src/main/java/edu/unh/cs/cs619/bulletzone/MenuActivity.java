@@ -48,6 +48,7 @@ public class MenuActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         fileHelper = new FileHelper(this);
+        playerData.setContext(getApplicationContext());
         Log.e(TAG, "onCreate");
     }
 

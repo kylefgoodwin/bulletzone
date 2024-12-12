@@ -19,7 +19,8 @@ import edu.unh.cs.cs619.bulletzone.R;
 import edu.unh.cs.cs619.bulletzone.TankEventController;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TankEventControllerTest {
+public class
+TankEventControllerTest {
 
     private ClientActivity clientActivity;
     @Mock

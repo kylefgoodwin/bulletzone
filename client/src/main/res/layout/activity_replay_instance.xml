@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#95C462">
 
     <GridView
         android:id="@+id/replaytGridView"
@@ -46,28 +47,30 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="21dp"
-        android:layout_marginTop="205dp"
+        android:layout_marginTop="40dp"
         android:layout_marginEnd="602dp"
-        android:layout_marginBottom="35dp"
+        android:layout_marginBottom="544dp"
         android:text="Back to Replays"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/replayGridView" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.023" />
 
     <Button
         android:id="@+id/playPauseButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="225dp"
-        android:layout_marginTop="57dp"
-        android:layout_marginEnd="53dp"
-        android:layout_marginBottom="183dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="403dp"
+        android:layout_marginEnd="232dp"
+        android:layout_marginBottom="49dp"
         android:text="Play / Pause"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/speedMenu"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/replayGridView" />
+        app:layout_constraintBottom_toTopOf="@+id/replaySpeedText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/replaytGridView"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Spinner
         android:id="@+id/speedMenu"
@@ -79,6 +82,7 @@
         android:layout_marginBottom="183dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/playPauseButton"
         app:layout_constraintTop_toBottomOf="@+id/replaySpeedText" />
 

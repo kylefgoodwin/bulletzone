@@ -211,7 +211,7 @@ public class Constraints {
             if (isVisible) {
                 currentField.clearField();
             }
-            EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+            EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition(), 0));
             trackActiveBullets[bullet.getBulletId()] = 0;
             tank.setNumberOfBullets(tank.getNumberOfBullets() - 1);
             timerTask.cancel();

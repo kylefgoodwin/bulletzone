@@ -8,8 +8,6 @@ package edu.unh.cs.cs619.bulletzone.model;
 
 import org.greenrobot.eventbus.EventBus;
 
-import javax.management.ListenerNotFoundException;
-
 import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.SpawnEvent;
 
@@ -51,6 +49,7 @@ public abstract class Playable extends FieldEntity {
     protected Direction direction;
 
     protected boolean hasSoldier;
+    protected boolean isHealing;
 
     public Playable(long id, Direction direction, String ip) {
         this.id = id;
@@ -89,12 +88,19 @@ public abstract class Playable extends FieldEntity {
         return new Tank(id, direction, ip);
     }
 
+    @Override
     public void hit(int damage) {
-        life -= damage;
-//        System.out.println("Life: " + life + "\n");
+        int finalDamage = powerUpManager.processDamage(damage);
+        life -= finalDamage;
         if (life <= 0) {
-            //handle game over scenario
+            // handle game over
         }
+        EventBus.getDefault().post(new HitEvent(
+                (int) id,
+                playableType,
+                powerUpManager.getShieldHealth(),
+                finalDamage
+        ));
     }
 
     //Getters
@@ -114,7 +120,7 @@ public abstract class Playable extends FieldEntity {
         return lastMoveTime;
     }
 
-    public long getAllowedMoveInterval() {
+    public int getAllowedMoveInterval() {
         return allowedMoveInterval;
     }
 
@@ -182,6 +188,14 @@ public abstract class Playable extends FieldEntity {
 
     public void sethasSoldier(boolean set){
         hasSoldier = set;
+    }
+
+    public boolean getHealing(){
+        return isHealing;
+    }
+
+    public void setHealing(boolean set){
+        isHealing = set;
     }
 
     public int getBulletDamage() {
@@ -264,6 +278,15 @@ public abstract class Playable extends FieldEntity {
         return moveMultiplier;
     }
 
+    public abstract boolean handleTerrainConstraints(Terrain terrain, long millis);
+
+    public abstract boolean handleImprovements(Improvement improvement, long millis);
+
+    public boolean canBuild(){ return false; }
+    public boolean canEjectSoldier(){ return false; }
+    public boolean canShoot(){ return true; }
+    public boolean canAcceptSoldier(){ return false; }
+
 
     public void addPowerUp(Item powerUp) {
         powerUpManager.addPowerUp(powerUp);
@@ -299,26 +322,48 @@ public abstract class Playable extends FieldEntity {
 
     public boolean tryEjectPowerUp(FieldHolder currentField) {
         if (!hasPowerUps()) {
+            System.out.println("No power-ups to eject");
             return false;
         }
 
-        Direction[] directions = {Direction.Up, Direction.Right, Direction.Down, Direction.Left};
+        System.out.println("Attempting to eject power-up");
+        Item powerUp = powerUpManager.ejectLastPowerUp();
 
+        if (powerUp == null) {
+            // Power-up was consumed (like repair kit)
+            System.out.println("Power-up was consumed on ejection");
+            return true;
+        }
+
+        // Try to place in an adjacent cell
+        Direction[] directions = {Direction.Up, Direction.Right, Direction.Down, Direction.Left};
         for (Direction dir : directions) {
             FieldHolder neighbor = currentField.getNeighbor(dir);
-            if (!neighbor.isPresent()) {
-                Item powerUp = ejectPowerUp();
-                if (powerUp != null) {
-                    neighbor.setFieldEntity(powerUp);
-                    powerUp.setParent(neighbor);
-                    EventBus.getDefault().post(new SpawnEvent(powerUp.getIntValue(), neighbor.getPosition()));
-                    return true;
-                }
+            if (neighbor != null && !neighbor.isPresent()) {
+                neighbor.setFieldEntity(powerUp);
+                powerUp.setParent(neighbor);
+                System.out.println("Power-up ejected to board position: " + neighbor.getPosition());
+                EventBus.getDefault().post(new SpawnEvent(powerUp.getIntValue(), neighbor.getPosition()));
+                return true;
             }
         }
 
-        // If no empty square found, just destroy the power-up
-        ejectPowerUp();
+        // No empty space found - destroy power-up
+        System.out.println("No space to eject power-up - destroying it");
         return true;
+    }
+
+    /**
+     * Updates the state of the playable entity.
+     * Called periodically to handle time-based effects and states.
+     */
+    public void update() {
+        long currentTime = System.currentTimeMillis();
+
+        // Update power-up effects if powerUpManager exists
+        if (powerUpManager != null) {
+            powerUpManager.update();
+            updateIntervals();
+        }
     }
 }

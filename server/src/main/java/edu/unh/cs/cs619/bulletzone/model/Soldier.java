@@ -19,7 +19,7 @@ public class Soldier extends Playable {
     public Soldier(long id, Direction direction, String ip) {
         super(id, direction, ip);
         life = 25;  // Soldiers start with 25 life points
-        playableType = 3;
+        playableType = 2;
 
         numberOfBullets = 0;
         allowedFireInterval = 250;  // Minimum 250 ms between shots
@@ -38,7 +38,27 @@ public class Soldier extends Playable {
         allowedDeployInterval = 5000;
 
         recentlyEnteredTank = false;
-        powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        this.powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval, PlayableType.SOLDIER);
+    }
+
+    @Override
+    public boolean handleTerrainConstraints(Terrain terrain, long millis) {
+        if (terrain.isForest() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 1.25))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean handleImprovements(Improvement improvement, long millis) {
+        if (improvement.isRoad() && millis < (getLastMoveTime() + (getAllowedMoveInterval() / 2))) {
+            return false;
+        } else if (improvement.isBridge() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        } else if (improvement.isDeck() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        }
+        return true;
     }
 
     // Copy method for Soldier
@@ -52,13 +72,17 @@ public class Soldier extends Playable {
     // Method to apply damage to the Soldier
     @Override
     public void hit(int damage) {
-        life -= damage;
-        System.out.println("Soldier life: " + id + " : " + life);
+        int finalDamage = powerUpManager.processDamage(damage);
+        life -= finalDamage;
         if (life <= 0) {
             System.out.println("Soldier has been eliminated.");
-            // Handle game over scenario
         }
-        EventBus.getDefault().post(new HitEvent((int) id, 3));
+        EventBus.getDefault().post(new HitEvent(
+                (int) id,
+                playableType,
+                powerUpManager.getShieldHealth(),
+                finalDamage
+        ));
     }
 
     // Method to handle re-entering a tank
@@ -81,7 +105,7 @@ public class Soldier extends Playable {
         }
     }
 
-    @JsonIgnore
+@JsonIgnore
 
     @Override
     public int getIntValue() {

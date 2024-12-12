@@ -4,19 +4,44 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 
-public class RemoveEvent extends GameEvent  implements Serializable {
+import edu.unh.cs.cs619.bulletzone.PlayerData;
+
+public class RemoveEvent extends GameEvent implements Serializable {
     @JsonProperty
     private int rawServerValue;
     @JsonProperty
     private int position;
+    @JsonProperty
+    private int tankID; // The ID of the user who SHOULD see the tank i.e. do not remove for this ID
+    @JsonProperty
+    private long soldierRemove;
 
     private static final long serialVersionUID = 1L;
 
     public RemoveEvent() {}
 
+    public long getSoldierRemove() {
+        return soldierRemove;
+    }
     @Override
     public void applyTo(int[][] board) {
+        if (PlayerData.getPlayerData().getTankId() != soldierRemove) {
+            board[position / 16][position % 16] = 0;
+        }
         board[position / 16][position % 16] = 0;
+    }
+
+    // Add these getters
+    public int getTankID() {
+        return tankID;
+    }
+
+    public int getRawServerValue() {
+        return rawServerValue;
+    }
+
+    public int getPosition() {
+        return position;
     }
 
     @Override
@@ -25,5 +50,4 @@ public class RemoveEvent extends GameEvent  implements Serializable {
                 " at " + position +
                 super.toString();
     }
-
 }

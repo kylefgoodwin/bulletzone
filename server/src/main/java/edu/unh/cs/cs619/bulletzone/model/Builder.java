@@ -18,7 +18,7 @@ public class Builder extends Playable {
     public Builder(long id, Direction direction, String ip) {
         super(id, direction, ip);
         life = 80; // Builders start with 80 life points
-        playableType = 2;
+        playableType = 1;
 
         numberOfBullets = 0;
         allowedFireInterval = 1000;  // Minimum 1 second between shots
@@ -36,7 +36,30 @@ public class Builder extends Playable {
         lastMoveTime = 0;
         moveMultiplier = 1;
 
-        powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval);
+        this.powerUpManager = new PowerUpManager(allowedMoveInterval, allowedFireInterval, PlayableType.BUILDER);
+    }
+
+    @Override
+    public boolean handleTerrainConstraints(Terrain terrain, long millis) {
+        if (terrain.isRocky() && millis < (getLastMoveTime() + (getAllowedMoveInterval() * 1.5))) {
+            return false;
+        }
+        if (terrain.isForest()) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean handleImprovements(Improvement improvement, long millis) {
+        if (improvement.isRoad() && millis < (getLastMoveTime() + (getAllowedMoveInterval() / 2))) {
+            return false;
+        } else if (improvement.isBridge() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        } else if (improvement.isDeck() && millis < (getLastMoveTime() + getAllowedMoveInterval())) {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -46,13 +69,19 @@ public class Builder extends Playable {
 
     @Override
     public void hit(int damage) {
-        life -= damage;
+        int finalDamage = powerUpManager.processDamage(damage);
+        life -= finalDamage;
         if (life <= 0) {
             //handle game over scenario
         }
-        System.out.println("Builder id: " + id + " Builder Life: " + life);
-        EventBus.getDefault().post(new HitEvent((int) id, 2));
+        EventBus.getDefault().post(new HitEvent(
+                (int) id,
+                playableType,
+                powerUpManager.getShieldHealth(),
+                finalDamage
+        ));
     }
+
 
     @JsonIgnore
 

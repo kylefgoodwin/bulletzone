@@ -16,7 +16,7 @@ public class TurnableSoldier extends TankItem {
         int typeVal = (val / tankType) * tankType;
         int scaleFactor = 1000;
 
-        resourceID = R.drawable.soldier;
+        resourceID = R.drawable.goblin_soldier_enemy;
         orientation = (val % 10) - 4;
         cellType = "Soldier";
         tankID = (val - typeVal) / scaleFactor;

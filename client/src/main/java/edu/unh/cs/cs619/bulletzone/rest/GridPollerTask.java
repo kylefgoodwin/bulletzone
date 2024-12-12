@@ -13,13 +13,20 @@ import org.androidannotations.annotations.UiThread;
 import org.androidannotations.rest.spring.annotations.RestService;
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import edu.unh.cs.cs619.bulletzone.ClientController;
+import edu.unh.cs.cs619.bulletzone.PlayerData;
+import edu.unh.cs.cs619.bulletzone.TankEventController;
+import edu.unh.cs.cs619.bulletzone.PlayerData;
 import edu.unh.cs.cs619.bulletzone.events.GameEvent;
 import edu.unh.cs.cs619.bulletzone.events.GameEventProcessor;
+import edu.unh.cs.cs619.bulletzone.events.ItemPickupEvent;
+import edu.unh.cs.cs619.bulletzone.events.MiningCreditsEvent;
 import edu.unh.cs.cs619.bulletzone.events.UpdateBoardEvent;
 import edu.unh.cs.cs619.bulletzone.util.GameEventCollectionWrapper;
 import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
@@ -35,13 +42,21 @@ public class GridPollerTask {
     @Bean
     ClientController clientController;
 
+    @Bean
+    TankEventController tankEventController;
+
+    PlayerData playerData = PlayerData.getPlayerData();
+
     ReplayData replayData = ReplayData.getReplayData();
 
     private long previousTimeStamp = -1;
+    private long lastUpdateTime = System.currentTimeMillis();
     private GameEventProcessor currentProcessor = null;
     private boolean isRunning = true;
+    private long userId = playerData.getUserId();
+    private long playableId = playerData.getTankId();
+    double miningFacilityCount = 0;
 
-    // Custom class to track items with their positions
     private static class ItemLocation {
         final int itemType;
         final int x;
@@ -68,12 +83,14 @@ public class GridPollerTask {
 
         @Override
         public String toString() {
-            return String.format("Item %d at (%d,%d)", itemType, x, y);
+            return String.format("Item %d at (%d,%d)", itemType - 3000, x, y);
         }
     }
 
     private final Set<ItemLocation> itemsPresent = new HashSet<>();
     private final Set<ItemLocation> processedItemPickups = new HashSet<>();
+    Map<ItemLocation, Long> miningFacilityOwners = new HashMap<>();
+    private Map<Long, Long> lastMiningTimestampMap = new HashMap<>();
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Background(id = "grid_poller_task")
@@ -87,7 +104,6 @@ public class GridPollerTask {
             GridWrapper grid = restClient.playerGrid();
             GridWrapper tGrid = restClient.terrainGrid();
             replayData.setInitialGrids(grid, tGrid);
-//            Log.d(TAG, replayData.toString());
             onGridUpdate(grid, tGrid);
             previousTimeStamp = grid.getTimeStamp();
 
@@ -97,33 +113,92 @@ public class GridPollerTask {
                 try {
                     grid = restClient.playerGrid();
                     Set<ItemLocation> currentItems = new HashSet<>();
+                    Map<Long, Boolean> userHasFacility = new HashMap<>();
                     int[][] boardState = grid.getGrid();
+
+                    // Update tank stats periodically (every 1 second)
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastUpdateTime >= 1000) {
+                        updatePlayerStats(boardState);
+                        lastUpdateTime = currentTime;
+                    }
 
                     // Scan board for items and track their locations
                     for (int i = 0; i < boardState.length; i++) {
                         for (int j = 0; j < boardState[i].length; j++) {
                             int value = boardState[i][j];
-                            if (value >= 3000 && value <= 3003) {
+                            // Store actual board values (3001-3005)
+                            if (value >= 3001 && value <= 3005) {
                                 currentItems.add(new ItemLocation(value, i, j));
+                            }
+                            // Check for mining facility
+                            if (value == 920) {
+                                ItemLocation facility = new ItemLocation(value, i, j);
+
+                                // Determine the owner of the facility
+                                Long ownerIdBoxed = miningFacilityOwners.get(facility);
+
+                                if (ownerIdBoxed == null) {
+                                    long newOwnerId = playerData.getUserId(); // Assign userId from playerData if new facility
+                                    miningFacilityOwners.put(facility, newOwnerId);
+                                    ownerIdBoxed = newOwnerId;
+                                }
+
+                                long ownerId = ownerIdBoxed; // Safely unbox after null check
+                                userHasFacility.put(ownerId, true); // Mark that the user owns this facility
+
+                            }
+                            // Check for mining facility
+                            if (value == 930) {
+                                ItemLocation factory = new ItemLocation(value, i, j);
+
                             }
                         }
                     }
 
+                    // Process mining facility ownership
+                    for (Map.Entry<ItemLocation, Long> entry : miningFacilityOwners.entrySet()) {
+                        ItemLocation facility = entry.getKey();
+                        long ownerId = entry.getValue();
+
+                        // Check if the facility is still on the board
+                        if (!Boolean.TRUE.equals(userHasFacility.get(ownerId))) {
+                            Log.d(TAG, "User " + ownerId + " has no mining facilities left on the board. Skipping credit.");
+                            continue;
+                        }
+
+                        if (lastMiningTimestampMap.containsKey(ownerId)) {
+                            long lastAwardTime = lastMiningTimestampMap.get(ownerId);
+                            if (currentTime - lastAwardTime < 1000) {
+                                // If less than 1 second has passed, skip awarding credits
+                                Log.d(TAG, "Skipping mining credit for user " + ownerId + " due to rate limit.");
+                                continue;
+                            }
+                        }
+
+                        // Add credits for the user who owns this facility
+                        tankEventController.addCredits(ownerId, 1.0); // Add 1 credit
+                        EventBus.getDefault().post(new MiningCreditsEvent(1, ownerId, 1.0));
+                        Log.d(TAG, "Added credits for user " + ownerId + " for facility at " + facility);
+
+                        // Update the timestamp for this user to the current time
+                        lastMiningTimestampMap.put(ownerId, currentTime);
+                    }
+
                     // Check for disappeared items (picked up)
                     for (ItemLocation item : itemsPresent) {
-                        if (!currentItems.contains(item) &&
-                                item.itemType >= 3000 &&
-                                item.itemType <= 3003) {
-
-                            // Check if this exact item (type and location) was processed
+                        if (!currentItems.contains(item)) {
                             if (!processedItemPickups.contains(item)) {
+                                // Convert to 1-5 range for handling
+                                int itemType = item.itemType - 3000;
                                 Log.d(TAG, String.format("Item pickup detected: type %d at position (%d,%d)",
-                                        (item.itemType - 3000), item.x, item.y));
+                                        itemType, item.x, item.y));
 
-                                clientController.handleItemPickup(item.itemType - 3000);
-                                processedItemPickups.add(item);
+                                if (itemType >= 1 && itemType <= 5) {
+                                    clientController.handleItemPickup(itemType);
+                                    processedItemPickups.add(item);
+                                }
 
-                                // Clean up old processed items that are no longer on the board
                                 processedItemPickups.removeIf(processed ->
                                         !itemsPresent.contains(processed) &&
                                                 !processed.equals(item));
@@ -164,9 +239,59 @@ public class GridPollerTask {
         }
     }
 
+    private void updatePlayerStats(int[][] boardState) {
+        try {
+            // Find our tank based on raw server value pattern (10xxxxxx where x is tank ID)
+            int tankId = -1;
+            for (int i = 0; i < boardState.length && tankId == -1; i++) {
+                for (int j = 0; j < boardState[i].length; j++) {
+                    int value = boardState[i][j];
+                    if (value >= 10000000 && value < 20000000) {
+                        tankId = (value - 10000000) / 10000;
+                        break;
+                    }
+                }
+            }
+
+            if (tankId != -1) {
+                playerData.setTankId(tankId);
+                int oldLife = playerData.getTankLife();
+
+                // Check if repair kit should heal
+                if (playerData.getRepairKitCount() > 0) {
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime < playerData.getRepairKitExpiration()) {
+                        // If health isn't full, send request to server to get updated health
+                        if (oldLife < 100) {
+                            clientController.getLifeAsync(tankId, 0);
+                            Log.d(TAG, "Repair kit active, requesting health update. Current health: " + oldLife);
+                        }
+                    } else {
+                        // Repair kit expired
+                        playerData.decrementPowerUps(5);
+                        Log.d(TAG, "Repair kit expired and removed");
+                    }
+                } else {
+                    // Normal health update when no repair kit
+                    clientController.getLifeAsync(tankId, 0);
+                }
+
+                // Update builder and soldier health as needed
+                if (playerData.getBuilderNumber() > 0) {
+                    clientController.getLifeAsync(tankId, 1);
+                }
+
+                if (playerData.getSoldierEjected()) {
+                    clientController.getLifeAsync(tankId, 2);
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating player stats: " + e.getMessage());
+        }
+    }
+
     public void stop() {
         Log.d(TAG, "Stopping GridPollerTask");
-//        Log.d(TAG, replayData.toString());
         isRunning = false;
         currentProcessor = null;
         processedItemPickups.clear();

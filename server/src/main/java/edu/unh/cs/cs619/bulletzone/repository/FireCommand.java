@@ -5,20 +5,21 @@ import org.springframework.stereotype.Component;
 
 import java.util.TimerTask;
 
+import edu.unh.cs.cs619.bulletzone.model.Bridge;
 import edu.unh.cs.cs619.bulletzone.model.Bullet;
 import edu.unh.cs.cs619.bulletzone.model.Direction;
+import edu.unh.cs.cs619.bulletzone.model.Factory;
 import edu.unh.cs.cs619.bulletzone.model.FieldHolder;
 import edu.unh.cs.cs619.bulletzone.model.Game;
+import edu.unh.cs.cs619.bulletzone.model.Improvement;
 import edu.unh.cs.cs619.bulletzone.model.Item;
+import edu.unh.cs.cs619.bulletzone.model.MiningFacility;
 import edu.unh.cs.cs619.bulletzone.model.Playable;
-import edu.unh.cs.cs619.bulletzone.model.Tank;
-import edu.unh.cs.cs619.bulletzone.model.TankDoesNotExistException;
 import edu.unh.cs.cs619.bulletzone.model.Terrain;
 import edu.unh.cs.cs619.bulletzone.model.Wall;
 import edu.unh.cs.cs619.bulletzone.model.events.HitEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.MoveEvent;
 import edu.unh.cs.cs619.bulletzone.model.events.RemoveEvent;
-import edu.unh.cs.cs619.bulletzone.model.events.TurnEvent;
 
 @Component
 public class FireCommand {
@@ -57,13 +58,17 @@ public class FireCommand {
     public void handleRemovingPlayable(FieldHolder currentField, Playable playable, int playableType, Game game){
         playable.getParent().clearField();
         playable.setParent(new FieldHolder(currentField.getPosition()));
-        if (playableType == 1){
+        if (playableType == 0){
             game.removeTank(playable.getId());
-        } else if (playableType == 2){
+        } else if (playableType == 1){
             game.removeBuilder(playable.getId());
-        } else if (playableType == 3){
+        } else if (playableType == 2){
             game.removeSoldier(playable.getId());
             game.getTanks().get(playable.getId()).sethasSoldier(false);
+        } else if (playableType == 3){
+            game.removeShip(playable.getId());
+        } else if (playableType == 4){
+            game.removeFactory(playable.getId());
         }
     }
 
@@ -75,7 +80,7 @@ public class FireCommand {
         boolean isVisible = currentField.isPresent() && (currentField.getEntity() == bullet);
 
         try {
-            if (nextField.isPresent()) {
+            if (nextField.isPresent() && !nextField.getEntity().isImprovement()) {
                 nextField.getEntity().hit(bullet.getDamage());
 
                 //Handle damaging playable
@@ -85,6 +90,7 @@ public class FireCommand {
                     if (p.getLife() <= 0) {
                         handleRemovingPlayable(currentField, p, p.getPlayableType(), game);
                     }
+//                    p.hit(playable.getBulletDamage());
                 //Handle hitting wall
                 } else if (nextField.getEntity().isWall()) {
                     Wall w = (Wall) nextField.getEntity();
@@ -95,17 +101,72 @@ public class FireCommand {
                 } else if (nextField.getEntity().isItem()) {
                     Item item = (Item) nextField.getEntity();
                     nextField.clearField();
-                    EventBus.getDefault().post(new RemoveEvent(item.getIntValue(), item.getPosition()));
+                    EventBus.getDefault().post(new RemoveEvent(item.getIntValue(), item.getPosition(), 0));
                 }
 
                 if (isVisible) {
                     currentField.clearField();
                 }
 
-                EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition(), 0));
                 trackActiveBullets[bullet.getBulletId()] = 0;
                 playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
                 timerTask.cancel();
+            } else if (nextField.isPresent() && nextField.getEntity().isImprovement()){
+                nextField.getEntity().hit(bullet.getDamage());
+                if (nextField.getEntity().isBridge()) {
+                    Bridge bridge = (Bridge) nextField.getEntity();
+                    game.getHolderGrid().get(bridge.getPos()).clearField();
+                    if (isVisible) {
+                        currentField.clearField();
+                    }
+                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition(), 0));
+                    trackActiveBullets[bullet.getBulletId()] = 0;
+                    playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
+                    timerTask.cancel();
+                } else if (nextField.getEntity().isFactory()) {
+                    Playable p = (Playable) nextField.getEntity();
+                    System.out.println("Playable is hit, life: " + p.getLife());
+                    if (p.getLife() <= 0) {
+                        handleRemovingPlayable(currentField, p, p.getPlayableType(), game);
+                    }
+                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition(), 0));
+                    trackActiveBullets[bullet.getBulletId()] = 0;
+                    playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
+                    timerTask.cancel();
+                } else if (nextField.getEntity().isMiningFacility()) {
+                    MiningFacility m = (MiningFacility) nextField.getEntity();
+                    game.getHolderGrid().get(m.getPos()).clearField();
+                    if (isVisible) {
+                        currentField.clearField();
+                    }
+                    EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition(), 0));
+                    trackActiveBullets[bullet.getBulletId()] = 0;
+                    playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
+                    timerTask.cancel();
+                } else {
+                    if (isVisible) {
+                        currentField.clearField();
+                    }
+                    nextField.bulletStoreEntity();
+
+
+
+                    int oldPos = bullet.getPosition();
+                    nextField.setFieldEntity(bullet);
+                    if (currentField.bulletPassedImprovement()) {
+                        currentField.bulletRestoreEntity();
+                    }
+                    bullet.setParent(nextField);
+                    int newPos = bullet.getPosition();
+                    if (oldPos == playable.getPosition()) {
+                        System.out.println("Spawning");
+                        EventBus.getDefault().post(new MoveEvent(bullet.getIntValue(), newPos, newPos));
+                    } else {
+                        System.out.println("Moving");
+                        EventBus.getDefault().post(new MoveEvent(bullet.getIntValue(), oldPos, newPos));
+                    }
+                }
             } else {
 
                 if (nextField.isTerrainPresent()){
@@ -114,7 +175,7 @@ public class FireCommand {
                         if (isVisible) {
                             currentField.clearField();
                         }
-                        EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition()));
+                        EventBus.getDefault().post(new RemoveEvent(bullet.getIntValue(), bullet.getPosition(), 0));
                         trackActiveBullets[bullet.getBulletId()] = 0;
                         playable.setNumberOfBullets(Math.max(0, playable.getNumberOfBullets() - 1));
                         timerTask.cancel();
@@ -124,6 +185,10 @@ public class FireCommand {
 
                 if (isVisible) {
                     currentField.clearField();
+                }
+
+                if (currentField.bulletPassedImprovement()) {
+                    currentField.bulletRestoreEntity();
                 }
 
                 int oldPos = bullet.getPosition();

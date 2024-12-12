@@ -24,5 +24,4 @@ public class SpawnEvent extends GameEvent implements Serializable {
                 " at " + position +
                 super.toString();
     }
-
 }

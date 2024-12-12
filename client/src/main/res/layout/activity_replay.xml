@@ -2,7 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#95C462">
 
     <Button
         android:id="@+id/replay4Button"
@@ -15,7 +16,7 @@
         android:text="Replay 4"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.646"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/clearReplaysButton"
         app:layout_constraintTop_toBottomOf="@+id/replay3Button" />
 
@@ -30,7 +31,7 @@
         android:text="Replay 3"
         app:layout_constraintBottom_toTopOf="@+id/replay4Button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.646"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/clearReplaysButton"
         app:layout_constraintTop_toBottomOf="@+id/replay2Button" />
 
@@ -42,10 +43,12 @@
         android:layout_marginTop="130dp"
         android:layout_marginEnd="265dp"
         android:layout_marginBottom="35dp"
+        android:fontFamily="casual"
         android:text="Select a Replay"
         android:textSize="40sp"
         app:layout_constraintBottom_toTopOf="@+id/replay0Button"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.565"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -88,6 +91,7 @@
         android:text="Replay Last Game"
         app:layout_constraintBottom_toTopOf="@+id/replay1Button"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.558"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
 
@@ -102,7 +106,7 @@
         android:text="Replay 1"
         app:layout_constraintBottom_toTopOf="@+id/replay2Button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.646"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/clearReplaysButton"
         app:layout_constraintTop_toBottomOf="@+id/replay0Button" />
 
@@ -117,7 +121,7 @@
         android:text="Replay 2"
         app:layout_constraintBottom_toTopOf="@+id/replay3Button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.646"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/clearReplaysButton"
         app:layout_constraintTop_toBottomOf="@+id/replay1Button" />
 </androidx.constraintlayout.widget.ConstraintLayout>

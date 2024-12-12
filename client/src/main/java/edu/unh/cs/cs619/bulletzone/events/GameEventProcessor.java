@@ -1,5 +1,6 @@
 package edu.unh.cs.cs619.bulletzone.events;
 
+import android.media.MediaPlayer;
 import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
@@ -9,6 +10,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import edu.unh.cs.cs619.bulletzone.PlayerData;
+import edu.unh.cs.cs619.bulletzone.R;
 import edu.unh.cs.cs619.bulletzone.util.ReplayData;
 
 @EBean
@@ -20,9 +23,12 @@ public class GameEventProcessor {
     private boolean isRegistered = false;
     private EventBus eb = EventBus.getDefault();
     private ReplayData replayData = ReplayData.getReplayData();
+    private PlayerData playerData = PlayerData.getPlayerData();
     private long lastEventTimestamp = 0;
+    private MediaPlayer mediaPlayer;
 
     public void setBoard(int[][] newPlayerBoard, int[][] newTerrainBoard) {
+        mediaPlayer = MediaPlayer.create(playerData.getContext(), R.raw.goblin_hit);
         synchronized (boardLock) {
             // Initialize arrays if needed
             if (playerLayer == null || playerLayer.length != 16) {
@@ -101,6 +107,26 @@ public class GameEventProcessor {
             lastEventTimestamp = event.getTimeStamp();
 
             try {
+                if (event instanceof HitEvent) {
+                    mediaPlayer.start();
+                }
+                if (event instanceof MoveEvent) {
+                    MoveEvent moveEvent = (MoveEvent) event;
+                    if (moveEvent.getTankID() != -1) {
+                        // Only apply move if we own this soldier
+                        if (moveEvent.getTankID() == PlayerData.getPlayerData().getTankId()) {
+                            event.applyTo(playerLayer);
+                        }
+                        return;
+                    }
+                } else if (event instanceof RemoveEvent) {
+                    RemoveEvent removeEvent = (RemoveEvent) event;
+                    // Skip remove if we own this soldier
+                    if (removeEvent.getTankID() == PlayerData.getPlayerData().getTankId()) {
+                        return;
+                    }
+                }
+
                 event.applyTo(playerLayer);
                 Log.d(TAG, "Successfully applied event: " + event);
             } catch (Exception e) {
