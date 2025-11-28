@@ -21,7 +21,7 @@ import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
  * http://10.0.2.2:8080/
  */
 
-@Rest(rootUrl = "yourip",
+@Rest(rootUrl = "yoururl",
         converters = {StringHttpMessageConverter.class, MappingJackson2HttpMessageConverter.class}
 )
 public interface BulletZoneRestClient extends RestClientErrorHandling {
