@@ -17,18 +17,12 @@ import edu.unh.cs.cs619.bulletzone.util.GridWrapper;
 import edu.unh.cs.cs619.bulletzone.util.IntWrapper;
 import edu.unh.cs.cs619.bulletzone.util.LongWrapper;
 
-/** "http://stman1.cs.unh.edu:6191/games"
- * "http://10.0.0.145:6191/games"
+/** 
  * http://10.0.2.2:8080/
- * Created by simon on 10/1/14.
  */
 
-@Rest(rootUrl = "http://stman1.cs.unh.edu:61902/games",
-//@Rest(rootUrl = "http://stman1.cs.unh.edu:6192/games",
-//@Rest(rootUrl = "http://stman1.cs.unh.edu:61942/games",
+@Rest(rootUrl = "yourip",
         converters = {StringHttpMessageConverter.class, MappingJackson2HttpMessageConverter.class}
-        // TODO: disable intercepting and logging
-        // , interceptors = { HttpLoggerInterceptor.class }
 )
 public interface BulletZoneRestClient extends RestClientErrorHandling {
     void setRootUrl(String rootUrl);
